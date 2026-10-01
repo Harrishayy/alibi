@@ -35,7 +35,7 @@ Captions have at most 8 words, are in sentence case and never use "!". Each stay
 | 7 | 0:42–0:49 | Mac notch | The session ends. The **verdict alert** blooms to 440 pt: `✓ Done` in black on green, a 3-frame strip, [See proof] [Something's wrong?]. | 64 pt `celebrate` with bloom | **Done only when the evidence agrees.** | Take M2, at 3:00 | Notch crop |
 | 8 | 0:49–0:57 | Dashboard, verdict | **Verdict reveal.** The card rises, the pill blurs in, the % counts up to 78 while the meter fills, claw confetti bursts, and the contact sheet sits below as the proof. | 96 px `celebrate` | **Every verdict comes with proof.** | Take M3: reload `http://127.0.0.1:8765/?moment=verdict` within 10 min of M2 | Browser crop on the Now card and contact sheet |
 | 9 | 0:57–1:04 | Dashboard, contact sheet | Click a genuinely ambiguous frame (e.g. hand reaching for an eraser, labelled idle) and relabel it on task. The popover scales from the dot, the dot recolours and the % ticks up. Pinch says: "Fair. I've changed that one." | `surprise` → nod | **Wrong call? One click fixes it.** | Take M3, continued | Browser crop on the sheet. Cursor visible, moving slowly. |
-| 10 | 1:04–1:12 | Dashboard, hero and week | Scroll up to the hero strip, which reads "You claimed 3h 10m. I saw 2h 52m." The streak pill rolls to "6 days · 1 freeze left". Scroll down to the week dots and the claimed/seen bars. | 64 px `reading` | **Claimed versus seen, every single night.** | Take M4 (seeded week) | Browser crop, one slow trackpad scroll |
+| 10 | 1:04–1:12 | Dashboard, hero and week | Scroll up to the hero, which reads "Claimed 5h 48m this week. Seen 4h 3_m." (the seeded week plus M2, so the seen minutes vary). The streak pill reads "1 day". Scroll down to the week dots and the claimed/seen bars. | 64 px `reading` | **Claimed versus seen, every single night.** | Take M4 (seeded week) | Browser crop, one slow trackpad scroll |
 | 11 | 1:12–1:19 | iPhone app | Today: Pinch 160 plus the verdict card. Swipe to Week (paired bars), then Health ("Synced 2 min ago"). | 160 pt `celebrate`, then `idle` | **Phone, laptop and desk: one honest record.** | Take P1 | Phone centred on `#000`, as in shot 4 |
 | 12 | 1:19–1:24 | Two-up: web | Partial and slacked reveals side by side: shrug and "Partly. 17 of 25 minutes on task." next to supportive and "Slacked, by my count. Tap any frame if I got it wrong." | `partial` · `supportive` | **Bad days get honesty, never shame.** | Take W1 (fixtures, automated) | Two 960×1080 halves |
 | 13 | 1:24–1:30 | End card | Pinch 160 breathing (`idle`). "Alibi" and "Built for the NVIDIA London Claw Agent Challenge" sit in `ink-2`, with the witness line from §3. | `idle` | **Say it. Do it. Alibi checks.** | `cards/record.py` → `99-end.mp4` | Full frame |
@@ -85,11 +85,14 @@ At the start of pre-flight, run `./alibi.sh status`. It prints `witness: …`, a
 
 ## 4. Capture takes (record order)
 
-The **stage driver** is `docs/design/demo/stage.py` (IMPLEMENTATION K4). All takes use port 8765 and a fresh copy of the seeded week:
+The **stage driver** is `docs/design/demo/stage.py` (IMPLEMENTATION K4). All takes use port 8765 and one data folder. Start
+from an empty one, and `stage.py` seeds a fresh week into it (`scripts/seed_demo.py`, no model calls):
 
 ```bash
-rm -rf /tmp/alibi-demo && cp -R data/demo /tmp/alibi-demo
+rm -rf /tmp/alibi-demo /tmp/alibi-demo2
 ```
+
+Don't copy `data/demo`: it has picked up test sessions since it was seeded.
 
 `--phone` copies the main phone key and enables the `:8766` listener, so the installed iPhone app connects without a rebuild.
 
@@ -175,6 +178,12 @@ iMovie's "Lower third" title with a custom font can't carry the exact pill style
 - [ ] Run `./alibi.sh test | rg -c FAILED`. It must print `0`.
 - [ ] Run `bash scripts/build_native.sh | tail -1`. It must print `Built Alibi.app (…)`. Then `./alibi.sh down && ./alibi.sh up`, and click **Allow** when macOS asks once for Documents access (the app was re-signed). Without the click, the daemon hangs at startup.
 - [ ] The other session has paused daemon work (ask A9). Run `pgrep -fl "alibi"`; it must show nothing, or only our processes. **Quit Alibi.app**: if it finds no daemon it starts one on the real data, and two islands would fight over the notch.
+- [ ] The island sits on the notch. It anchors to the MacBook screen once, at launch: if Alibi started while the lid
+  was closed or the external display was main, it floats on the external display instead. Fix: lid open, then
+  `./alibi.sh down && ./alibi.sh up`.
+- [ ] No habit block is offered during the takes. The island offers a planned block (`habits.yaml` schedules) until 30 min
+  after it ends. Tonight the last one, Portfolio 20:00–20:45, stops at 21:15. On another day, check Today on the dashboard
+  first and record outside planned blocks.
 - [ ] Witness wording chosen (§3).
 
 **Mac**

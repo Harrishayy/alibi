@@ -1,35 +1,35 @@
 {
- "now": 1790875383.0,
+ "now": 1790875677.994208,
  "session": null,
  "alert": {
-  "id": 1790875380000000000,
-  "ts": 1790875380.0,
+  "id": 1790875676648790000,
+  "ts": 1790875676.648791,
   "kind": "verdict",
-  "text": "Partly. 17 of 25 minutes on task. The phone had the rest.",
+  "text": "Time's up. Drawing: partial. 54% on task, 6 looks at the phone. Streak holds at 1 day. Your word is worth 77% this week.",
   "image": null,
   "session_id": 11,
   "habit": "drawing",
-  "habit_label": "Drawing",
   "verdict": "partial",
-  "ratio": 0.68,
+  "ratio": 0.5384615384615384,
   "ended_early": false,
   "missed": false,
-  "line": "Partly.",
-  "image_url": "/files/evidence/6.jpg",
+  "line": "Drawing: PARTIAL — 54% on task over 13 samples (phone ×6).",
   "actions": [
    {
-    "label": "See proof",
+    "label": "Watch reel",
+    "url": "/api/reel?session=11"
+   },
+   {
+    "label": "Fix samples",
     "url": "/#session-11"
    },
    {
-    "label": "Fix a moment",
-    "url": "/#session-11"
-   },
-   {
-    "label": "Go again",
-    "say": "drawing for 25 min"
+    "label": "Again 2m",
+    "say": "drawing for 2 min"
    }
-  ]
+  ],
+  "image_url": "/files/evidence/6.jpg",
+  "habit_label": "Drawing"
  },
  "habits": [
   {
@@ -73,31 +73,31 @@
  "witness_label": "Apple Vision",
  "text_model": "rules",
  "daemon": {
-  "up_since": 1790872200.0
+  "up_since": 1790875555.255223
  },
  "today": {
-  "sessions": 2,
-  "verified_min": 67,
-  "declared_min": 75,
+  "sessions": 5,
+  "verified_min": 53,
+  "declared_min": 59,
   "habits_done": 2,
   "habits_total": 5,
   "tally": "2/5",
   "verdicts": {
    "done": 1,
    "partial": 1,
-   "slacked": 0
+   "slacked": 3
   }
  },
  "recent_verdict": {
   "id": 11,
   "habit": "drawing",
   "modality": "physical",
-  "declared_min": 25,
-  "started_at": 1790873880.0,
-  "ends_at": 1790875380.0,
-  "ended_at": 1790875380.0,
+  "declared_min": 2,
+  "started_at": 1790875555.4915469,
+  "ends_at": 1790875675.4915469,
+  "ended_at": 1790875676.6088269,
   "status": "done",
-  "on_task_ratio": 0.68,
+  "on_task_ratio": 0.5384615384615384,
   "verdict": "partial",
   "evidence_path": null,
   "artefact": null,
@@ -105,9 +105,9 @@
   "evidence_url": "/files/evidence/6.jpg",
   "labels": [
    {
-    "ts": 1790873890.0,
+    "ts": 1790875555.513259,
     "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
+    "note": "hands on the work",
     "label_text": "On task",
     "frame_url": "/files/frames/6/1790798400.jpg",
     "reused": false,
@@ -115,129 +115,49 @@
     "learned_from": null
    },
    {
-    "ts": 1790873920.0,
+    "ts": 1790875565.561347,
     "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
+    "note": "hands on the work",
     "label_text": "On task",
     "frame_url": "/files/frames/6/1790798460.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790873950.0,
+    "ts": 1790875575.595762,
     "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
+    "note": "hands on the work",
     "label_text": "On task",
     "frame_url": "/files/frames/6/1790798520.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790873980.0,
+    "ts": 1790875585.847183,
     "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
+    "note": "hands on the work",
     "label_text": "On task",
     "frame_url": "/files/frames/6/1790798580.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790874010.0,
+    "ts": 1790875595.8843231,
     "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
+    "note": "hands on the work",
     "label_text": "On task",
     "frame_url": "/files/frames/6/1790798640.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790874040.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798700.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874070.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798760.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874100.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798820.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874130.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798880.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874160.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798940.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874190.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790799000.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874220.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798400.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874250.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798460.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874280.0,
+    "ts": 1790875605.9137821,
     "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
+    "note": "phone in hand",
     "label_text": "On your phone",
     "frame_url": "/files/frames/6/1790799060.jpg",
     "reused": false,
@@ -245,189 +165,59 @@
     "learned_from": null
    },
    {
-    "ts": 1790874310.0,
+    "ts": 1790875616.099998,
     "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
+    "note": "phone in hand",
     "label_text": "On your phone",
     "frame_url": "/files/frames/6/1790799120.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790874340.0,
+    "ts": 1790875626.135657,
     "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
+    "note": "phone in hand",
     "label_text": "On your phone",
     "frame_url": "/files/frames/6/1790799180.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790874370.0,
+    "ts": 1790875636.16355,
     "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
+    "note": "phone in hand",
     "label_text": "On your phone",
     "frame_url": "/files/frames/6/1790799300.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790874400.0,
+    "ts": 1790875646.353565,
     "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
+    "note": "phone in hand",
     "label_text": "On your phone",
     "frame_url": "/files/frames/6/1790799420.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790874430.0,
+    "ts": 1790875656.3762372,
     "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
+    "note": "phone in hand",
     "label_text": "On your phone",
     "frame_url": "/files/frames/6/1790799480.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    },
    {
-    "ts": 1790874460.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799540.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874490.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799600.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874520.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799660.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874550.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799720.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874580.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799780.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874610.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799840.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874640.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799900.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874670.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799960.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874700.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790800080.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874730.0,
-    "label": "phone",
-    "note": "phone in hand, sketchbook untouched",
-    "label_text": "On your phone",
-    "frame_url": "/files/frames/6/1790799060.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874760.0,
+    "ts": 1790875666.404157,
     "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798520.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874790.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798580.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874820.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798640.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874850.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
+    "note": "hands on the work",
     "label_text": "On task",
     "frame_url": "/files/frames/6/1790798700.jpg",
     "reused": false,
@@ -435,200 +225,41 @@
     "learned_from": null
    },
    {
-    "ts": 1790874880.0,
+    "ts": 1790875676.601384,
     "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
+    "note": "hands on the work",
     "label_text": "On task",
     "frame_url": "/files/frames/6/1790798760.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874910.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798820.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874940.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798880.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790874970.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798940.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875000.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790799000.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875030.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798400.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875060.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798460.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875090.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798520.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875120.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798580.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875150.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798640.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875180.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798700.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875210.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798760.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875240.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798820.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875270.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798880.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875300.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798940.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875330.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790799000.jpg",
-    "reused": false,
-    "corrected_from": null,
-    "learned_from": null
-   },
-   {
-    "ts": 1790875360.0,
-    "label": "on_task",
-    "note": "pencil on paper, sketchbook open",
-    "label_text": "On task",
-    "frame_url": "/files/frames/6/1790798400.jpg",
-    "reused": false,
+    "reused": true,
     "corrected_from": null,
     "learned_from": null
    }
   ],
   "reel_url": null,
-  "on_task_so_far": 0.68,
+  "on_task_so_far": 0.5384615384615384,
   "day": "2026-10-01",
   "done_at": 0.7,
   "partial_at": 0.4,
-  "score_line": "You were on task 68% — 2% short of a full tick.",
+  "score_line": "You were on task 54% — 16% short of a full tick.",
   "coverage": 1.0,
   "time_coverage": 1.0,
-  "elapsed_min": 25,
-  "seen_ratio": 0.68,
-  "camera_ratio": 0.68,
+  "elapsed_min": 2,
+  "seen_ratio": 0.5384615384615384,
+  "camera_ratio": 0.5384615384615384,
   "screen_ratio": null,
-  "verified_min": 17,
+  "verified_min": 1,
   "signals_reason": null,
-  "why": "Score = how many camera checks showed you working (camera 68%).",
-  "summary": "Partly. 17 of 25 minutes on task. The phone had the rest.",
-  "ended_ago_s": 3
+  "why": "Score = how many camera checks showed you working (camera 54%).",
+  "summary": "Drawing: partial. 54% on task, 6 looks at the phone.",
+  "ended_ago_s": 1,
+  "last_frame_url": "/files/frames/6/1790798760.jpg"
  },
  "status_text": "Idle — nothing declared",
  "pinch": {
   "mood": "idle",
   "event": "partial",
-  "seq": 1790875380000,
-  "age_s": 3.0,
-  "line": "Partly. 17 of 25 min seen."
+  "seq": 1790875676648,
+  "age_s": 1.3,
+  "line": "Partly. 1 of 2 min seen."
  }
 }

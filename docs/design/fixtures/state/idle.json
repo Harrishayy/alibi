@@ -1,5 +1,5 @@
 {
- "now": 1790873700.0,
+ "now": 1790875370.4183722,
  "session": null,
  "alert": null,
  "habits": [
@@ -44,19 +44,19 @@
  "witness_label": "Apple Vision",
  "text_model": "rules",
  "daemon": {
-  "up_since": 1790872200.0
+  "up_since": 1790875370.028407
  },
  "today": {
-  "sessions": 1,
-  "verified_min": 50,
-  "declared_min": 50,
+  "sessions": 4,
+  "verified_min": 51,
+  "declared_min": 57,
   "habits_done": 1,
   "habits_total": 5,
   "tally": "1/5",
   "verdicts": {
    "done": 1,
    "partial": 0,
-   "slacked": 0
+   "slacked": 3
   }
  },
  "recent_verdict": null,
