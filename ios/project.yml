@@ -16,6 +16,7 @@ targets:
     platform: iOS
     sources:
       - path: AlibiPhone
+      - path: Shared
       - path: Generated/AlibiConfig.plist
         buildPhase: resources
         optional: true
@@ -25,17 +26,27 @@ targets:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
         com.apple.developer.healthkit.background-delivery: true
+        com.apple.security.application-groups: [group.app.theultras.alibi]
+        com.apple.developer.family-controls: true
+    dependencies:
+      - target: AlibiActivityMonitor
+      - target: AlibiShieldConfig
+      - target: AlibiShieldAction
     info:
       path: AlibiPhone/Info.plist
       properties:
         CFBundleDisplayName: Alibi
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIRequiresFullScreen: true
         UIBackgroundModes: [fetch, processing]
-        BGTaskSchedulerPermittedIdentifiers: [app.theultras.alibi.sync]
-        NSHealthShareUsageDescription: "Alibi reads your steps, sleep, mindful minutes and workouts so it can check your health habits. Nothing leaves your home network except to your own Mac."
+        BGTaskSchedulerPermittedIdentifiers: [app.theultras.alibi.sync, app.theultras.alibi.live]
+        NSHealthShareUsageDescription: "Alibi reads your activity, sleep, heart rate, mindful minutes, daylight, moods and workouts so it can check your habits. It only goes to the Alibi app on your own Mac."
         NSHealthUpdateUsageDescription: "Alibi never writes to Health."
-        NSLocalNetworkUsageDescription: "Alibi sends your daily Health totals to the Alibi app on your Mac."
+        NSMotionUsageDescription: "Alibi notices whether you're still, walking or driving, and when you pick up your phone, so it can tell if a focus session really stayed focused."
+        NSLocationWhenInUseUsageDescription: "Alibi saves your home as a small circle on this phone. Your Mac only ever learns at home: yes or no, never where you are."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "With Always, Alibi can notice when you leave or get home even while it's closed (for walk and gym habits, and away-from-desk checks). Only at home: yes/no is sent to your Mac."
+        NSLocalNetworkUsageDescription: "Alibi sends your Health, motion and Focus updates to the Alibi app on your Mac."
         NSBonjourServices: [_http._tcp]
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
@@ -44,4 +55,66 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.theultras.alibi
         ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        GENERATE_INFOPLIST_FILE: NO
+
+  # Screen Time extensions (Family Controls). Embedded in the app; they talk to it only through the App Group.
+  AlibiActivityMonitor:
+    type: app-extension
+    platform: iOS
+    sources: [AlibiActivityMonitor, Shared]
+    entitlements:
+      path: AlibiActivityMonitor/AlibiActivityMonitor.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups: [group.app.theultras.alibi]
+    info:
+      path: AlibiActivityMonitor/Info.plist
+      properties:
+        CFBundleDisplayName: Alibi Activity Monitor
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).AlibiActivityMonitor
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.theultras.alibi.monitor
+        GENERATE_INFOPLIST_FILE: NO
+  AlibiShieldConfig:
+    type: app-extension
+    platform: iOS
+    sources: [AlibiShieldConfig, Shared]
+    entitlements:
+      path: AlibiShieldConfig/AlibiShieldConfig.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups: [group.app.theultras.alibi]
+    info:
+      path: AlibiShieldConfig/Info.plist
+      properties:
+        CFBundleDisplayName: Alibi Shield
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettingsUI.shield-configuration-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).AlibiShieldConfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.theultras.alibi.shieldconfig
+        GENERATE_INFOPLIST_FILE: NO
+  AlibiShieldAction:
+    type: app-extension
+    platform: iOS
+    sources: [AlibiShieldAction]
+    entitlements:
+      path: AlibiShieldAction/AlibiShieldAction.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups: [group.app.theultras.alibi]
+    info:
+      path: AlibiShieldAction/Info.plist
+      properties:
+        CFBundleDisplayName: Alibi Shield Action
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettings.shield-action-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).AlibiShieldAction
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.theultras.alibi.shieldaction
         GENERATE_INFOPLIST_FILE: NO

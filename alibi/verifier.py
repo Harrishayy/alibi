@@ -148,7 +148,7 @@ def finalise(con, session, artefact: str | None = None, keep_end: bool = False) 
     probe = dict(session)
     probe["ended_at"] = session["ended_at"] if keep_end else None
     cov = _covered(con, probe)
-    ratio = seen * cov
+    ratio, sig_reason = _fuse(con, probe, seen * cov, cov)
     verdict = verdict_for(ratio)
     path = evidence.contact_sheet(session, cam, ratio, verdict) if cam else None
     db.finish_session(con, session["id"], on_task_ratio=ratio, verdict=verdict, evidence_path=path, artefact=artefact,
@@ -163,7 +163,72 @@ def finalise(con, session, artefact: str | None = None, keep_end: bool = False) 
     if win and mod != "physical":
         top = window_breakdown(con, session)[:2]
         line += "; screen: " + ", ".join(f"{short_title(w['title'])} {w['share']:.0%}" for w in top)
+    if sig_reason:
+        line += f"; lowered by phone/Mac signals: {sig_reason[0].lower() + sig_reason[1:]}"
     return line + "."
+
+
+def _fuse(con, session, ratio: float, cov: float) -> tuple[float, str | None]:
+    """Phone/Mac signals (docs/SIGNALS.md) may LOWER the score with a stated reason; they never raise it. The decision
+    is recorded as events(source='alibi', kind='signals_cap') so the dashboard and the voice can say why."""
+    try:
+        from . import signals
+        new, reason, detail = signals.cap(con, session, ratio, cov)
+        prior = signals.last_cap(con, session["id"])
+        if reason and new < ratio:
+            db.add_event(con, "alibi", "signals_cap", {"capped": True, "from": round(ratio, 4), "to": new,
+                                                       "reason": reason, **detail}, session_id=session["id"])
+            return min(ratio, new), reason
+        if prior:
+            db.add_event(con, "alibi", "signals_cap", {"capped": False, **detail}, session_id=session["id"])
+    except Exception as e:
+        print(f"[alibi] signal fusion skipped: {e!r}", flush=True)
+    return ratio, None
+
+
+LATE_WINDOW_S = 12 * 3600          # phone rows for a session that ended this recently can still lower its score
+
+
+def refuse_late(con, session_id: int, now: float | None = None) -> dict | None:
+    """Phone rows usually arrive after the verdict (BGAppRefresh / the 180 s poll). Re-run signal fusion on a finished
+    session and LOWER its score if the late rows say so (never raise). Records signals_cap {late: true}.
+    Returns {from, to, verdict, reason} when the score changed, else None. Never raises."""
+    try:
+        from . import signals
+        s = db.get_session(con, session_id)
+        if s is None or s["status"] != "done" or s["on_task_ratio"] is None or not s["ended_at"]:
+            return None
+        s = dict(s)
+        if (now or time.time()) - s["ended_at"] > LATE_WINDOW_S:
+            return None
+        old = float(s["on_task_ratio"])
+        if old <= 0:
+            return None
+        cov = _covered(con, s)
+        new, reason, detail = signals.cap(con, s, old, cov)
+        if not reason or new >= old - 0.005:
+            return None
+        new = round(min(old, new), 4)
+        verdict = verdict_for(new)
+        con.execute("UPDATE sessions SET on_task_ratio=?, verdict=? WHERE id=? AND status='done'",
+                    (new, verdict, session_id))
+        con.commit()
+        db.add_event(con, "alibi", "signals_cap", {"capped": True, "late": True, "from": round(old, 4), "to": new,
+                                                   "verdict_was": s["verdict"], "verdict": verdict,
+                                                   "reason": reason, **detail}, session_id=session_id)
+        return {"from": round(old, 4), "to": new, "verdict": verdict, "verdict_was": s["verdict"], "reason": reason}
+    except Exception as e:
+        print(f"[alibi] late signal fusion skipped: {e!r}", flush=True)
+        return None
+
+
+def _cap_reason(con, session) -> str | None:
+    try:
+        from . import signals
+        c = signals.last_cap(con, session["id"])
+        return c.get("reason") if c else None
+    except Exception:
+        return None
 
 
 def _covered(con, session) -> float:
@@ -235,6 +300,9 @@ def stats(con, session, cam=None, windows=None) -> dict:
             why += f"; nothing was seen for {dk} of {session['declared_min']} min (laptop asleep?)"
         else:
             why += f"; only {elapsed} of {session['declared_min']} min happened"
+    cap_reason = _cap_reason(con, session) if session["status"] == "done" else None
+    if cap_reason:
+        why += f"; lowered because {cap_reason[0].lower() + cap_reason[1:]}"
     t = config.habits().get("verdict", {})
     done_at, partial_at = float(t.get("done", 0.7)), float(t.get("partial", 0.4))
     score_line = None
@@ -246,11 +314,18 @@ def stats(con, session, cam=None, windows=None) -> dict:
         else:
             score_line = f"You were on task {r:.0%} — {round((partial_at - r) * 100)}% short of a partial."
     return {"done_at": done_at, "partial_at": partial_at, "score_line": score_line, "coverage": round(cov, 3), "time_coverage": round(tcov, 3), "elapsed_min": elapsed, "seen_ratio": seen, "camera_ratio": cam_ratio,
-            "screen_ratio": scr, "verified_min": round((r or 0) * session["declared_min"]), "why": why + "."}
+            "screen_ratio": scr, "verified_min": round((r or 0) * session["declared_min"]),
+            "signals_reason": cap_reason, "why": why + "."}
 
 
 def voice(con, s) -> str:
-    """The dry witness's verdict line for notify() (F8). Numbers stay on the dashboard."""
+    """The dry witness's verdict line for notify() (F8), plus why phone/Mac signals lowered it, if they did."""
+    line = _voice(con, s)
+    reason = _cap_reason(con, s)
+    return f"{line} {reason}." if reason and reason.lower() not in line.lower() else line
+
+
+def _voice(con, s) -> str:
     name = config.display_name(s["habit"])
     v, r = s["verdict"], s["on_task_ratio"] or 0
     cam = camera_labels(con, s)

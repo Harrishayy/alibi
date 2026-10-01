@@ -8,6 +8,8 @@ import shutil
 os.environ["ALIBI_HABITS"] = shutil.copy(ROOT / "habits.yaml", os.environ["ALIBI_DATA_DIR"] + "/habits.yaml")
 os.environ.setdefault("NOTIFY", "print")
 os.environ.setdefault("VISION_BACKEND", "mock")
+os.environ.setdefault("ALIBI_FOCUS_SHORTCUTS", "0")  # never run the user's real Shortcuts from a test
+os.environ.setdefault("MAC_SIGNALS", "0")          # the real Mac (idle, notifications, git) only where a test asks
 os.environ.setdefault("PACE_HOURS", "")             # pace reminders only where a test asks for them
 
 

@@ -7,7 +7,8 @@ c = TestClient(api.app)
 h = c.get("/api/health").json()
 for x in h["checks"]:
     print(f"    {'ok ' if x['ok'] else 'fix'}  {x['label']:<16} {x['detail']}" + (f"  → {x['fix']}" if x["fix"] else ""))
-check({x["key"] for x in h["checks"]} == {"camera", "windows", "witness", "text", "strava", "island"}, "every check present")
+check({x["key"] for x in h["checks"]} == {"camera", "windows", "witness", "text", "strava", "island",
+                                         "full_disk", "focus_shortcuts", "phone_stream"}, "every check present")
 habits = c.get("/api/habits").json()["habits"]
 habits["guitar"] = {"modality": "physical", "aliases": "guitar, practice scales", "weekly_target_min": 120,
                     "default_min": 20, "on_task_looks_like": "hands on a guitar"}

@@ -114,6 +114,7 @@ def build_json(now: float | None = None) -> dict:
     tt = sum(r["target_min"] for r in rows)
     tp = sum(r["pace_target_min"] for r in rows)
     out = {"week_start": t0, "generated_at": now, "rows": rows, "running": running, "health": _health(con, now, cfg),
+           "signals": _signals_today(con, now),
            "alibi_score": round(tv / td, 3) if td else None,
            "totals": {"verified_min": tv, "declared_min": td, "target_min": tt, "pace_min": tp,
                       "week_frac": round(frac, 3), "pct_of_target": round(tv / tt, 3) if tt else None,
@@ -191,6 +192,16 @@ def _health(con, now, cfg) -> list[dict]:
         return []
 
 
+def _signals_today(con, now) -> dict | None:
+    """Today's phone/Mac picture (screen time, pickups, notifications, heart, git) for the report card."""
+    try:
+        from . import signals
+        return signals.day_summary(con, dt.date.fromtimestamp(now).isoformat())
+    except Exception as e:
+        print(f"[alibi] signal summary failed: {e!r}", flush=True)
+        return None
+
+
 def table_text(r: dict) -> str:
     lines = [f"{'habit':<12}{'verified':>10}{'declared':>10}{'target':>8}  status"]
     for x in r["rows"]:
@@ -204,7 +215,8 @@ def table_text(r: dict) -> str:
         lines.append(f"{g['habit']:<12}{g['qualifying']:>4}/{g['target_sessions']} runs ≥{g['min_km']} km{'':>9}{st}")
     for x in r.get("health") or []:
         st = "no data yet" if x["status"] == "no_data" else f"{x['days_met']}/{x['days_checked']} days"
-        lines.append(f"{x['habit']:<12}{x['metric_label'].lower()} ≥ {x['target_text']}/day{'':>4}{st}")
+        cmp = "≤" if x.get("lower_is_better") else "≥"
+        lines.append(f"{x['habit']:<12}{x['metric_label'].lower()} {cmp} {x['target_text']}/day{'':>4}{st}")
     return "\n".join(lines)
 
 

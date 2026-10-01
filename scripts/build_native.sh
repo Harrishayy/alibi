@@ -5,6 +5,8 @@ cd "$(dirname "$0")/.."
 mkdir -p bin
 swiftc -O native/witness.swift -o bin/alibi-witness
 swiftc -O native/Island.swift -o bin/alibi-island
+# Presence/meeting/media/Focus snapshot for alibi/mac_signals.py. Permission-free reads; never prompts.
+swiftc -O native/sense.swift -o bin/alibi-sense
 # Calendar helper: a command-line tool needs its usage strings embedded, or macOS refuses (or kills) the request.
 CAL_PLIST=$(mktemp -t alibi-calendar-plist)
 cat > "$CAL_PLIST" <<CALPLIST
@@ -19,7 +21,7 @@ cat > "$CAL_PLIST" <<CALPLIST
 CALPLIST
 swiftc -O native/calendar.swift -o bin/alibi-calendar -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker "$CAL_PLIST"
 rm -f "$CAL_PLIST"
-echo "Built bin/alibi-witness, bin/alibi-island and bin/alibi-calendar"
+echo "Built bin/alibi-witness, bin/alibi-island, bin/alibi-sense and bin/alibi-calendar"
 
 # Alibi.app — permissions (Camera, Accessibility) belong to "Alibi", and it can sit in Login Items.
 APP=Alibi.app
@@ -43,6 +45,7 @@ PLIST
 mkdir -p $APP/Contents/Resources
 cp bin/alibi-island $APP/Contents/MacOS/Alibi
 cp bin/alibi-calendar $APP/Contents/MacOS/alibi-calendar   # calendar_sync prefers this copy: access belongs to "Alibi"
+cp bin/alibi-sense $APP/Contents/MacOS/alibi-sense         # mac_signals prefers this copy (Full Disk Access → "Alibi")
 echo "$PWD" > $APP/Contents/Resources/root.txt
 codesign --force -s - $APP >/dev/null 2>&1 || true
 echo "Built $APP (double-click it, or ./alibi.sh up)"

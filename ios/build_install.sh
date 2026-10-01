@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build the Alibi iPhone companion and install it over USB.
 #   bash ios/build_install.sh            (iPhone connected + unlocked, Alibi running with phone sync on)
+#   BUILD_ONLY=1 bash ios/build_install.sh   (compile + sign only; nothing touches the phone)
 # Bakes this Mac's addresses + the phone key (from data/secrets.json via the running API) into the app.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -19,6 +20,11 @@ plistlib.dump({"endpoints": eps, "key": d["secret"], "mac_name": name or "your M
 print("endpoints:", *eps, sep="\n  ")'
 
 xcodegen generate --quiet
+if [ -n "${BUILD_ONLY:-}" ]; then
+  xcodebuild -project AlibiPhone.xcodeproj -scheme AlibiPhone -configuration Debug -destination "generic/platform=iOS" \
+    -derivedDataPath build -allowProvisioningUpdates -quiet build
+  echo "Built build/Build/Products/Debug-iphoneos/AlibiPhone.app (not installed)."; exit 0
+fi
 DEVICE="${DEVICE:-$(xcrun devicectl list devices 2>/dev/null | awk '/available \(paired\)/ && /iPhone/ {print $3; exit}')}"
 [ -n "$DEVICE" ] || { echo "No paired iPhone found. Connect it with USB and unlock it."; exit 1; }
 xcodebuild -project AlibiPhone.xcodeproj -scheme AlibiPhone -configuration Debug -destination "generic/platform=iOS" \

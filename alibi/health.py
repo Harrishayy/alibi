@@ -90,10 +90,74 @@ def checks() -> dict:
     out[-1]["action"] = None if island else {"label": "Start", "target": "island"}
     out[-1]["details"] = (f"last seen {int(time.time() - seen)} s ago" if seen else "never seen") + \
         " · ./alibi.sh up  (or double-click Alibi.app)"
+    out += signal_checks(con)
     for c in out:
         c.setdefault("action", None)
         c["sentence"] = f"{c['label']}: {c['detail']}" + ("" if c["ok"] else f" {c['fix']}.")
     return {"checks": out, "ok": all(c["ok"] for c in out if c["key"] in ("camera", "windows", "witness", "island"))}
+
+
+_SHORTCUTS: dict = {"at": 0.0, "names": None}
+
+
+def shortcut_names(ttl: float = 120) -> set[str] | None:
+    """Names from `shortcuts list` (cached), or None when the Shortcuts CLI isn't available."""
+    if _SHORTCUTS["names"] is not None and time.time() - _SHORTCUTS["at"] < ttl:
+        return _SHORTCUTS["names"]
+    try:
+        r = subprocess.run(["shortcuts", "list"], capture_output=True, text=True, timeout=5)
+        names = {ln.strip() for ln in r.stdout.splitlines() if ln.strip()} if r.returncode == 0 else None
+    except Exception:
+        names = None
+    _SHORTCUTS.update(at=time.time(), names=names)
+    return names
+
+
+def _ago(s: float) -> str:
+    s = max(0, int(s))
+    return "just now" if s < 90 else f"{s // 60} min ago" if s < 5400 else f"{s // 3600} h ago" if s < 172800 \
+        else f"{s // 86400} days ago"
+
+
+def signal_checks(con) -> list[dict]:
+    """Round-3 rows: Full Disk Access (notifications + Focus), the Alibi Focus shortcuts, the iPhone stream."""
+    from . import mac_signals
+    rows = []
+    st = mac_signals.status()
+    fda = st["full_disk_access"]
+    ok = fda == "ok"
+    rows.append(_check("full_disk", "Notifications & Focus", ok,
+                       "On — Alibi counts notifications (never reads them) and sees your Focus." if ok else
+                       "Alibi can't count your notifications or see your Focus yet — it needs Full Disk Access."
+                       if fda == mac_signals.FDA_TEXT else f"Not available on this Mac ({fda}).",
+                       mac_signals.FDA_FIX if fda == mac_signals.FDA_TEXT else ""))
+    rows[-1]["details"] = (f"notification database: {fda} · Focus: {st['focus']} · helper: {st['sense']} · "
+                           "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
+    names = shortcut_names()
+    want = ("Alibi Focus On", "Alibi Focus Off")
+    have = [n for n in want if names and n in names]
+    ok = len(have) == 2
+    rows.append(_check("focus_shortcuts", "Alibi Focus", ok,
+                       "Ready — your Mac turns on the Alibi Focus during a session, and your iPhone follows." if ok else
+                       "Couldn't check your Shortcuts." if names is None else
+                       "Missing — sessions can't silence your iPhone yet.",
+                       "In the Shortcuts app make two shortcuts named “Alibi Focus On” and “Alibi Focus Off” "
+                       "(Set Focus → Alibi → On / Off), and turn on Share Across Devices in Focus settings"))
+    rows[-1]["details"] = f"found: {', '.join(have) or 'none'} (looked for: {', '.join(want)})"
+    r = con.execute("SELECT ts, source, kind FROM events WHERE source='phone' OR (source='health' AND kind='heart') "
+                    "ORDER BY ts DESC LIMIT 1").fetchone()
+    h = con.execute("SELECT ts FROM events WHERE source='health' ORDER BY ts DESC LIMIT 1").fetchone()
+    last = r["ts"] if r else 0          # health/samples rows are stamped at noon of their day, so they don't count
+    age = time.time() - last if last else None
+    live = age is not None and age < 30 * 60
+    rows.append(_check("phone_stream", "iPhone", live,
+                       f"Streaming — last data {_ago(age)}." if live else
+                       f"Quiet — last data {_ago(age)}." if age is not None else
+                       "Your iPhone hasn't sent anything yet.",
+                       "Open the Alibi app on your iPhone and allow Health, Motion and Screen Time"))
+    rows[-1]["details"] = (f"latest phone row: {r['source']}/{r['kind']}" if r else "no phone rows") + \
+        (f" · latest health row {_ago(time.time() - h['ts'])}" if h else "")
+    return rows
 
 
 def _num(h: dict, field: str, default, cast, key: str):

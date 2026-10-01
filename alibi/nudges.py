@@ -58,20 +58,27 @@ def check(con, session) -> str | None:
     if now - last < cooldown_s():
         return None
     labels = recent_samples(con, session, since=last)[-n:]
-    if len(labels) < n or any(l["label"] == "on_task" for l in labels):
-        return None
     habit = config.spoken_name(session["habit"])
-    secs = int(labels[-1]["ts"] - labels[0]["ts"]) + (config.SAMPLE_EVERY_S if labels[-1]["source"] == "camera"
-                                                       else config.LAPTOP_EVERY_S)
-    mins = round(secs / 60)
-    span = f"{secs} seconds" if secs < 90 else f"{mins} minute{'s' * (mins != 1)}"
-    screen = [l for l in labels if l["source"] == "screen"]
-    if screen and (len(screen) * 2 >= len(labels) or session["modality"] == "digital"):
-        text, worst = _window_line(habit, screen, span), "off_task"
+    screen = []
+    if len(labels) < n or any(l["label"] == "on_task" for l in labels):
+        sig = _signal_reason(con, session, last, now)      # the phone/Mac can drift while the desk looks fine
+        if not sig:
+            return None
+        worst, text = sig[0], sig[1].format(habit=habit)
+        source = "signals"
     else:
-        cams = [l["label"] for l in labels if l["source"] == "camera"]
-        worst = max(set(cams), key=cams.count)
-        text = LINES[worst].format(habit=habit, mins=span)
+        source = "samples"
+        secs = int(labels[-1]["ts"] - labels[0]["ts"]) + (config.SAMPLE_EVERY_S if labels[-1]["source"] == "camera"
+                                                           else config.LAPTOP_EVERY_S)
+        mins = round(secs / 60)
+        span = f"{secs} seconds" if secs < 90 else f"{mins} minute{'s' * (mins != 1)}"
+        screen = [l for l in labels if l["source"] == "screen"]
+        if screen and (len(screen) * 2 >= len(labels) or session["modality"] == "digital"):
+            text, worst = _window_line(habit, screen, span), "off_task"
+        else:
+            cams = [l["label"] for l in labels if l["source"] == "camera"]
+            worst = max(set(cams), key=cams.count)
+            text = LINES[worst].format(habit=habit, mins=span)
     strike = len(past) >= 1
     if strike:
         nth = {1: SECOND}.get(len(past), f"{['Third', 'Fourth', 'Fifth'][min(len(past), 4) - 2]} time. "
@@ -80,11 +87,22 @@ def check(con, session) -> str | None:
         db.add_event(con, "alibi", "strike", {"n": len(past)}, session_id=session["id"], ts=now)
         if config.BLOCK_ON_DRIFT and screen:
             _hide(_most_common_app(screen))
-    db.add_event(con, "alibi", "nudge", {"text": text, "label": worst, "strike": strike}, session_id=session["id"], ts=now)
+    db.add_event(con, "alibi", "nudge", {"text": text, "label": worst, "strike": strike, "from": source},
+                 session_id=session["id"], ts=now)
     notify(text, kind="nudge", session_id=session["id"], habit=session["habit"], label=worst, strike=strike,
            actions=[{"label": "I'm back", "say": "back"}, {"label": "It's on task", "say": "it's on task"},
                     {"label": "Snooze 5m", "say": "snooze 5"}])
     return text
+
+
+def _signal_reason(con, session, since: float, now: float) -> tuple[str, str] | None:
+    """('phone', 'Your phone says Instagram for 10 min. Still {habit}?') from docs/SIGNALS.md rows, or None."""
+    try:
+        from . import signals
+        return signals.nudge_reason(con, session, since, now)
+    except Exception as e:
+        print(f"[alibi] signal nudge skipped: {e!r}", flush=True)
+        return None
 
 
 def _span(secs: float) -> str:
