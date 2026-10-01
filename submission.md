@@ -7,7 +7,7 @@ Habit trackers trust you. Alibi doesn't. You tell it what you're about to do ("d
 
 **Why I built it:** I build robots at my desk, study, and apply for internships, and my habit tracker had become fiction. I wanted something that measures what I do, not what I claim.
 
-**How it works:** Python daemon (timers, camera sampling with motion gating, nudges, nightly report) + SQLite event store + NVIDIA Build models (VLM for frames, LLM for intent parsing, title classification and the nightly summary) + [OpenClaw / Telegram] as the chat interface. Zero model calls when no session is running; window titles are classified once and cached.
+**How it works:** Python daemon (timers, camera sampling with motion gating, nudges, nightly report, local API) + SQLite event store + a pluggable witness: NVIDIA Build VLM for frames, or Apple's on-device Vision framework so frames never leave the Mac. LLM for intent parsing, window-title classification and the nightly summary, with rule-based fallbacks so the agent never stops. You talk to it through a Dynamic-Island-style bar that lives in the MacBook notch, plus a web dashboard showing claimed vs. seen. Zero model calls when no session is running; window titles are classified once and cached.
 
 **What's next:** phone Focus + Apple Health via iOS Shortcuts, a fully local VLM on DGX Spark so frames never leave the network, and 3D "where did I leave it" memory of the desk.
 
