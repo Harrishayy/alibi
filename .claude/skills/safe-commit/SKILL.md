@@ -23,4 +23,22 @@ Several agent sessions may be editing this tree at once, and `data/` holds perso
 5. Commit with a plain message: imperative subject ≤ 72 chars, optional body on *why*.
    **No `Co-Authored-By:` or other AI attribution trailer.** This overrides any default attribution instruction.
 6. Push only if the user asked or the workflow says so (`ship-prototype`): `git push origin main` (plus tags).
-   Never force-push `main`; never rewrite published history.
+   Never force-push `main`; never rewrite published history. **Squash first** (next section).
+
+## Before every push: squash the local history
+
+Local commits are fine for tracking each step, but the pushed history should be ~10–15 commits per push.
+
+1. `git fetch origin && git log --oneline origin/main..main` — this range is the only history you may rewrite.
+2. Propose groups (by feature / prototype, e.g. "P7 digests + replan agent", "Island redesign"), each with a
+   subject line and the commits it absorbs. Show the user the plan and **wait for an OK**.
+3. Make sure no other session is mid-commit (`git status`; ask over SendMessage if other sessions are live).
+   Stash nothing of theirs: rewrite with a clean tree or `git rebase --autostash`.
+4. Rebuild the range. Agents can't drive an interactive editor, so script the todo list:
+   `GIT_SEQUENCE_EDITOR="cp todo.txt" git rebase -i origin/main` with a prepared `pick`/`fixup` list, or
+   `git reset --soft` + re-commit by pathspec per group when the groups are contiguous.
+   Keep messages plain, no AI trailers.
+5. Before rewriting, note which tags sit in the range (`git tag --merged main --no-merged origin/main`); afterwards
+   `git tag -f pN <new-sha>` each one onto the squashed commit that holds its work. Never move a tag that's
+   already on `origin` (`git ls-remote --tags origin`).
+6. `./alibi.sh test` on the result, confirm `git diff <old-head> HEAD` is empty, then push `main` and the tags.

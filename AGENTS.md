@@ -4,7 +4,8 @@ Guide for any coding agent (Claude Code, Codex, Cursor, …) working in this rep
 
 **Alibi** is a habit tracker that checks your alibi: you declare a habit session, a long-running agent gathers
 evidence (desk camera, laptop window titles, macOS signals, Strava, iPhone/Health) and only ticks the habit if
-the evidence agrees. Entry for the NVIDIA London Claw Agent Challenge (applications close **2026-10-02**).
+the evidence agrees. Entry for the NVIDIA London Claw Agent Challenge (entries close **11:59 PM PT, Fri 2 Oct 2026** ≈ 08:00 Sat 3 Oct UK; we aim
+for Friday evening UK. Rules, submission form and judging criteria: `docs/CHALLENGE.md`).
 `PLAN.md` is the source of truth for scope and order.
 
 ## Commands
@@ -68,6 +69,12 @@ data/             runtime data — personal, git-ignored, never commit
   `Co-Authored-By: Claude…` or similar), ever.
 - Prototype milestones are tagged `p0`…`p14` (see PLAN.md). Tag only after the DoD passes.
 - Remote: `origin` → private GitHub repo `nvidia_habits`. Don't force-push `main`.
+- **Squash before push.** Commit small and often locally, but before any push, fold the unpushed commits
+  (`git log origin/main..main`) into a handful of logical commits, so the pushed history stays at roughly 10–15
+  commits per push, not one per step. Group by feature/prototype, not by time. Show the user the proposed grouping
+  and wait for an OK before rewriting. Only rewrite commits that aren't on `origin`; re-point any local `pN` tags
+  to the squashed commit that contains their work; and check `git status` first so you don't rewrite under another
+  session's in-flight commit. Details: `.claude/skills/safe-commit`.
 
 ## Code style
 

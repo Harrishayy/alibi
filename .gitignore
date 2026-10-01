@@ -22,6 +22,8 @@ data/reels/
 data/logs/
 data/demo/
 data/backup-*/
+data/onboarded
+*.bak
 demo/clips/*
 !**/.gitkeep
 
