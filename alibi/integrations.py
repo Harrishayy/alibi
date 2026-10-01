@@ -844,6 +844,8 @@ def phone_app():
 
     from . import routes_phone                   # F7 writes: say and end, tailnet/loopback + header only
     app.include_router(routes_phone.router)
+    from . import routes_agent                   # NemoClaw on the Spark: read context, post briefs (NEMOCLAW.md §5)
+    app.include_router(routes_agent.router)
     return app
 
 

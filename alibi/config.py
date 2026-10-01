@@ -36,8 +36,6 @@ LAPTOP_EVERY_S = int(os.getenv("LAPTOP_EVERY_S", "30"))
 API_HOST = os.getenv("API_HOST", "127.0.0.1")
 API_PORT = int(os.getenv("API_PORT", "8765"))
 INGEST_SECRET = os.getenv("INGEST_SECRET", "")
-# Remote agent (NemoClaw on the DGX Spark, over Tailscale). Non-loopback callers must send this as a bearer token.
-REMOTE_TOKEN = os.getenv("ALIBI_REMOTE_TOKEN", "")
 ALERTS_PATH = DATA_DIR / "alerts.jsonl"
 
 # No key yet? Everything still runs: text falls back to rules, vision to Apple's on-device Vision framework.

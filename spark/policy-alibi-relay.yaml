@@ -1,6 +1,6 @@
 preset:
   name: alibi-relay
-  description: "Alibi relay on the Spark host: the only route from the sandbox to the user's Mac"
+  description: "Alibi relay on the Spark host: the only route from the sandbox to the user's Mac (read context, post briefs)"
 network_policies:
   alibi_relay:
     name: alibi_relay
@@ -11,12 +11,8 @@ network_policies:
         enforcement: enforce
         rules:
           - allow: { method: GET, path: "/status" }
-          - allow: { method: GET, path: "/state" }
-          - allow: { method: GET, path: "/feed" }
-          - allow: { method: GET, path: "/alerts" }
-          - allow: { method: GET, path: "/report" }
-          - allow: { method: GET, path: "/sessions" }
-          - allow: { method: POST, path: "/say" }
-          - allow: { method: POST, path: "/end" }
+          - allow: { method: GET, path: "/context" }
+          - allow: { method: GET, path: "/digests" }
+          - allow: { method: POST, path: "/brief" }
     binaries:
       - { path: /usr/bin/curl }

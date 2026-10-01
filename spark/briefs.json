@@ -1,0 +1,8 @@
+[
+  {"key": "alibi-morning",    "cron": "32 7 * * *",        "kind": "morning",
+   "message": "Alibi morning brief. Use the alibi skill: read /status and /context (and memory/alibi.md). If last_night has a proposal, say whether it was kept. Then post one brief with kind morning and slot = slot_hint.morning from /context. Reply with the brief text."},
+  {"key": "alibi-checkpoint", "cron": "2 12,16,20 * * *",  "kind": "checkpoint",
+   "message": "Alibi checkpoint. Use the alibi skill: read /context and /digests. Post a brief (kind checkpoint, slot = slot_hint.checkpoint) only if a habit's status3 changed since the last digest or a planned block starts within 4 hours; otherwise reply NO_BRIEF."},
+  {"key": "alibi-night",      "cron": "5 22 * * *",        "kind": "night",
+   "message": "Alibi night brief. Use the alibi skill: read /context. Append what slipped today to memory/alibi.md, then post one brief with kind night and slot = slot_hint.night. Reply with the brief text."}
+]
