@@ -17,6 +17,9 @@ VLM_BASE_URL = os.getenv("VLM_BASE_URL", LLM_BASE_URL)
 VLM_MODEL = os.getenv("VLM_MODEL", "")
 
 CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "0"))
+# Judge a one-minute timelapse clip instead of a single frame (video VLM, e.g. nvidia/nemotron-3-nano-omni-30b-a3b-reasoning).
+VLM_VIDEO = os.getenv("VLM_VIDEO", "0") == "1"
+VLM_THINK = os.getenv("VLM_THINK", "1") == "1"         # let the video VLM reason before labelling
 SAMPLE_EVERY_S = int(os.getenv("SAMPLE_EVERY_S", "60"))
 MOTION_THRESHOLD = float(os.getenv("MOTION_THRESHOLD", "6.0"))
 NOTIFY = os.getenv("NOTIFY", "print")

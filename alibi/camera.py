@@ -10,6 +10,8 @@ from . import config, db, witness
 
 _cap = None
 _last = {}          # session_id -> {"ts", "small", "label", "note"}
+_clip = {}          # session_id -> [(ts, jpeg, small)] since the last judgement (VLM_VIDEO: one frame per daemon tick)
+CLIP_MAX = 32
 
 
 def _open():
@@ -42,29 +44,54 @@ def grab(session) -> np.ndarray | None:
     return frame
 
 
+def _video() -> bool:
+    return config.VLM_VIDEO and config.VISION_BACKEND == "nvidia"
+
+
+def _small_jpeg(frame) -> tuple:
+    h, w = frame.shape[:2]
+    frame = cv2.resize(frame, (512, int(512 * h / w)))
+    return frame, cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 70])[1].tobytes()
+
+
+def _gray(frame) -> np.ndarray:
+    return cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (64, 64)).astype(np.float32)
+
+
 def maybe_sample(con, session, force: bool = False) -> dict | None:
     now = time.time()
     last = _last.get(session["id"])
     if not force and last and now - last["ts"] < config.SAMPLE_EVERY_S:
+        if _video():                         # between judgements: keep filming, one frame per tick
+            f = grab(session)
+            if f is not None:
+                buf = _clip.setdefault(session["id"], [])
+                f, j = _small_jpeg(f)
+                buf.append((now, j, _gray(f)))
+                del buf[:-CLIP_MAX]
         return None
     frame = grab(session)
     if frame is None:
         return None
-    h, w = frame.shape[:2]
-    frame = cv2.resize(frame, (512, int(512 * h / w)))
-    jpeg = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 70])[1].tobytes()
+    frame, jpeg = _small_jpeg(frame)
     d = config.FRAMES_DIR / str(session["id"])
     d.mkdir(parents=True, exist_ok=True)
     path = d / f"{int(now)}.jpg"
     path.write_bytes(jpeg)
 
-    small = cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (64, 64)).astype(np.float32)
-    motion = float(np.abs(small - last["small"]).mean()) if last else 999.0
+    small = _gray(frame)
+    clip = _clip.pop(session["id"], [])
+    # video: anything that moved during the minute counts (a phone picked up and put back), not just now vs. last
+    motion = max(float(np.abs(g - last["small"]).mean()) for g in [small] + [c[2] for c in clip]) if last else 999.0
     habits = config.habits()["habits"]
     if last and motion < config.MOTION_THRESHOLD:
         out = {"label": last["label"], "note": last["note"], "reused": True, "backend": "motion-gate"}
     else:
-        out = witness.judge(jpeg, str(path), session["habit"], habits.get(session["habit"], {}))
+        if _video() and len(clip) >= 3:
+            out = witness.judge_clip([c[1] for c in clip] + [jpeg], str(path), session["habit"],
+                                     habits.get(session["habit"], {}), span_s=now - clip[0][0])
+        else:
+            out = witness.judge(jpeg, str(path), session["habit"], habits.get(session["habit"], {}))
         out["reused"] = False
     payload = {**out, "frame": str(path), "motion": round(min(motion, 999.0), 2)}
     db.add_event(con, "camera", "label", payload, session_id=session["id"], ts=now)

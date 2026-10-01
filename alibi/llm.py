@@ -92,3 +92,21 @@ def chat_tools(messages: list, tools: list, timeout: float, base_url: str | None
 def via_for(base_url: str | None = None) -> str:
     """Exact provenance (NEXT_PHASE §6): a self-hosted server (the Spark) is llm:spark, NVIDIA Build is llm:build."""
     return "llm:build" if _is_nvidia(base_url or config.LLM_BASE_URL) else "llm:spark"
+
+
+def vision_video_json(system: str, prompt: str, mp4: bytes, max_tokens: int = 2000) -> dict:
+    """Same as vision_json but for a short mp4 (Nemotron 3 Nano Omni on NVIDIA Build or a local vLLM). Reasoning on by
+    default: without it Omni tends to echo the declared habit; with it (~10 s, budget-capped) it catches the phone."""
+    b64 = base64.b64encode(mp4).decode()
+    r = _vision.chat.completions.create(
+        model=config.VLM_MODEL, temperature=0, max_tokens=max_tokens,
+        extra_body={"chat_template_kwargs": {"enable_thinking": config.VLM_THINK, "reasoning_budget": 1024}},
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": [
+                {"type": "video_url", "video_url": {"url": f"data:video/mp4;base64,{b64}"}},
+                {"type": "text", "text": prompt},
+            ]},
+        ],
+    )
+    return _parse_json(r.choices[0].message.content)
