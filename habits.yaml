@@ -1,51 +1,150 @@
-# Edit targets to your real goals. Keys are what the agent maps your sentence to.
+# Edited from the Alibi dashboard. Keys are what the agent maps your sentence to.
 habits:
   drawing:
     modality: physical
-    default_min: 25
-    aliases: [draw, sketch, sketching, art]
+    aliases:
+    - draw
+    - sketch
+    - sketching
+    - art
     weekly_target_min: 210
-    on_task_looks_like: "hands holding a pen or pencil working on paper or a drawing tablet"
+    default_min: 25
+    on_task_looks_like: hands holding a pen or pencil working on paper or a drawing
+      tablet
+    schedule:
+    - days:
+      - mon
+      - wed
+      - fri
+      at: '19:00'
+      min: 25
+    calendar: true
   building:
     modality: physical
-    default_min: 45
-    aliases: [build, building, iggy, robot, solder, hardware, quadruped]
+    aliases:
+    - build
+    - building
+    - iggy
+    - robot
+    - solder
+    - hardware
+    - quadruped
     weekly_target_min: 420
-    on_task_looks_like: "hands working on hardware, robot, wiring, tools, or laptop code next to hardware"
+    default_min: 45
+    on_task_looks_like: hands working on hardware, robot, wiring, tools, or laptop
+      code next to hardware
+    schedule:
+    - days:
+      - tue
+      - thu
+      - sat
+      at: '18:00'
+      min: 60
+    - days:
+      - sun
+      at: '14:00'
+      min: 90
+    calendar: true
   math:
     modality: hybrid
-    default_min: 30
-    aliases: [maths, math, calculus, linear algebra]
+    aliases:
+    - maths
+    - math
+    - calculus
+    - linear algebra
     weekly_target_min: 240
-    on_task_looks_like: "writing equations in a notebook, or maths content on screen"
+    default_min: 30
+    on_task_looks_like: writing equations in a notebook, or maths content on screen
+    schedule:
+    - days:
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+      at: '11:00'
+      min: 30
+    calendar: true
   cpp:
     modality: digital
-    default_min: 30
-    aliases: ["c++", cpp, learncpp]
+    aliases:
+    - c++
+    - cpp
+    - learncpp
     weekly_target_min: 180
-    on_task_looks_like: "code editor with .cpp/.h files, cppreference, learncpp, compiler or terminal output"
-    repos: [/Users/harrishayyanar/Documents/c++]
+    default_min: 30
+    on_task_looks_like: code editor with .cpp/.h files, cppreference, learncpp, compiler
+      or terminal output
+    schedule:
+    - days:
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+      at: '14:00'
+      min: 30
+    calendar: true
+    repos:
+    - /Users/harrishayyanar/Documents/c++
   internships:
     modality: digital
-    default_min: 30
-    aliases: [internship, applications, apply, job]
+    aliases:
+    - internship
+    - applications
+    - apply
+    - job
     weekly_target_min: 180
-    on_task_looks_like: "Workday, Greenhouse, Lever, LinkedIn Jobs, careers pages, CV or cover letter docs"
+    default_min: 30
+    on_task_looks_like: Workday, Greenhouse, Lever, LinkedIn Jobs, careers pages,
+      CV or cover letter docs
+    schedule:
+    - days:
+      - mon
+      - tue
+      - wed
+      - thu
+      at: '16:00'
+      min: 45
+    calendar: true
   portfolio:
     modality: digital
-    default_min: 45
-    aliases: [portfolio, website, smintweb, "personal site"]
+    aliases:
+    - portfolio
+    - website
+    - smintweb
+    - personal site
     weekly_target_min: 180
-    on_task_looks_like: "code editor in the smintweb project, localhost preview of the portfolio site, design tools"
-    repos: [/Users/harrishayyanar/Documents/smintweb]
+    default_min: 45
+    on_task_looks_like: code editor in the smintweb project, localhost preview of
+      the portfolio site, design tools
+    schedule:
+    - days:
+      - tue
+      - thu
+      at: '20:00'
+      min: 45
+    - days:
+      - sat
+      at: '11:00'
+      min: 45
+    calendar: true
+    repos:
+    - /Users/harrishayyanar/Documents/smintweb
   running:
     source: strava
     weekly_sessions: 3
-    min_km: 5
-
+    min_km: 5.0
+    schedule:
+    - days:
+      - tue
+      - thu
+      - sat
+      at: 07:30
+      min: 30
+    calendar: true
 verdict:
   done: 0.7
   partial: 0.4
-
 nudge_after_off_task_samples: 3
 nudge_cooldown_min: 10

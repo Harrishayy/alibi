@@ -55,7 +55,7 @@ def checks() -> dict:
     fresh = last and time.time() - last["ts"] < 5 * 60
     out.append(_check("windows", "Screen", fresh and p.get("app"),
                       f"Working — right now: {p.get('app', '?')}" if fresh else
-                      "Alibi hasn't been able to see which app you're using",
+                      "Alibi hasn't been able to see which app you're using.",
                       "Open System Settings → Privacy & Security → Accessibility and turn on Alibi"
                       if fresh else "Start Alibi, then allow it under Privacy & Security → Accessibility"))
     out[-1]["details"] = (f"last window: {p.get('app', '?')} — {p.get('title', '')[:60]}" if last
