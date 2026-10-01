@@ -7,7 +7,12 @@ license: "Apache-2.0"
 # Alibi
 
 Alibi runs on the user's Mac. You reach it only through the relay on the Spark host at `{{RELAY_URL}}`
-(no token needed from inside this sandbox; any other host is blocked by policy). Use `curl -s`.
+(no token needed from inside this sandbox; any other host is blocked by policy).
+
+**How to call it:** every row below is a shell command. Run it with your `exec` tool, exactly as written, and read
+the JSON it prints. There is no tool named `alibi`; don't search for one.
+
+Example: `exec` → `curl -s {{RELAY_URL}}/state`
 
 | Want | Call |
 |---|---|

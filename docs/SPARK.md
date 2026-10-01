@@ -9,8 +9,12 @@ Tailscale through one narrow door.
 | Role | Model | Where |
 |---|---|---|
 | Agent (OpenClaw driver) | `nvidia/nemotron-3-super-120b-a12b` | NVIDIA Build, via NemoClaw's `inference.local` route (key stays on the host) |
-| Agent, fully local mode | Nemotron 3 Nano 30B-A3B (`UD-Q4_K_XL` GGUF, NemoClaw's managed llama.cpp Spark profile) | DGX Spark |
+| Agent, fully local mode (not working yet) | Nemotron 3 Nano 30B-A3B (`UD-Q4_K_XL` GGUF, NemoClaw's managed llama.cpp Spark profile), sandbox `alibi-local` (stopped) | DGX Spark |
 | Camera witness (video) | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning` | NVIDIA Build, called by the Mac daemon (`VLM_VIDEO=1`) |
+
+Local mode status (2026-10-01): the model serves, but the managed llama.cpp recipe caps requests at 32 KB
+(`maxRequestBodyBytes`), and OpenClaw's multi-step requests exceed that after one or two tool calls (HTTP 413).
+Next step: an operator-run llama.cpp/vLLM server without the cap (NemoClaw "existing server" path).
 
 Same skill, relay and tools in every mode; only the model route changes:
 `nemoclaw inference set --model <model> --provider <provider> --sandbox alibi`.

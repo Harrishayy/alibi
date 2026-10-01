@@ -263,5 +263,7 @@ doing on Alibi?"` answers from the Mac's live state; with the Mac asleep it says
 ### Later (after submission)
 - **Agent → Alibi app notifications.** Let the Spark agent push messages into the island / iPhone app (a `POST
   /api/notify` on the Mac, kind `agent`, rendered like nudges). Parked: the Mac UI is mid-redesign.
+- Fully local agent on Nemotron 3 Nano: run our own llama.cpp/vLLM server (NemoClaw's managed profile caps requests at
+  32 KB, too small for OpenClaw's tool loop). Model is already downloaded on the Spark.
 - Witness on the Spark's VLM by default once a vision-capable local model is validated on GB10.
 - Telegram channel via `nemoclaw alibi channels add telegram`.
