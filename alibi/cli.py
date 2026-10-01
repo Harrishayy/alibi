@@ -34,12 +34,12 @@ def end(con, artefact: str | None = None) -> str:
     s = db.active_session(con)
     if not s:
         return "No active session."
-    try:
-        from . import verifier
-        return verifier.finalise(con, s, artefact=artefact)
-    except ImportError:
-        db.finish_session(con, s["id"], artefact=artefact)
-        return f"Ended session {s['id']}."
+    from . import verifier
+    from .notify import notify
+    line = verifier.finalise(con, s, artefact=artefact)
+    done = con.execute("SELECT evidence_path FROM sessions WHERE id=?", (s["id"],)).fetchone()
+    notify(f"Ended early. {line}", image_path=done["evidence_path"], kind="verdict")
+    return line
 
 
 def report(con=None) -> str:

@@ -6,3 +6,7 @@ data/evidence/*
 demo/clips/*
 !**/.gitkeep
 __pycache__/
+bin/
+data/demo/
+data/alerts.jsonl
+tests/fixtures/

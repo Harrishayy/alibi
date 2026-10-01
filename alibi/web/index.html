@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alibi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4EFE6; --paper:#FAF7F1; --ink:#1F1E1C; --muted:#7A756C; --faint:#A39E95; --rule:#DDD5C7; --rule-2:#E8E1D5;
+  --accent:#D97757; --accent-ink:#B5532F; --accent-wash:#F6E3D8;
+  --on_task:#5E8C61; --phone:#D2553F; --off_task:#B5452F; --idle:#D99A3D; --absent:#A39E95;
+  --done:#5E8C61; --partial:#D99A3D; --slacked:#D2553F;
+  --serif:"Newsreader","Source Serif 4","New York","Iowan Old Style",Georgia,serif;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --shadow:0 1px 0 rgba(31,30,28,.04),0 12px 32px -18px rgba(31,30,28,.25);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1C1A17; --paper:#24211D; --ink:#EDE6DA; --muted:#A39B8E; --faint:#7A7368; --rule:#3A352F; --rule-2:#2E2A25;
+    --accent:#E08A6B; --accent-ink:#F0A487; --accent-wash:#3A2A22;
+    --absent:#8C877E;
+    --shadow:0 1px 0 rgba(0,0,0,.2),0 16px 40px -20px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:1120px;margin:0 auto;padding:0 40px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.serif{font-family:var(--serif)}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+
+/* header */
+header{padding:48px 0 28px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.wordmark{font:400 56px/0.9 var(--serif);letter-spacing:-.025em;margin:0}
+.wordmark i{color:var(--accent);font-style:normal}
+.tagline{font:italic 300 19px/1.2 var(--serif);color:var(--muted)}
+.status{display:flex;gap:18px;font:12px/1 var(--mono);color:var(--muted);white-space:nowrap}
+.status b{font-weight:500;color:var(--ink)}
+.pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--on_task);margin-right:6px;vertical-align:1px;box-shadow:0 0 0 0 color-mix(in srgb,var(--on_task) 50%,transparent);animation:pulse 2.4s infinite}
+.pulse.off{background:var(--faint);animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--on_task) 45%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+/* prompt */
+.prompt{padding:40px 0 34px;border-bottom:1px solid var(--rule)}
+form.say{display:flex;align-items:center;gap:14px;border-bottom:1.5px solid var(--ink);padding-bottom:10px}
+form.say .caret{font:400 30px/1 var(--serif);color:var(--accent)}
+form.say input{flex:1;min-width:0;border:0;background:transparent;outline:0;color:var(--ink);font:400 30px/1.2 var(--serif);letter-spacing:-.01em;padding:4px 0}
+form.say input::placeholder{color:var(--faint);font-style:italic}
+form.say button{border:0;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 18px;font:500 13px/1 var(--sans);transition:transform .15s ease,opacity .15s}
+form.say button:active{transform:scale(.97)}
+form.say button[disabled]{opacity:.4}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{border:1px solid var(--rule);background:transparent;border-radius:999px;padding:6px 13px;font:13px/1.2 var(--sans);color:var(--muted);transition:border-color .15s,color .15s,background .15s}
+.chip:hover{border-color:var(--ink);color:var(--ink)}
+.convo{margin-top:22px;display:grid;gap:10px}
+.line{display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:baseline;animation:rise .35s ease both}
+.line .who{font:500 11px/1.9 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.line.you .txt{color:var(--muted);font:15px/1.5 var(--sans)}
+.line.alibi .who{color:var(--accent)}
+.line.alibi .txt{font:400 20px/1.45 var(--serif);white-space:pre-wrap}
+.line.alibi .txt.pending{color:var(--faint);font-style:italic}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* sections */
+section.block{padding:44px 0;border-bottom:1px solid var(--rule)}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:26px}
+.sechead h2{margin:0;font:400 30px/1.1 var(--serif);letter-spacing:-.015em}
+.sechead h2 em{font-style:italic;color:var(--muted);font-weight:300}
+
+/* now */
+.now{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:48px;align-items:start}
+.now-habit{font:400 64px/0.95 var(--serif);letter-spacing:-.03em;margin:8px 0 6px;text-transform:none}
+.now-sub{color:var(--muted);font:13px/1.4 var(--mono)}
+.clock{display:flex;align-items:center;gap:26px;margin:30px 0 26px}
+.ring{width:132px;height:132px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .track{stroke:var(--rule)}
+.ring .arc{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.ring .t{position:absolute;inset:0;display:grid;place-items:center;font:500 26px/1 var(--mono);letter-spacing:-.03em}
+.ring .t small{display:block;font:10px/1 var(--mono);color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:6px;text-align:center}
+.stat-big{font:300 52px/1 var(--serif);letter-spacing:-.02em}
+.stat-big sup{font-size:22px;color:var(--muted);vertical-align:22px;margin-left:2px}
+.stat-lbl{color:var(--muted);font-size:13px;margin-top:6px}
+.frame{position:relative;border-radius:10px;overflow:hidden;background:var(--paper);border:1px solid var(--rule);aspect-ratio:16/9;box-shadow:var(--shadow)}
+.frame img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .4s}
+.frame .cap{position:absolute;left:12px;bottom:12px;display:flex;gap:8px;align-items:center;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px);border-radius:999px;padding:5px 11px 5px 9px;font:12px/1 var(--mono)}
+.frame .live{position:absolute;right:12px;top:12px;font:500 10px/1 var(--mono);letter-spacing:.14em;color:#fff;background:rgba(31,30,28,.55);padding:5px 8px;border-radius:4px}
+.frame .live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--phone);margin-right:6px;vertical-align:0;animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.25}}
+.frame .nofeed{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--faint);font:italic 300 18px/1.4 var(--serif);padding:24px}
+.strip{display:flex;flex-wrap:wrap;gap:4px;margin-top:18px;min-height:14px}
+.dot{width:12px;height:12px;border-radius:3px;background:var(--absent);position:relative;animation:pop .6s ease both}
+@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font:11px/1 var(--mono);color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;background:var(--c)}
+.endbtn{margin-top:26px;border:1px solid var(--ink);background:transparent;border-radius:999px;padding:9px 18px;font:500 13px/1 var(--sans);transition:background .15s,color .15s}
+.endbtn:hover{background:var(--ink);color:var(--bg)}
+.empty{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+.empty p{margin:0;font:300 italic 34px/1.25 var(--serif);color:var(--muted);max-width:640px;letter-spacing:-.01em}
+.empty p b{font-style:normal;font-weight:400;color:var(--ink)}
+.empty .hint{font:12px/1.6 var(--mono);color:var(--faint);text-align:right}
+
+/* windows */
+.wins{margin-top:22px;display:grid;gap:10px}
+.win{display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:4px 12px;align-items:center}
+.win .title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win .pct{font:12px/1 var(--mono);text-align:right;color:var(--muted)}
+.win .bar{grid-column:1/-1;height:4px;background:var(--rule-2);border-radius:2px;overflow:hidden}
+.win .bar i{display:block;height:100%;background:var(--c);border-radius:2px}
+
+/* report */
+.quote{position:relative;margin:0 0 42px;padding:4px 0 4px 28px;border-left:2px solid var(--accent);font:300 28px/1.38 var(--serif);letter-spacing:-.012em;max-width:900px;text-wrap:pretty}
+.quote .hl{font-style:italic;font-weight:400;background:linear-gradient(transparent 62%,var(--accent-wash) 62%)}
+.quote cite{display:block;margin-top:14px;font:12px/1 var(--mono);font-style:normal;color:var(--muted);letter-spacing:.04em}
+.rows{display:grid}
+.row{display:grid;grid-template-columns:170px minmax(0,1fr) 230px;gap:28px;align-items:center;padding:18px 0;border-top:1px solid var(--rule-2)}
+.row:last-child{border-bottom:1px solid var(--rule-2)}
+.row .name{font:400 22px/1.1 var(--serif);text-transform:none}
+.row .mod{display:block;font:11px/1 var(--mono);color:var(--faint);letter-spacing:.06em;margin-top:6px;text-transform:lowercase}
+.track{position:relative;height:22px}
+.track .bg{position:absolute;inset:7px 0;background:var(--rule-2);border-radius:4px}
+.track .decl{position:absolute;left:0;top:3px;bottom:3px;border-radius:4px;background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--muted) 38%,transparent) 0 2px,transparent 2px 6px);border:1px solid color-mix(in srgb,var(--muted) 45%,transparent);transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.track .ver{position:absolute;left:0;top:3px;bottom:3px;border-radius:4px;background:var(--on_task);transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.track .pace{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);border-radius:1px}
+.row:first-child .track .pace::after{content:attr(data-l);position:absolute;top:-14px;left:50%;transform:translateX(-50%);font:10px/1 var(--mono);color:var(--muted);white-space:nowrap}
+.track .tgt{position:absolute;right:0;top:-1px;bottom:-1px;width:1px;background:var(--faint)}
+.nums{display:flex;justify-content:space-between;gap:10px;font:13px/1.3 var(--mono)}
+.nums div{text-align:right}
+.nums small{display:block;font:10px/1.3 var(--mono);color:var(--faint);letter-spacing:.08em;text-transform:uppercase}
+.nums .v{color:var(--on_task);font-weight:500}
+.statusline{font:12px/1 var(--mono);margin-top:8px;text-align:right;color:var(--muted)}
+.statusline.behind{color:var(--accent-ink)}
+.statusline.aligned{color:var(--on_task)}
+.pips{display:flex;gap:10px;align-items:center}
+.pip{width:40px;height:18px;border-radius:9px;border:1.5px dashed var(--rule);display:grid;place-items:center;font:10px/1 var(--mono);color:var(--faint)}
+.pip.ok{background:var(--on_task);border:1.5px solid var(--on_task);color:#fff}
+.pip.short{border:1.5px solid var(--idle);color:var(--idle)}
+.runlist{font:12px/1.5 var(--mono);color:var(--muted);margin-top:8px}
+.keys{display:flex;gap:20px;font:11px/1 var(--mono);color:var(--muted);flex-wrap:wrap}
+.keys i{display:inline-block;width:18px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:6px}
+
+/* sessions */
+.sess{border-top:1px solid var(--rule-2)}
+.sess:last-child{border-bottom:1px solid var(--rule-2)}
+.sess>button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:118px 150px 90px minmax(0,1fr) 64px 20px;gap:22px;align-items:center;padding:16px 4px;transition:background .15s}
+.sess>button:hover{background:color-mix(in srgb,var(--paper) 70%,transparent)}
+.sess>button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.when{font:12px/1.35 var(--mono);color:var(--muted)}
+.when b{display:block;color:var(--ink);font-weight:500}
+.sess .h{font:400 20px/1.1 var(--serif);text-transform:none}
+.sess .h small{display:block;font:11px/1 var(--mono);color:var(--faint);margin-top:5px;text-transform:none}
+.pill{justify-self:start;display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border-radius:999px;color:var(--c);background:color-mix(in srgb,var(--c) 13%,transparent)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c)}
+.tl{display:flex;height:10px;border-radius:3px;overflow:hidden;gap:1px;background:var(--rule-2)}
+.tl i{flex:1;background:var(--c)}
+.tl.empty{background:transparent;border:1px dashed var(--rule)}
+.ratio{font:13px/1 var(--mono);text-align:right}
+.chev{color:var(--faint);transition:transform .25s ease;font-size:12px}
+.sess.open .chev{transform:rotate(90deg)}
+.detail{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.7,.2,1)}
+.sess.open .detail{grid-template-rows:1fr}
+.detail>div{overflow:hidden}
+.detail .in{padding:6px 4px 28px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:32px}
+.detail .in.solo{grid-template-columns:minmax(0,1fr)}
+.detail img{width:100%;border-radius:8px;border:1px solid var(--rule);display:block;background:var(--paper)}
+.detail .meta{font:12px/1.8 var(--mono);color:var(--muted)}
+.detail .meta b{color:var(--ink);font-weight:500}
+.none{color:var(--faint);font:italic 300 18px/1.4 var(--serif)}
+
+/* toast */
+.toast{position:fixed;right:24px;top:24px;width:min(400px,calc(100vw - 32px));z-index:50;background:var(--paper);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow),0 30px 60px -30px rgba(31,30,28,.35);padding:16px 18px 16px 20px;transform:translateY(-12px);opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s cubic-bezier(.2,.7,.2,1)}
+.toast.show{opacity:1;transform:none;pointer-events:auto}
+.toast .k{font:500 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.toast .k button{border:0;background:none;color:var(--muted);font-size:16px;line-height:.6;padding:0}
+.toast .tx{margin-top:8px;font:400 18px/1.4 var(--serif);white-space:pre-wrap}
+.toast img{margin-top:12px;width:100%;border-radius:6px;border:1px solid var(--rule)}
+.toast.nudge{background:var(--accent);border-color:var(--accent);color:#fff}
+.toast.nudge .k,.toast.nudge .k button{color:rgba(255,255,255,.8)}
+.toast.verdict .k span{color:var(--c,var(--accent))}
+
+footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--faint);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .wrap{padding:0 16px}
+  header{flex-direction:column;align-items:flex-start;padding-top:32px}
+  .wordmark{font-size:46px}
+  .status{flex-wrap:wrap;gap:8px 14px}
+  form.say input{font-size:22px}
+  form.say .caret{font-size:22px}
+  .now{grid-template-columns:1fr;gap:28px}
+  .now-habit{font-size:48px}
+  .empty{grid-template-columns:1fr}
+  .empty p{font-size:26px}
+  .empty .hint{text-align:left}
+  .quote{font-size:22px;padding-left:18px}
+  .row{grid-template-columns:1fr;gap:12px}
+  .row .nums{justify-content:flex-start;gap:24px}
+  .row .nums div{text-align:left}
+  .statusline{text-align:left}
+  .sess>button{grid-template-columns:1fr auto;gap:10px 14px}
+  .sess>button .when{grid-column:1;grid-row:1}
+  .sess>button .pill{grid-column:2;grid-row:1;justify-self:end}
+  .sess>button .h{grid-column:1/-1;grid-row:2}
+  .sess>button .tl{grid-column:1;grid-row:3}
+  .sess>button .ratio{grid-column:2;grid-row:3}
+  .sess>button .chev{display:none}
+  .detail .in{grid-template-columns:1fr;gap:18px}
+  .line{grid-template-columns:1fr;gap:2px}
+  .line.alibi .txt{font-size:18px}
+  .sechead{flex-direction:column;gap:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <div class="k"><span id="toastKind">note</span><button aria-label="Dismiss" onclick="hideToast()">×</button></div>
+  <div class="tx" id="toastText"></div>
+  <img id="toastImg" alt="" hidden>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1 class="wordmark">Alibi<i>.</i></h1>
+      <span class="tagline">the habit tracker that checks your alibi</span>
+    </div>
+    <div class="status" id="status">
+      <span><span class="pulse off" id="pulse"></span><span id="conn">connecting</span></span>
+    </div>
+  </header>
+
+  <section class="prompt" aria-label="Declare">
+    <form class="say" id="sayForm" autocomplete="off">
+      <span class="caret" aria-hidden="true">›</span>
+      <input id="sayInput" placeholder="What are you about to do?" aria-label="What are you about to do?">
+      <button type="submit" id="sayBtn">Declare</button>
+    </form>
+    <div class="chips" id="chips"></div>
+    <div class="convo" id="convo"></div>
+  </section>
+
+  <section class="block" id="nowBlock">
+    <div class="sechead"><h2>Now</h2><span class="eyebrow" id="nowEyebrow">no session</span></div>
+    <div id="now"></div>
+  </section>
+
+  <section class="block">
+    <div class="sechead"><h2>This week <em id="weekRange"></em></h2>
+      <div class="keys">
+        <span><i style="background:var(--on_task)"></i>verified</span>
+        <span><i style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--muted) 40%,transparent) 0 2px,transparent 2px 5px);border:1px solid color-mix(in srgb,var(--muted) 45%,transparent)"></i>declared</span>
+        <span><i style="width:2px;background:var(--ink)"></i>pace today</span>
+      </div>
+    </div>
+    <blockquote class="quote" id="quote"><span class="none">Waiting for the evidence…</span></blockquote>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <section class="block">
+    <div class="sechead"><h2>Sessions <em>— the record</em></h2><span class="eyebrow" id="sessCount"></span></div>
+    <div id="sessions"></div>
+  </section>
+
+  <footer><span>Alibi — evidence over intentions.</span><span id="foot"></span></footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const LABELS = ["on_task","phone","off_task","idle","absent"];
+const LBL_TXT = {on_task:"on task",phone:"phone",off_task:"off task",idle:"idle",absent:"absent"};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const cvar = l => `var(--${LABELS.includes(l) ? l : "absent"})`;
+const vvar = v => `var(--${["done","partial","slacked"].includes(v) ? v : "absent"})`;
+const NAMES = {cpp:"C++", internships:"Internships"};
+const hname = h => NAMES[h] || (h ? h[0].toUpperCase() + h.slice(1) : "—");
+const pad = n => String(n).padStart(2,"0");
+const clockT = t => { const d = new Date(t*1000); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const dayT = t => new Date(t*1000).toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
+const mmss = s => { s = Math.max(0, Math.round(s||0)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60; return h ? `${h}:${pad(m)}:${pad(x)}` : `${pad(m)}:${pad(x)}`; };
+const hm = min => { min = Math.round(min||0); return min >= 60 ? `${Math.floor(min/60)} h${min%60 ? " " + (min%60) + " min" : ""}` : `${min} min`; };
+const pct = r => r == null ? "—" : Math.round(r*100) + "%";
+const dur = s => { s = Math.max(0, s|0); const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60); return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${m}m`; };
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+/* ---------- prompt ---------- */
+const CHIPS = ["draw for 25 minutes","learn C++ for 30 min","how am I doing","report"];
+$("#chips").innerHTML = CHIPS.map(c => `<button class="chip" type="button">${esc(c)}</button>`).join("");
+$("#chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (b) say(b.textContent); });
+$("#sayForm").addEventListener("submit", e => { e.preventDefault(); const v = $("#sayInput").value.trim(); if (v) say(v); });
+
+async function say(text) {
+  $("#sayInput").value = ""; $("#sayBtn").disabled = true;
+  const convo = $("#convo");
+  convo.innerHTML = `<div class="line you"><span class="who">You</span><span class="txt">${esc(text)}</span></div>
+    <div class="line alibi"><span class="who">Alibi</span><span class="txt pending">thinking it over…</span></div>`;
+  try {
+    const r = await api("/api/say", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({text})});
+    reply(r.reply);
+  } catch (err) { reply("The daemon didn't answer. Is it running?"); }
+  $("#sayBtn").disabled = false;
+  pollState(); refreshSlow();
+}
+function reply(t) {
+  const el = $("#convo .line.alibi .txt");
+  if (el) { el.classList.remove("pending"); el.textContent = t || "(no reply)"; }
+}
+
+/* ---------- state / now ---------- */
+let lastAlertId = null, firstState = true, nowSig = "", seenLabels = 0, lastFrame = null;
+
+async function pollState() {
+  let s;
+  try { s = await api("/api/state"); } catch { $("#conn").textContent = "daemon unreachable"; $("#pulse").className = "pulse off"; return; }
+  renderStatus(s);
+  renderNow(s.session, s.now);
+  handleAlert(s.alert, s.now);
+  firstState = false;
+}
+
+function renderStatus(s) {
+  const up = s.daemon && s.daemon.up_since ? dur(s.now - s.daemon.up_since) : "—";
+  $("#status").innerHTML = `
+    <span><span class="pulse" id="pulse"></span><span id="conn">daemon up <b>${esc(up)}</b></span></span>
+    <span>witness <b>${esc(s.witness || "—")}</b></span>
+    <span>text <b>${esc(s.text_model || "—")}</b></span>`;
+}
+
+function renderNow(sess, now) {
+  const box = $("#now");
+  if (!sess) {
+    if (nowSig !== "empty") {
+      nowSig = "empty"; seenLabels = 0; lastFrame = null;
+      $("#nowEyebrow").textContent = "no session";
+      box.innerHTML = `<div class="empty"><p>Nothing declared. The witness is watching an empty chair — <b>say what you're about to do</b>, and it will check.</p>
+        <div class="hint">try “draw for 25 minutes”<br>or “learn C++ for 30 min”</div></div>`;
+    }
+    return;
+  }
+  const sig = "s" + sess.id;
+  if (nowSig !== sig) {
+    nowSig = sig; seenLabels = 0; lastFrame = null;
+    const hasCam = sess.modality !== "digital";
+    box.innerHTML = `<div class="now">
+      <div>
+        <div class="eyebrow">declared · ${esc(sess.modality || "")}</div>
+        <div class="now-habit">${esc(hname(sess.habit))}</div>
+        <div class="now-sub">${esc(hm(sess.declared_min))} · started ${clockT(sess.started_at)} · ends ${clockT(sess.ends_at)}</div>
+        <div class="clock">
+          <div class="ring"><svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="54" fill="none" stroke-width="3"/>
+            <circle class="arc" id="arc" cx="60" cy="60" r="54" fill="none" stroke-width="3" stroke-dasharray="339.29" stroke-dashoffset="339.29"/></svg>
+            <div class="t"><div><span id="left">--:--</span><small>left</small></div></div></div>
+          <div><div class="stat-big mono" id="otk" style="font-family:var(--serif)">—</div><div class="stat-lbl">on task so far, by the witness</div></div>
+        </div>
+        <button class="endbtn" id="endBtn" type="button">End now</button>
+      </div>
+      <div>
+        ${hasCam ? `<div class="frame" id="frame"><div class="nofeed">No frame yet.<br>The witness hasn't looked up.</div></div>` : ""}
+        ${hasCam ? `<div class="strip" id="strip"></div>
+        <div class="legend">${LABELS.map(l => `<span style="--c:${cvar(l)}">${LBL_TXT[l]}</span>`).join("")}</div>` : ""}
+        <div class="wins" id="wins"></div>
+      </div></div>`;
+    $("#endBtn").addEventListener("click", endNow);
+  }
+  $("#nowEyebrow").textContent = `session #${sess.id} · live`;
+  const left = sess.left_s ?? Math.max(0, sess.ends_at - now);
+  $("#left").textContent = mmss(left);
+  const prog = sess.progress ?? 0;
+  $("#arc").style.strokeDashoffset = (339.29 * (1 - Math.min(1, Math.max(0, prog)))).toFixed(2);
+  $("#otk").innerHTML = sess.on_task_so_far == null ? "—" : `${Math.round(sess.on_task_so_far*100)}<sup>%</sup>`;
+
+  const labels = sess.labels || [];
+  const strip = $("#strip");
+  if (strip) {
+    if (labels.length < seenLabels) { strip.innerHTML = ""; seenLabels = 0; }
+    for (let i = seenLabels; i < labels.length; i++) {
+      const l = labels[i], d = document.createElement("span");
+      d.className = "dot"; d.style.background = cvar(l.label);
+      d.title = `${clockT(l.ts)} · ${LBL_TXT[l.label] || l.label}${l.note ? " — " + l.note : ""}`;
+      if (firstState || i < labels.length - 3) d.style.animation = "none";
+      strip.appendChild(d);
+    }
+    seenLabels = labels.length;
+    if (!labels.length && !strip.childElementCount) strip.innerHTML = `<span class="now-sub">No observations yet.</span>`;
+    else strip.querySelector(".now-sub")?.remove();
+  }
+  const frame = $("#frame");
+  if (frame && sess.last_frame_url && sess.last_frame_url !== lastFrame) {
+    lastFrame = sess.last_frame_url;
+    const last = labels[labels.length - 1] || {};
+    frame.innerHTML = `<img src="${esc(lastFrame)}" alt="Latest desk frame"><span class="live">LIVE</span>
+      <span class="cap"><span style="width:8px;height:8px;border-radius:2px;background:${cvar(last.label)}"></span>${esc(clockT(last.ts || now))} · ${esc(LBL_TXT[last.label] || last.label || "")}${last.note ? ` — ${esc(last.note)}` : ""}</span>`;
+  }
+  const wins = $("#wins");
+  if (wins) wins.innerHTML = renderWindows(sess.windows);
+}
+
+function renderWindows(ws) {
+  if (!ws || !ws.length) return "";
+  return `<div class="eyebrow" style="margin-bottom:4px">windows</div>` + ws.slice(0, 6).map(w => `
+    <div class="win" style="--c:${cvar(w.label)}"><span class="title" title="${esc(w.title)}">${esc(w.title)}</span><span class="pct">${pct(w.share)}</span>
+    <span class="bar"><i style="width:${Math.round((w.share||0)*100)}%"></i></span></div>`).join("");
+}
+
+async function endNow() {
+  const b = $("#endBtn"); if (b) { b.disabled = true; b.textContent = "Ending…"; }
+  $("#convo").innerHTML = `<div class="line alibi"><span class="who">Alibi</span><span class="txt pending">Closing the session and weighing the evidence…</span></div>`;
+  try { const r = await api("/api/end", {method:"POST", headers:{"Content-Type":"application/json"}, body:"{}"}); reply(r.reply); }
+  catch { reply("Couldn't end the session."); }
+  pollState(); refreshSlow();
+}
+
+/* ---------- alerts ---------- */
+let toastTimer;
+function handleAlert(a, now) {
+  if (!a || a.id == null) return;
+  if (a.id === lastAlertId) return;
+  const fresh = !firstState || (now - (a.ts || 0)) < 30;
+  lastAlertId = a.id;
+  if (!fresh) return;
+  const t = $("#toast");
+  t.className = "toast " + (a.kind || "info");
+  if (a.kind === "verdict") {
+    const m = /\b(done|partial|slacked)\b/i.exec(a.text || "");
+    t.style.setProperty("--c", m ? vvar(m[1].toLowerCase()) : "var(--accent)");
+  }
+  $("#toastKind").textContent = ({nudge:"nudge — the witness noticed", verdict:"verdict", report:"weekly report", info:"note"})[a.kind] || a.kind || "note";
+  $("#toastText").textContent = a.text || "";
+  const img = $("#toastImg");
+  if (a.image_url) { img.src = a.image_url; img.hidden = false; } else { img.hidden = true; img.removeAttribute("src"); }
+  requestAnimationFrame(() => t.classList.add("show"));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, a.kind === "info" ? 6000 : a.image_url ? 16000 : 11000);
+  if (a.kind === "verdict" || a.kind === "report") refreshSlow();
+}
+function hideToast() { $("#toast").classList.remove("show"); }
+
+/* ---------- report ---------- */
+function highlight(summary) {
+  const parts = (summary || "").match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [];
+  return parts.map(p => /declared|evidence|behind|only|but/i.test(p) && !/^Verified/i.test(p.trim()) ? `<span class="hl">${esc(p.trim())}</span> ` : esc(p)).join("");
+}
+function renderReport(r) {
+  if (!r) return;
+  if (r.week_start) {
+    const ws = r.week_start, we = ws + 6*86400;
+    $("#weekRange").textContent = `— ${new Date(ws*1000).toLocaleDateString(undefined,{day:"numeric",month:"short"})} to ${new Date(we*1000).toLocaleDateString(undefined,{day:"numeric",month:"short"})}`;
+  }
+  $("#quote").innerHTML = r.summary ? `${highlight(r.summary)}<cite>— Alibi, ${r.generated_at ? "as of " + clockT(r.generated_at) : "this week"}</cite>` : `<span class="none">No verdicts yet this week.</span>`;
+  const rows = (r.rows || []).map(x => {
+    const scale = Math.max(x.target_min || 0, x.declared_min || 0, x.verified_min || 0, 1);
+    const w = v => Math.min(100, (v || 0) / scale * 100).toFixed(2);
+    const gap = Math.max(0, (x.declared_min || 0) - (x.verified_min || 0));
+    const st = x.status === "aligned" ? `<div class="statusline aligned">on pace</div>` : `<div class="statusline behind">behind pace by ${esc(hm(x.behind_by_min))}</div>`;
+    const tip = `verified ${x.verified_min} min · declared ${x.declared_min} min · target ${x.target_min} min · pace ${x.pace_target_min} min${gap ? ` · ${gap} min unaccounted` : ""}`;
+    return `<div class="row">
+      <div><span class="name">${esc(hname(x.habit))}</span><span class="mod">${esc(x.modality || "")} · ${x.sessions ?? 0} session${x.sessions === 1 ? "" : "s"}</span></div>
+      <div class="track" title="${esc(tip)}"><div class="bg" style="width:${w(x.target_min)}%"></div><div class="tgt" style="right:auto;left:${w(x.target_min)}%"></div>
+        <div class="decl" style="width:${w(x.declared_min)}%"></div><div class="ver" style="width:${w(x.verified_min)}%"></div>
+        ${x.pace_target_min != null ? `<div class="pace" data-l="pace" style="left:${w(x.pace_target_min)}%"></div>` : ""}</div>
+      <div><div class="nums"><div><small>seen</small><span class="v">${x.verified_min ?? 0}</span></div><div><small>claimed</small>${x.declared_min ?? 0}</div><div><small>target</small>${x.target_min ?? "—"}</div></div>${st}</div>
+    </div>`;
+  });
+  const run = r.running;
+  if (run) {
+    const n = run.target_sessions || 3, runs = run.runs || [];
+    const sorted = [...runs].sort((a,b) => (b.distance_km >= run.min_km) - (a.distance_km >= run.min_km) || a.start_date - b.start_date);
+    const pips = Array.from({length: Math.max(n, runs.length)}, (_, i) => {
+      const rr = sorted[i];
+      if (!rr) return `<span class="pip" title="not yet">—</span>`;
+      const ok = rr.distance_km >= (run.min_km || 0);
+      return `<span class="pip ${ok ? "ok" : "short"}" title="${esc(rr.name)} · ${rr.distance_km} km · ${rr.moving_min} min · ${dayT(rr.start_date)}${ok ? "" : " — under " + run.min_km + " km, doesn't count"}">${rr.distance_km}</span>`;
+    }).join("");
+    const behind = (run.qualifying ?? 0) < n;
+    rows.push(`<div class="row">
+      <div><span class="name">${esc(run.habit || "running")}</span><span class="mod">strava · runs ≥ ${run.min_km} km</span></div>
+      <div><div class="pips">${pips}</div><div class="runlist">${runs.length ? runs.map(x => `${dayT(x.start_date)} ${x.distance_km} km`).join(" · ") : "no runs on Strava yet"}</div></div>
+      <div><div class="nums"><div><small>counted</small><span class="v">${run.qualifying ?? 0}</span></div><div><small>logged</small>${runs.length}</div><div><small>target</small>${n}</div></div>
+      <div class="statusline ${behind ? "behind" : "aligned"}">${behind ? `${n - (run.qualifying ?? 0)} more to go` : "target met"}</div></div>
+    </div>`);
+  }
+  $("#rows").innerHTML = rows.join("") || `<p class="none">No habits configured.</p>`;
+}
+
+/* ---------- sessions ---------- */
+const openSet = new Set();
+function renderSessions(list) {
+  list = list || [];
+  $("#sessCount").textContent = `${list.length} closed`;
+  if (!list.length) { $("#sessions").innerHTML = `<p class="none">No closed sessions yet. The record starts with the first declaration.</p>`; return; }
+  $("#sessions").innerHTML = list.map(s => {
+    const labels = s.labels || [];
+    let tl;
+    if (labels.length) tl = `<div class="tl">${labels.map(l => `<i style="--c:${cvar(l.label)}" title="${clockT(l.ts)} ${esc(LBL_TXT[l.label] || l.label)}"></i>`).join("")}</div>`;
+    else if (s.windows && s.windows.length) tl = `<div class="tl" title="window share">${s.windows.map(w => `<i style="--c:${cvar(w.label)};flex:${w.share || 0}"></i>`).join("")}</div>`;
+    else tl = `<div class="tl empty"></div>`;
+    const v = s.verdict || "—";
+    const img = s.evidence_url ? `<a href="${esc(s.evidence_url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(s.evidence_url)}" alt="Contact sheet for session ${s.id}"></a>` : "";
+    const counts = LABELS.map(l => [l, labels.filter(x => x.label === l).length]).filter(x => x[1]);
+    const meta = `<div class="meta">
+        <div><b>#${s.id}</b> · ${esc(s.modality || "")} · ${clockT(s.started_at)} → ${clockT(s.ended_at || s.ends_at)}</div>
+        <div>declared <b>${esc(hm(s.declared_min))}</b> · on task <b>${pct(s.on_task_ratio)}</b></div>
+        ${counts.length ? `<div>${counts.map(([l,n]) => `<span style="color:${cvar(l)}">●</span> ${LBL_TXT[l]} ${n}`).join(" &nbsp;")}</div>` : ""}
+        ${s.artefact ? `<div>artefact <a href="${esc(s.artefact)}" target="_blank" rel="noopener"><b>${esc(s.artefact)}</b></a></div>` : ""}
+      </div>`;
+    const wins = s.windows && s.windows.length ? `<div class="wins" style="margin-top:16px">${renderWindows(s.windows)}</div>` : "";
+    const side = `<div>${meta}${wins}</div>`;
+    const inner = img ? `<div class="in">${img}${side}</div>` : `<div class="in solo">${side}</div>`;
+    return `<div class="sess ${openSet.has(s.id) ? "open" : ""}" data-id="${s.id}">
+      <button type="button" aria-expanded="${openSet.has(s.id)}">
+        <span class="when"><b>${dayT(s.started_at)}</b>${clockT(s.started_at)}</span>
+        <span class="h">${esc(hname(s.habit))}<small>${esc(hm(s.declared_min))} declared</small></span>
+        <span class="pill" style="--c:${vvar(s.verdict)}">${esc(v)}</span>
+        ${tl}
+        <span class="ratio">${pct(s.on_task_ratio)}</span>
+        <span class="chev">▸</span>
+      </button>
+      <div class="detail"><div>${inner}</div></div>
+    </div>`;
+  }).join("");
+}
+$("#sessions").addEventListener("click", e => {
+  const b = e.target.closest(".sess>button"); if (!b) return;
+  const el = b.parentElement, id = +el.dataset.id;
+  el.classList.toggle("open");
+  el.classList.contains("open") ? openSet.add(id) : openSet.delete(id);
+  b.setAttribute("aria-expanded", el.classList.contains("open"));
+});
+
+async function refreshSlow() {
+  const [r, s] = await Promise.allSettled([api("/api/report"), api("/api/sessions")]);
+  if (r.status === "fulfilled") renderReport(r.value);
+  if (s.status === "fulfilled") renderSessions(s.value);
+  $("#foot").textContent = `updated ${clockT(Date.now()/1000)}`;
+}
+
+pollState(); refreshSlow();
+setInterval(pollState, 1000);
+setInterval(refreshSlow, 15000);
+</script>
+</body>
+</html>
