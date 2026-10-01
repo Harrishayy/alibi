@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every prototype's Definition of Done, in order, each in a fresh temp data dir. ~10 s total.
+# Every prototype's Definition of Done, in order, each in a fresh temp data dir. ~15 s total.
 set -euo pipefail
 cd "$(dirname "$0")"
 source ../.venv/bin/activate

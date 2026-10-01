@@ -1,16 +1,16 @@
 # Demo shot list (target 75 s)
 
-Record each clip at the prototype's Definition of Done. Save to demo/clips/.
+Record with `./alibi.sh demo` (live camera, 10 s samples, 2-minute session). Save clips to demo/clips/.
 
-| # | Secs | Shot | From |
-|---|---|---|---|
-| 1 | 0–6 | Title card: "Alibi — the habit tracker that checks your alibi" | — |
-| 2 | 6–14 | Chat: "I'm going to draw for 1 hour" → "Session started. Watching." | P0/P2 |
-| 3 | 14–28 | Desk cam timelapse: drawing → picks up phone → walks off | P1 |
-| 4 | 28–34 | Nudge lands on phone: "You said drawing. I've seen your phone for 3 minutes." | P2 |
-| 5 | 34–44 | Verdict + contact sheet (green / red / grey frames) | P1 |
-| 6 | 44–54 | "Learn C++ for 30 min" → verdict with window-title breakdown | P3 |
-| 7 | 54–68 | Nightly report in chat: aligned on building, behind on drawing, 1 run behind (Strava) | P4/P5 |
-| 8 | 68–75 | Terminal: daemon uptime, logger running, schedule list. End card with one-sentence impact. | — |
+| # | Secs | Shot |
+|---|---|---|
+| 1 | 0–5 | Title card: "Alibi — the habit tracker that checks your alibi" |
+| 2 | 5–12 | Press ⌥⌘A → island drops from the notch → tap "Drawing 25m" (or type it). Wings show the countdown. |
+| 3 | 12–26 | Desk cam: drawing → pick up phone → **nudge drops from the notch**: "You said drawing. I've seen your phone…" |
+| 4 | 26–36 | Walk off. Bell → verdict expands from the notch with the contact sheet. |
+| 5 | 36–46 | Dashboard: the session's memories reel plays; click a wrongly-labelled sample → relabel → verdict re-scores. |
+| 6 | 46–56 | "learn C++ for 30 min" → title breakdown (VS Code / cppreference vs YouTube). |
+| 7 | 56–68 | This week: claimed vs seen bars + the three dry sentences. Strava 1/3. |
+| 8 | 68–75 | Setup drawer (everything green, frames never leave the Mac) → end card. |
 
-Tips: speed up long stretches 8–16×; keep text on screen ≥ 2 s; no voiceover needed if captions are clear.
+Tips: speed up long stretches 8–16×; keep text on screen ≥ 2 s; captions over voiceover.

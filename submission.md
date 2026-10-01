@@ -9,6 +9,8 @@ Habit trackers trust you. Alibi doesn't. You tell it what you're about to do ("d
 
 **How it works:** Python daemon (timers, camera sampling with motion gating, nudges, nightly report, local API) + SQLite event store + a pluggable witness: NVIDIA Build VLM for frames, or Apple's on-device Vision framework so frames never leave the Mac. LLM for intent parsing, window-title classification and the nightly summary, with rule-based fallbacks so the agent never stops. You talk to it through a Dynamic-Island-style bar that lives in the MacBook notch, plus a web dashboard showing claimed vs. seen. Zero model calls when no session is running; window titles are classified once and cached.
 
-**What's next:** phone Focus + Apple Health via iOS Shortcuts, a fully local VLM on DGX Spark so frames never leave the network, and 3D "where did I leave it" memory of the desk.
+**Also:** every camera session becomes a short timelapse "memories reel", and you can correct any sample the witness got wrong — the verdict re-scores, but the correction stays on the record.
+
+**What's next:** iOS Shortcuts for phone Focus + Apple Health (the endpoint already exists), learning from your corrections, a fully local VLM on DGX Spark so frames never leave the network, and 3D "where did I leave it" memory of the desk.
 
 **Demo:** <video link>
