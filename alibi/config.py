@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
 
+HABITS_PATH = pathlib.Path(os.getenv("ALIBI_HABITS", ROOT / "habits.yaml"))
 DATA_DIR = pathlib.Path(os.getenv("ALIBI_DATA_DIR", ROOT / "data"))   # tests point this at a temp dir
 FRAMES_DIR = DATA_DIR / "frames"
 EVIDENCE_DIR = DATA_DIR / "evidence"
@@ -24,7 +25,7 @@ REPORT_HOUR = int(os.getenv("REPORT_HOUR", "22"))
 
 def habits() -> dict:
     """Re-read every call so you can edit habits.yaml without restarting the daemon."""
-    with open(ROOT / "habits.yaml") as f:
+    with open(HABITS_PATH) as f:
         return yaml.safe_load(f)
 
 CAMERA_SOURCE = os.getenv("CAMERA_SOURCE", "")          # "" = live webcam, or a path to a video file

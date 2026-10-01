@@ -4,6 +4,8 @@ import os, sys, tempfile, time, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 os.environ["ALIBI_DATA_DIR"] = tempfile.mkdtemp(prefix="alibi-test-")
+import shutil
+os.environ["ALIBI_HABITS"] = shutil.copy(ROOT / "habits.yaml", os.environ["ALIBI_DATA_DIR"] + "/habits.yaml")
 os.environ.setdefault("NOTIFY", "print")
 os.environ.setdefault("VISION_BACKEND", "mock")
 

@@ -26,6 +26,7 @@ def tick(con) -> None:
         line = verifier.finalise(con, s)
         done = con.execute("SELECT evidence_path FROM sessions WHERE id=?", (s["id"],)).fetchone()
         notify(f"Time's up. {line}", image_path=done["evidence_path"], kind="verdict")
+        _reel_later(s["id"])
     global _strava_synced
     if os.getenv("STRAVA_REFRESH_TOKEN") and time.time() - _strava_synced > 3600:
         _strava_synced = time.time()
@@ -37,6 +38,19 @@ def tick(con) -> None:
         from . import report
         _report_sent_on = today
         notify(report.build_json()["summary"], kind="report")
+
+
+def _reel_later(session_id: int) -> None:
+    """Build the session's memories reel off the tick thread (ffmpeg takes a few seconds)."""
+    import threading
+    from . import reel
+
+    def run():
+        try:
+            reel.session_reel(db.connect(), session_id)
+        except Exception as e:
+            print(f"[alibi] reel failed: {e!r}", flush=True)
+    threading.Thread(target=run, daemon=True).start()
 
 
 def main():

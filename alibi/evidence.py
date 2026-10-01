@@ -66,7 +66,10 @@ def contact_sheet(session, label_events: list[dict], ratio: float, verdict: str)
             im = Image.new("RGB", (tw, th), RULE)
         d.rounded_rectangle([x - 4, y - 4, x + tw + 3, y + th + 3], radius=8, fill=col)
         sheet.paste(im, (x, y))
-        d.text((x, y + th + 9), f"{_hhmm(e['ts'])}  {e['payload']['label'].replace('_', ' ')}", font=mono, fill=INK)
+        tag = f"{_hhmm(e['ts'])}  {e['payload']['label'].replace('_', ' ')}"
+        if e["payload"].get("corrected_from"):
+            tag += f"  ✎ was {e['payload']['corrected_from'].replace('_', ' ')}"
+        d.text((x, y + th + 9), tag, font=mono, fill=INK)
 
     config.EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     out = config.EVIDENCE_DIR / f"{session['id']}.jpg"

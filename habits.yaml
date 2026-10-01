@@ -2,26 +2,31 @@
 habits:
   drawing:
     modality: physical
+    default_min: 25
     aliases: [draw, sketch, sketching, art]
     weekly_target_min: 210
     on_task_looks_like: "hands holding a pen or pencil working on paper or a drawing tablet"
   building:
     modality: physical
+    default_min: 45
     aliases: [build, building, iggy, robot, solder, hardware, quadruped]
     weekly_target_min: 420
     on_task_looks_like: "hands working on hardware, robot, wiring, tools, or laptop code next to hardware"
   math:
     modality: hybrid
+    default_min: 30
     aliases: [maths, math, calculus, linear algebra]
     weekly_target_min: 240
     on_task_looks_like: "writing equations in a notebook, or maths content on screen"
   cpp:
     modality: digital
+    default_min: 30
     aliases: ["c++", cpp, learncpp]
     weekly_target_min: 180
     on_task_looks_like: "code editor with .cpp/.h files, cppreference, learncpp, compiler or terminal output"
   internships:
     modality: digital
+    default_min: 30
     aliases: [internship, applications, apply, job]
     weekly_target_min: 180
     on_task_looks_like: "Workday, Greenhouse, Lever, LinkedIn Jobs, careers pages, CV or cover letter docs"

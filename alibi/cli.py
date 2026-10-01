@@ -39,6 +39,8 @@ def end(con, artefact: str | None = None) -> str:
     line = verifier.finalise(con, s, artefact=artefact) + _artefact_note(s, artefact)
     done = con.execute("SELECT evidence_path FROM sessions WHERE id=?", (s["id"],)).fetchone()
     notify(f"Ended early. {line}", image_path=done["evidence_path"], kind="verdict")
+    from .daemon import _reel_later
+    _reel_later(s["id"])
     return line
 
 

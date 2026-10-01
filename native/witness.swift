@@ -3,7 +3,19 @@
 import Foundation
 import Vision
 
+import AVFoundation
+
 guard CommandLine.arguments.count > 1 else { print("{}"); exit(0) }
+if CommandLine.arguments[1] == "--camera-auth" {
+    switch AVCaptureDevice.authorizationStatus(for: .video) {
+    case .authorized: print("authorized")
+    case .denied: print("denied")
+    case .restricted: print("restricted")
+    case .notDetermined: print("not_determined")
+    @unknown default: print("unknown")
+    }
+    exit(0)
+}
 let url = URL(fileURLWithPath: CommandLine.arguments[1])
 let handler = VNImageRequestHandler(url: url, options: [:])
 

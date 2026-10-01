@@ -19,9 +19,32 @@ def verdict_for(ratio: float) -> str:
     return "done" if ratio >= t.get("done", 0.7) else "partial" if ratio >= t.get("partial", 0.4) else "slacked"
 
 
-def finalise(con, session, artefact: str | None = None) -> str:
-    """Score the session, render evidence, close it. Returns a one-line human summary for notify()."""
+def camera_labels(con, session) -> list[dict]:
+    """Camera label events with the user's corrections applied (P11). The witness is fallible; you get the last word."""
     cam = db.session_events(con, session["id"], source="camera")
+    fixes = {round(e["payload"]["target_ts"], 3): e["payload"]["label"]
+             for e in db.session_events(con, session["id"], source="user") if e["kind"] == "correction"}
+    for e in cam:
+        new = fixes.get(round(e["ts"], 3))
+        if new and new != e["payload"]["label"]:
+            e["payload"] = {**e["payload"], "corrected_from": e["payload"]["label"], "label": new}
+    return cam
+
+
+def correct(con, session_id: int, target_ts: float, label: str) -> str:
+    """Record a correction and re-score the (finished or live) session."""
+    if label not in db.LABELS:
+        raise ValueError(f"label must be one of {db.LABELS}")
+    db.add_event(con, "user", "correction", {"target_ts": target_ts, "label": label}, session_id=session_id)
+    s = con.execute("SELECT * FROM sessions WHERE id=?", (session_id,)).fetchone()
+    if s["status"] != "done":
+        return "Correction noted; it counts when the session ends."
+    return finalise(con, s, artefact=s["artefact"], keep_end=True)
+
+
+def finalise(con, session, artefact: str | None = None, keep_end: bool = False) -> str:
+    """Score the session, render evidence, close it. Returns a one-line human summary for notify()."""
+    cam = camera_labels(con, session)
     win = _window_events(con, session)
     mod = session["modality"]
     if mod == "physical" or (mod == "hybrid" and not win):
@@ -32,12 +55,14 @@ def finalise(con, session, artefact: str | None = None) -> str:
     else:
         marks = _hybrid_marks(con, session, cam, win)
     if not marks:
-        db.finish_session(con, session["id"], on_task_ratio=0.0, verdict="slacked", artefact=artefact)
+        db.finish_session(con, session["id"], on_task_ratio=0.0, verdict="slacked", artefact=artefact,
+                          **({"ended_at": session["ended_at"]} if keep_end else {}))
         return f"{session['habit'].capitalize()}: no evidence collected — logged as slacked."
     ratio = sum(marks) / len(marks)
     verdict = verdict_for(ratio)
     path = evidence.contact_sheet(session, cam, ratio, verdict) if cam else None
-    db.finish_session(con, session["id"], on_task_ratio=ratio, verdict=verdict, evidence_path=path, artefact=artefact)
+    db.finish_session(con, session["id"], on_task_ratio=ratio, verdict=verdict, evidence_path=path, artefact=artefact,
+                      **({"ended_at": session["ended_at"]} if keep_end else {}))
     line = f"{session['habit'].capitalize()}: {verdict.upper()} — {ratio:.0%} on task"
     if cam:
         seen = Counter(e["payload"]["label"] for e in cam)
@@ -50,7 +75,7 @@ def finalise(con, session, artefact: str | None = None) -> str:
 
 
 def _window_events(con, session):
-    end = session["ended_at"] or session["ends_at"]
+    end = min(session["ended_at"] or session["ends_at"], session["ends_at"])
     return [e for e in db.events_between(con, session["started_at"], end, "laptop")
             if e["payload"].get("app") and e["ts"] < end]          # half-open: the bell's own sample isn't evidence
 
