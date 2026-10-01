@@ -1,0 +1,346 @@
+{
+ "now": 1790874473.0,
+ "session": {
+  "id": 11,
+  "habit": "drawing",
+  "modality": "physical",
+  "declared_min": 25,
+  "started_at": 1790873880.0,
+  "ends_at": 1790875380.0,
+  "ended_at": null,
+  "status": "active",
+  "on_task_ratio": null,
+  "verdict": null,
+  "evidence_path": null,
+  "artefact": null,
+  "label": "Drawing",
+  "evidence_url": null,
+  "labels": [
+   {
+    "ts": 1790873890.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798400.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790873920.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798460.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790873950.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798520.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790873980.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798580.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874010.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799060.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874040.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798640.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874070.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798700.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874100.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798760.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874130.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798820.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874160.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798880.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874190.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798940.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874220.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790799000.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874250.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798400.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874280.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799120.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874310.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799180.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874340.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799300.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874370.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799420.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874400.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799480.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874430.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799540.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874460.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799600.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   }
+  ],
+  "reel_url": null,
+  "on_task_so_far": 0.6,
+  "day": "2026-10-01",
+  "left_s": 907.0,
+  "progress": 0.3953333333333333,
+  "last_frame_url": "/files/frames/6/1790799600.jpg",
+  "samples": 20,
+  "warming_up": false,
+  "recent": [
+   "phone",
+   "phone",
+   "phone"
+  ],
+  "recent_on_task": 0.0,
+  "last_seen": {
+   "label": "phone",
+   "label_text": "On your phone",
+   "note": "phone in hand, sketchbook untouched",
+   "source": "camera",
+   "ago_s": 13,
+   "text": "Witness · 13 s ago · phone in hand, sketchbook untouched"
+  },
+  "drifting": {
+   "label": "phone",
+   "label_text": "On your phone",
+   "since_s": 193,
+   "samples": 7
+  },
+  "on_break": null,
+  "breaks_taken": 0,
+  "nudges": 1,
+  "strikes": 0
+ },
+ "alert": {
+  "id": 1790874470000000000,
+  "ts": 1790874470.0,
+  "kind": "nudge",
+  "text": "You said drawing. I've seen your phone for 3 minutes.",
+  "image": null,
+  "session_id": 11,
+  "habit": "drawing",
+  "habit_label": "Drawing",
+  "label": "phone",
+  "strike": false,
+  "actions": [
+   {
+    "label": "Back to it",
+    "say": "back"
+   },
+   {
+    "label": "This counts",
+    "say": "it's on task"
+   },
+   {
+    "label": "Quiet 5 min",
+    "say": "snooze 5"
+   }
+  ],
+  "image_url": null
+ },
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790872200.0
+ },
+ "today": {
+  "sessions": 1,
+  "verified_min": 50,
+  "declared_min": 50,
+  "habits_done": 1,
+  "habits_total": 5,
+  "tally": "1/5",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Drifting · On your phone · Drawing 15:07",
+ "pinch": {
+  "mood": "thinking",
+  "event": "sideeye",
+  "seq": 1790874470000,
+  "age_s": 3.0,
+  "line": "You said drawing. I've seen your phone for 3 minutes."
+ }
+}

@@ -1,0 +1,101 @@
+/* shell.css: header, status pill, setup entry button, page stack + idle/live/verdict ordering, toast, scrim, footer. Loaded in order base, shell, now, week, sessions, setup. */
+/* header */
+header{padding:48px 0 28px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.wordmark{font:400 56px/0.9 var(--serif);letter-spacing:-.025em;margin:0}
+.wordmark i{color:var(--accent);font-style:normal}
+.tagline{font:italic 300 19px/1.2 var(--serif);color:var(--muted)}
+.status{display:flex;gap:18px;font:12px/1 var(--mono);color:var(--muted);white-space:nowrap}
+.status b{font-weight:500;color:var(--ink)}
+.pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--on_task);margin-right:6px;vertical-align:1px;box-shadow:0 0 0 0 color-mix(in srgb,var(--on_task) 50%,transparent);animation:pulse 2.4s infinite}
+.pulse.off{background:var(--faint);animation:none}
+
+/* sections */
+section.block{padding:44px 0;border-bottom:1px solid var(--rule)}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:26px}
+.sechead h2{margin:0;font:400 30px/1.1 var(--serif);letter-spacing:-.015em}
+.sechead h2 em{font-style:italic;color:var(--muted);font-weight:300}
+
+/* toast */
+.toast{position:fixed;right:24px;bottom:24px;width:min(400px,calc(100vw - 32px));z-index:50;background:var(--paper);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow),0 30px 60px -30px rgba(0,0,0,.35);padding:16px 18px 16px 20px;transform:translateY(12px);opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s cubic-bezier(.2,.7,.2,1)}
+.toast.show{opacity:1;transform:none;pointer-events:auto}
+.toast .k{font:500 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.toast .k button{border:0;background:none;color:var(--muted);font-size:16px;line-height:.6;padding:0}
+.toast .tx{margin-top:8px;font:400 18px/1.4 var(--serif);white-space:pre-wrap}
+.toast img{margin-top:12px;width:100%;border-radius:6px;border:1px solid var(--rule)}
+.toast.nudge{background:var(--warn-ink);border-color:var(--warn-ink);color:#fff}
+.toast.nudge .k,.toast.nudge .k button{color:rgba(255,255,255,.88)}
+.toast.verdict .k span{color:var(--c,var(--accent))}
+
+/* setup entry */
+.hright{display:flex;align-items:center;gap:22px}
+.setupbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule);background:transparent;border-radius:999px;padding:7px 13px 7px 11px;font:500 12px/1 var(--mono);color:var(--muted);letter-spacing:.02em;transition:border-color .15s,color .15s,background .15s}
+.setupbtn:hover{border-color:var(--ink);color:var(--ink)}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.sdot.ok{background:var(--on_task)}
+.sdot.bad{background:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 22%,transparent)}
+.setupbtn .n{color:var(--accent-ink)}
+
+.scrim{position:fixed;inset:0;z-index:60;background:color-mix(in srgb,var(--ink) 22%,transparent);opacity:0;pointer-events:none;transition:opacity .3s ease}
+.scrim.show{opacity:1;pointer-events:auto}
+.sacts{display:flex;align-items:center;gap:16px}
+/* header state pill (replaces dev telemetry) */
+.statepill{display:inline-flex;align-items:center;gap:8px;max-width:420px;border:1px solid var(--rule);border-radius:999px;padding:7px 14px 7px 11px;font:500 13px/1.2 var(--sans);color:var(--ink);background:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.statepill .pulse{margin:0;flex:none}
+.statepill.drift{border-color:color-mix(in srgb,var(--phone) 45%,var(--rule));color:var(--phone-ink)}
+.statepill.drift .pulse{background:var(--phone);animation-name:pulsered}
+.statepill.idle .pulse{background:var(--faint);animation:none}
+.statepill.brk .pulse{background:var(--idle);animation:none}
+
+/* stack: order depends on state */
+main.stack{display:flex;flex-direction:column}
+main.stack>#weekHero{order:1}
+main.stack>.prompt{order:2}
+main.stack>#nowBlock{order:3}
+main.stack>#weekBlock{order:4}
+main.stack>#sessBlock{order:5}
+body.live main.stack>#nowBlock,body.verdict main.stack>#nowBlock{order:1}
+body.live main.stack>#weekHero,body.verdict main.stack>#weekHero{order:3}
+body.live main.stack>.prompt{order:2}
+body.live .prompt{padding:16px 0 18px}
+body.live form.say{border-bottom-width:1px;border-color:var(--rule)}
+body.live form.say input,body.live form.say .caret{font-size:19px}
+body.live .chips{margin-top:10px}
+body.live #nowBlock{padding-top:30px}
+
+/* toast actions */
+.tacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tacts:empty{display:none}
+.tacts button{border:1px solid var(--rule);background:transparent;border-radius:999px;padding:7px 13px;font:500 13px/1 var(--sans);color:var(--ink)}
+.tacts button:first-child{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.toast.nudge .tacts button{border-color:rgba(255,255,255,.5);color:#fff}
+.toast.nudge .tacts button:first-child{background:#fff;color:var(--warn-ink);border-color:#fff}
+.tacts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+body.idle main.stack>#nowBlock{display:none}
+main.stack>#todayBlock{order:0}
+body.live main.stack>#todayBlock,body.verdict main.stack>#todayBlock{order:4}
+body.live .chips{display:none}
+
+footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--muted);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  header{flex-direction:column;align-items:flex-start;padding-top:32px}
+  .wordmark{font-size:46px}
+  .status{flex-wrap:wrap;gap:8px 14px}
+  .sechead{flex-direction:column;gap:12px}
+  header{position:relative}
+  .hright{width:100%;justify-content:space-between;align-items:flex-start}
+  .setupbtn{flex:none}
+  .toast{right:16px;left:16px;bottom:16px;width:auto}
+  header{padding-top:24px;padding-bottom:18px}
+  .wordmark{font-size:40px}
+  .tagline{font-size:16px}
+  .statepill{max-width:calc(100vw - 150px)}
+  .hright{align-items:center}
+  body.live .prompt{padding:12px 0 14px}
+  body.live #nowBlock{padding-top:18px}
+  body.live .now-habit{font-size:40px}
+  body.live .clock{margin:16px 0}
+  body.live .tagline{display:none}
+}

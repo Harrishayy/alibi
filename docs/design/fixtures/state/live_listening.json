@@ -1,0 +1,103 @@
+{
+ "now": 1790873885.0,
+ "session": {
+  "id": 11,
+  "habit": "drawing",
+  "modality": "physical",
+  "declared_min": 25,
+  "started_at": 1790873880.0,
+  "ends_at": 1790875380.0,
+  "ended_at": null,
+  "status": "active",
+  "on_task_ratio": null,
+  "verdict": null,
+  "evidence_path": null,
+  "artefact": null,
+  "label": "Drawing",
+  "evidence_url": null,
+  "labels": [],
+  "reel_url": null,
+  "on_task_so_far": null,
+  "day": "2026-10-01",
+  "left_s": 1495.0,
+  "progress": 0.0033333333333333335,
+  "last_frame_url": null,
+  "samples": 0,
+  "warming_up": true,
+  "recent": [],
+  "recent_on_task": null,
+  "last_seen": null,
+  "drifting": null,
+  "on_break": null,
+  "breaks_taken": 0,
+  "nudges": 0,
+  "strikes": 0
+ },
+ "alert": null,
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790872200.0
+ },
+ "today": {
+  "sessions": 1,
+  "verified_min": 50,
+  "declared_min": 50,
+  "habits_done": 1,
+  "habits_total": 5,
+  "tally": "1/5",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Watching · Drawing 24:55",
+ "pinch": {
+  "mood": "listening",
+  "event": "connected",
+  "seq": 1790873880000,
+  "age_s": 5.0,
+  "line": "On it. Watching drawing."
+ }
+}

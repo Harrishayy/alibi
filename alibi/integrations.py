@@ -12,7 +12,7 @@ signals.store, which attaches each row to the session its ts falls in), and serv
 iPhone can couple to a live session. The Mac turns an "Alibi" Focus on/off with each session via Shortcuts.
 """
 import datetime as dt, hmac, json, math, os, re, secrets as _rand, socket, subprocess, threading, time
-from . import config, db, secrets as store
+from . import config, db, pinch, secrets as store
 
 STRAVA_EVERY_S = int(os.getenv("STRAVA_SYNC_EVERY_S", "1800"))
 PHONE_HOST = os.getenv("PHONE_HOST", "0.0.0.0")        # the phone listener is the only thing Alibi exposes to the LAN
@@ -389,7 +389,15 @@ def save_health(con, raw: dict) -> dict:
     p = normalise_health(raw)
     noon = dt.datetime.fromisoformat(p["date"]).replace(hour=12).timestamp()
     db.add_event(con, "health", "samples", p, session_id=None, ts=noon)
-    set_state(health_last_received=time.time())
+    now = time.time()
+    st = state()
+    set_state(health_last_received=now)
+    if now - float(st.get("health_synced_told") or 0) > 3600:        # one "synced" moment an hour, not one per day row
+        set_state(health_synced_told=now)
+        from .notify import notify
+        bits = [f"{METRICS[k]['label'].lower()} {METRICS[k]['fmt'](p[k])}" for k in ("steps", "sleep_h") if k in p]
+        notify("Your iPhone checked in" + (f": {', '.join(bits)}." if bits else "."), kind="synced", source="health",
+               date=p["date"])
     return p
 
 
@@ -737,6 +745,7 @@ def session_info(con) -> dict:
         out.update(_mirror(con))
     except Exception as e:                       # the mirror is a nicety; coupling must never fail because of it
         print(f"[alibi] phone mirror failed: {e!r}", flush=True)
+    out["pinch"] = pinch.from_db(con)
     return out
 
 

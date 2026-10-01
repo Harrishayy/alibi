@@ -1,0 +1,80 @@
+{
+ "now": 1790878203.0,
+ "session": null,
+ "alert": {
+  "id": 1790878200000000000,
+  "ts": 1790878200.0,
+  "kind": "synced",
+  "text": "Your iPhone checked in: steps 6,412.",
+  "image": null,
+  "source": "health",
+  "date": "2026-10-01",
+  "image_url": null
+ },
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790872200.0
+ },
+ "today": {
+  "sessions": 2,
+  "verified_min": 73,
+  "declared_min": 75,
+  "habits_done": 2,
+  "habits_total": 5,
+  "tally": "2/5",
+  "verdicts": {
+   "done": 2,
+   "partial": 0,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Idle — nothing declared",
+ "pinch": {
+  "mood": "idle",
+  "event": "connected",
+  "seq": 1790878200000,
+  "age_s": 3.0,
+  "line": "Your iPhone checked in: steps 6,412."
+ }
+}

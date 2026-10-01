@@ -204,12 +204,7 @@ let hairline = Color.white.opacity(0.09)
 let green = Color(hex: 0x76B900), amber = Color(hex: 0xF2A900), red = Color(hex: 0xE5484D)
 func verdictColour(_ v: String?) -> Color { v == "done" ? green : v == "partial" ? amber : v == "slacked" ? red : accent }
 
-extension Color {
-    init(hex: UInt32) {
-        self.init(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255,
-                  blue: Double(hex & 0xFF) / 255)
-    }
-}
+// Color(hex:) comes from native/shared/Theme.swift.
 
 // MARK: - Model
 
@@ -1815,24 +1810,4 @@ struct SnapExtras: Decodable {
     }
     try? await Task.sleep(nanoseconds: 500_000_000)
     print("pressed “\(x.label)” on \(a.kind): reply=\(m.reply ?? "-") session=\(m.session?.name ?? "none")")
-}
-
-let args = CommandLine.arguments
-func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
-if let label = arg("--act") {
-    Task { @MainActor in await actOnce(label); exit(0) }
-    RunLoop.main.run()
-} else if let dir = arg("--snapshot") {
-    Task { @MainActor in await snapshot(to: dir, stateFile: arg("--state"), prefix: arg("--prefix") ?? ""); exit(0) }
-    RunLoop.main.run()
-} else {
-    // Inside Alibi.app: own the daemon's lifetime (start it if nothing answers, stop it when we quit).
-    if Bundle.main.url(forResource: "root", withExtension: "txt") != nil, let root = repoRoot {
-        DaemonOwner.shared.start(root: root)
-    }
-    let app = NSApplication.shared
-    app.setActivationPolicy(.accessory)
-    let controller = MainActor.assumeIsolated { Controller() }
-    MainActor.assumeIsolated { controller.start() }
-    app.run()
 }

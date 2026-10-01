@@ -4,7 +4,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p bin
 swiftc -O native/witness.swift -o bin/alibi-witness
-swiftc -O native/Island.swift -o bin/alibi-island
+# Island: main.swift holds the entry code; native/shared/*.swift are SwiftUI files shared with the iPhone app.
+swiftc -O native/main.swift native/Island.swift $(find native/shared -maxdepth 1 -name '*.swift' 2>/dev/null | sort) -o bin/alibi-island
 # Presence/meeting/media/Focus snapshot for alibi/mac_signals.py. Permission-free reads; never prompts.
 swiftc -O native/sense.swift -o bin/alibi-sense
 # Calendar helper: a command-line tool needs its usage strings embedded, or macOS refuses (or kills) the request.
@@ -47,5 +48,20 @@ cp bin/alibi-island $APP/Contents/MacOS/Alibi
 cp bin/alibi-calendar $APP/Contents/MacOS/alibi-calendar   # calendar_sync prefers this copy: access belongs to "Alibi"
 cp bin/alibi-sense $APP/Contents/MacOS/alibi-sense         # mac_signals prefers this copy (Full Disk Access → "Alibi")
 echo "$PWD" > $APP/Contents/Resources/root.txt
-codesign --force -s - $APP >/dev/null 2>&1 || true
+# Sign with a stable Apple Development identity when there is one: macOS keys privacy permissions (Documents, Camera,
+# Calendar, Full Disk Access) to the signature, so ad-hoc signing re-prompts after every rebuild.
+TEAM="${ALIBI_TEAM:-87P4DWU22Q}"            # same team as the iPhone companion
+IDENTITY="${ALIBI_SIGN_ID:-}"
+if [ -z "$IDENTITY" ]; then
+  while IFS= read -r id; do
+    ou=$(security find-certificate -c "$id" -p 2>/dev/null | openssl x509 -noout -subject 2>/dev/null \
+      | sed -n 's/.*OU *= *\([A-Z0-9]*\).*/\1/p')
+    [ -z "$IDENTITY" ] && IDENTITY="$id"
+    [ "$ou" = "$TEAM" ] && { IDENTITY="$id"; break; }
+  done < <(security find-identity -v -p codesigning 2>/dev/null | awk '!/REVOKED/' \
+    | sed -n 's/.*"\(Apple Development: [^"]*\)".*/\1/p')
+fi
+for f in $APP/Contents/MacOS/*; do codesign --force -s "${IDENTITY:--}" "$f" >/dev/null 2>&1 || true; done
+codesign --force -s "${IDENTITY:--}" $APP >/dev/null 2>&1 || codesign --force -s - $APP >/dev/null 2>&1 || true
+echo "Signed $APP with: ${IDENTITY:-ad-hoc}"
 echo "Built $APP (double-click it, or ./alibi.sh up)"

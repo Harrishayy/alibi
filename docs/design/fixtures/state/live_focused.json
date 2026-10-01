@@ -1,0 +1,245 @@
+{
+ "now": 1790874258.0,
+ "session": {
+  "id": 11,
+  "habit": "drawing",
+  "modality": "physical",
+  "declared_min": 25,
+  "started_at": 1790873880.0,
+  "ends_at": 1790875380.0,
+  "ended_at": null,
+  "status": "active",
+  "on_task_ratio": null,
+  "verdict": null,
+  "evidence_path": null,
+  "artefact": null,
+  "label": "Drawing",
+  "evidence_url": null,
+  "labels": [
+   {
+    "ts": 1790873890.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798400.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790873920.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798460.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790873950.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798520.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790873980.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798580.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874010.0,
+    "label": "phone",
+    "note": "phone in hand, sketchbook untouched",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799060.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874040.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798640.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874070.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798700.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874100.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798760.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874130.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798820.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874160.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798880.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874190.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798940.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874220.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790799000.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790874250.0,
+    "label": "on_task",
+    "note": "pencil on paper, sketchbook open",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798400.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   }
+  ],
+  "reel_url": null,
+  "on_task_so_far": 0.9230769230769231,
+  "day": "2026-10-01",
+  "left_s": 1122.0,
+  "progress": 0.252,
+  "last_frame_url": "/files/frames/6/1790798400.jpg",
+  "samples": 13,
+  "warming_up": false,
+  "recent": [
+   "on_task",
+   "on_task",
+   "on_task"
+  ],
+  "recent_on_task": 1.0,
+  "last_seen": {
+   "label": "on_task",
+   "label_text": "On task",
+   "note": "pencil on paper, sketchbook open",
+   "source": "camera",
+   "ago_s": 8,
+   "text": "Witness · 8 s ago · pencil on paper, sketchbook open"
+  },
+  "drifting": null,
+  "on_break": null,
+  "breaks_taken": 0,
+  "nudges": 0,
+  "strikes": 0
+ },
+ "alert": null,
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790872200.0
+ },
+ "today": {
+  "sessions": 1,
+  "verified_min": 50,
+  "declared_min": 50,
+  "habits_done": 1,
+  "habits_total": 5,
+  "tally": "1/5",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Watching · Drawing 18:42",
+ "pinch": {
+  "mood": "focused",
+  "event": null,
+  "seq": 0,
+  "age_s": null,
+  "line": "Watching drawing until 18:23."
+ }
+}

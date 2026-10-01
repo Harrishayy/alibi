@@ -1,0 +1,265 @@
+{
+ "now": 1790875802.6958878,
+ "session": null,
+ "alert": {
+  "id": 1790875801450580000,
+  "ts": 1790875801.45058,
+  "kind": "verdict",
+  "text": "Time's up. Drawing: slacked. 15% on task. The camera mostly saw: on your phone. No streak today. Your word is worth 76% this week.",
+  "image": null,
+  "session_id": 11,
+  "habit": "drawing",
+  "verdict": "slacked",
+  "ratio": 0.15384615384615385,
+  "ended_early": false,
+  "missed": false,
+  "line": "Drawing: SLACKED — 15% on task over 13 samples (phone ×7, absent ×4).",
+  "actions": [
+   {
+    "label": "Watch reel",
+    "url": "/api/reel?session=11"
+   },
+   {
+    "label": "Fix samples",
+    "url": "/#session-11"
+   },
+   {
+    "label": "Again 2m",
+    "say": "drawing for 2 min"
+   }
+  ],
+  "image_url": "/files/evidence/6.jpg",
+  "habit_label": "Drawing"
+ },
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790875679.160477
+ },
+ "today": {
+  "sessions": 5,
+  "verified_min": 52,
+  "declared_min": 59,
+  "habits_done": 1,
+  "habits_total": 5,
+  "tally": "1/5",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 4
+  }
+ },
+ "recent_verdict": {
+  "id": 11,
+  "habit": "drawing",
+  "modality": "physical",
+  "declared_min": 2,
+  "started_at": 1790875679.4289548,
+  "ends_at": 1790875799.4289548,
+  "ended_at": 1790875801.402879,
+  "status": "done",
+  "on_task_ratio": 0.15384615384615385,
+  "verdict": "slacked",
+  "evidence_path": null,
+  "artefact": null,
+  "label": "Drawing",
+  "evidence_url": "/files/evidence/6.jpg",
+  "labels": [
+   {
+    "ts": 1790875679.431285,
+    "label": "on_task",
+    "note": "hands on the work",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798400.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875689.485871,
+    "label": "on_task",
+    "note": "hands on the work",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798460.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875699.518419,
+    "label": "phone",
+    "note": "phone in hand",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799060.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875710.289072,
+    "label": "phone",
+    "note": "phone in hand",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799120.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875720.396843,
+    "label": "phone",
+    "note": "phone in hand",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799180.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875730.5008829,
+    "label": "phone",
+    "note": "phone in hand",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799300.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875740.779706,
+    "label": "phone",
+    "note": "phone in hand",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799420.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875750.816509,
+    "label": "phone",
+    "note": "phone in hand",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799480.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875760.898109,
+    "label": "phone",
+    "note": "phone in hand",
+    "label_text": "On your phone",
+    "frame_url": "/files/frames/6/1790799540.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875771.111788,
+    "label": "absent",
+    "note": "nobody at the desk",
+    "label_text": "Away from desk",
+    "frame_url": "/files/frames/6/1790799240.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875781.154714,
+    "label": "absent",
+    "note": "nobody at the desk",
+    "label_text": "Away from desk",
+    "frame_url": "/files/frames/6/1790799360.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875791.1917062,
+    "label": "absent",
+    "note": "nobody at the desk",
+    "label_text": "Away from desk",
+    "frame_url": "/files/frames/6/1790800020.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875801.395778,
+    "label": "absent",
+    "note": "nobody at the desk",
+    "label_text": "Away from desk",
+    "frame_url": "/files/frames/6/1790800140.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   }
+  ],
+  "reel_url": null,
+  "on_task_so_far": 0.15384615384615385,
+  "day": "2026-10-01",
+  "done_at": 0.7,
+  "partial_at": 0.4,
+  "score_line": "You were on task 15% — 25% short of a partial.",
+  "coverage": 1.0,
+  "time_coverage": 1.0,
+  "elapsed_min": 2,
+  "seen_ratio": 0.15384615384615385,
+  "camera_ratio": 0.15384615384615385,
+  "screen_ratio": null,
+  "verified_min": 0,
+  "signals_reason": null,
+  "why": "Score = how many camera checks showed you working (camera 15%).",
+  "summary": "Drawing: slacked. 15% on task. The camera mostly saw: on your phone.",
+  "ended_ago_s": 1,
+  "last_frame_url": "/files/frames/6/1790800140.jpg"
+ },
+ "status_text": "Idle — nothing declared",
+ "pinch": {
+  "mood": "idle",
+  "event": "supportive",
+  "seq": 1790875801450,
+  "age_s": 1.2,
+  "line": "Not this time. 0 of 2 min seen."
+ }
+}
