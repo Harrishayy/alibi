@@ -1,0 +1,140 @@
+{
+ "demo_now": 1790875554.0770261,
+ "demo_mac": "Harrish's MacBook Pro",
+ "active": false,
+ "habit": null,
+ "label": null,
+ "ends_at": null,
+ "shield": false,
+ "sync_every_s": 900,
+ "session": null,
+ "today": {
+  "habits_done": 2,
+  "habits_total": 5,
+  "verified_min": 54
+ },
+ "recent_verdict": {
+  "habit": "drawing",
+  "verdict": "done",
+  "ratio": 0.7894736842105263,
+  "ended_at": 1790875552.5275378
+ },
+ "streak_days": 7,
+ "week": {
+  "week_start": 1790550000.0,
+  "claimed_min": 352,
+  "seen_min": 269,
+  "habits": [
+   {
+    "habit": "drawing",
+    "label": "Drawing",
+    "claimed_min": 82,
+    "seen_min": 33,
+    "target_min": 210,
+    "status": "behind"
+   },
+   {
+    "habit": "building",
+    "label": "Building",
+    "claimed_min": 150,
+    "seen_min": 136,
+    "target_min": 420,
+    "status": "behind"
+   },
+   {
+    "habit": "math",
+    "label": "Math",
+    "claimed_min": 50,
+    "seen_min": 50,
+    "target_min": 240,
+    "status": "behind"
+   },
+   {
+    "habit": "cpp",
+    "label": "C++",
+    "claimed_min": 40,
+    "seen_min": 32,
+    "target_min": 180,
+    "status": "behind"
+   },
+   {
+    "habit": "internships",
+    "label": "Internships",
+    "claimed_min": 30,
+    "seen_min": 18,
+    "target_min": 180,
+    "status": "behind"
+   },
+   {
+    "habit": "portfolio",
+    "label": "Portfolio",
+    "claimed_min": 0,
+    "seen_min": 0,
+    "target_min": 180,
+    "status": "behind"
+   }
+  ]
+ },
+ "plan_next": {
+  "habit": "cpp",
+  "starts_at": 1790879154.0770261
+ },
+ "pinch": {
+  "mood": "idle",
+  "event": "celebrate",
+  "seq": 1790875552566,
+  "age_s": 1.5,
+  "line": "Done. 2 of 3 min seen."
+ },
+ "demo_health_days": [
+  {
+   "days_ago": 0,
+   "steps": 9120.0,
+   "sleep_h": 7.4,
+   "mindful_min": 5.0,
+   "exercise_min": 31.0
+  },
+  {
+   "days_ago": 1,
+   "steps": 7655.0,
+   "sleep_h": 7.0,
+   "mindful_min": 10.0,
+   "exercise_min": 22.0
+  },
+  {
+   "days_ago": 2,
+   "steps": 12410.0,
+   "sleep_h": 6.2,
+   "mindful_min": 5.0,
+   "exercise_min": 38.0
+  },
+  {
+   "days_ago": 3,
+   "steps": 9874.0,
+   "sleep_h": 7.1,
+   "mindful_min": 10.0,
+   "exercise_min": 18.0
+  },
+  {
+   "days_ago": 4,
+   "steps": 6930.0,
+   "sleep_h": 7.6,
+   "mindful_min": 15.0,
+   "exercise_min": 41.0
+  },
+  {
+   "days_ago": 5,
+   "steps": 11206.0,
+   "sleep_h": 8.1,
+   "mindful_min": 0.0,
+   "exercise_min": 12.0
+  },
+  {
+   "days_ago": 6,
+   "steps": 8412.0,
+   "sleep_h": 7.2,
+   "mindful_min": 10.0,
+   "exercise_min": 34.0
+  }
+ ]
+}

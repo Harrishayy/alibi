@@ -766,10 +766,18 @@ def _mirror(con) -> dict:
                 "nudges": sj.get("nudges")}
     t = api._today(con, cfg["habits"])
     rv = None if s else api._recent_verdict(con)
-    streak = None
+    streak, week = None, None
     try:
         from . import report
-        streak = max((x.get("streak_days") or 0 for x in report.build_json()["rows"]), default=0)
+        rj = report.build_json()
+        rows = rj["rows"]
+        streak = max((x.get("streak_days") or 0 for x in rows), default=0)
+        week = {"week_start": rj.get("week_start"),
+                "claimed_min": sum(x.get("declared_min") or 0 for x in rows),
+                "seen_min": sum(x.get("verified_min") or 0 for x in rows),
+                "habits": [{"habit": x["habit"], "label": x.get("label"), "claimed_min": x.get("declared_min") or 0,
+                            "seen_min": x.get("verified_min") or 0, "target_min": x.get("target_min"),
+                            "status": x.get("status")} for x in rows]}
     except Exception:
         pass
     nxt = None
@@ -785,7 +793,7 @@ def _mirror(con) -> dict:
                       "verified_min": t.get("verified_min")},
             "recent_verdict": rv and {"habit": rv["habit"], "verdict": rv["verdict"], "ratio": rv["on_task_ratio"],
                                       "ended_at": rv["ended_at"]},
-            "streak_days": streak, "plan_next": nxt}
+            "streak_days": streak, "week": week, "plan_next": nxt}
 
 
 def _session_core(con) -> dict:

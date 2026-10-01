@@ -48,6 +48,8 @@
 	<string>Alibi saves your home as a small circle on this phone. Your Mac only ever learns at home: yes or no, never where you are.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Alibi notices whether you're still, walking or driving, and when you pick up your phone, so it can tell if a focus session really stayed focused.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

@@ -32,10 +32,12 @@ targets:
       - target: AlibiActivityMonitor
       - target: AlibiShieldConfig
       - target: AlibiShieldAction
+      - target: AlibiLive
     info:
       path: AlibiPhone/Info.plist
       properties:
         CFBundleDisplayName: Alibi
+        NSSupportsLiveActivities: true
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIRequiresFullScreen: true
@@ -54,7 +56,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.theultras.alibi
-        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
 
   # Screen Time extensions (Family Controls). Embedded in the app; they talk to it only through the App Group.
@@ -118,3 +120,27 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.theultras.alibi.shieldaction
         GENERATE_INFOPLIST_FILE: NO
+
+  # Live Activity (Lock Screen + Dynamic Island). Sources share the iPhone app's theme, Pinch and attributes.
+  AlibiLive:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: AlibiLive
+      - path: AlibiPhone/Views/Live/AlibiLiveAttributes.swift
+      - path: AlibiPhone/Views/Shared
+        includes: [Theme.swift, Pinch.swift, PinchData.swift]
+    info:
+      path: AlibiLive/Info.plist
+      properties:
+        CFBundleDisplayName: Alibi
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.theultras.alibi.live
+        GENERATE_INFOPLIST_FILE: NO
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+      - sdk: ActivityKit.framework
