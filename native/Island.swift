@@ -3,6 +3,7 @@
 // Hover: expands into a prompt ("What are you about to do?") with session detail.
 // Nudges and verdicts expand it on their own. Talks to the daemon at http://127.0.0.1:8765.
 import AppKit
+import Carbon.HIToolbox
 import SwiftUI
 
 let API = ProcessInfo.processInfo.environment["ALIBI_API"] ?? "http://127.0.0.1:8765"
@@ -16,7 +17,8 @@ struct Session: Decodable {
     let labels: [LabelEv]; let on_task_so_far: Double?; let last_frame_url: String?
 }
 struct AlertEv: Decodable, Equatable { let id: Int64; let kind: String; let text: String; let image_url: String? }
-struct StateResp: Decodable { let session: Session?; let alert: AlertEv?; let witness: String }
+struct HabitRef: Decodable, Hashable { let key: String; let modality: String; let default_min: Int? }
+struct StateResp: Decodable { let session: Session?; let alert: AlertEv?; let witness: String; let habits: [HabitRef]? }
 
 let palette: [String: Color] = [
     "on_task": Color(hex: 0x6FA172), "phone": Color(hex: 0xE0644C), "off_task": Color(hex: 0xC9553B),
@@ -46,6 +48,7 @@ final class Island: ObservableObject {
     @Published var draft = ""
     @Published var busy = false
     @Published var now = Date().timeIntervalSince1970
+    @Published var pinned = false          // opened by hotkey: stays open until Esc / send / click elsewhere
     var lastAlertId: Int64?
     var alertTask: Task<Void, Never>?
 
@@ -76,6 +79,14 @@ final class Island: ObservableObject {
             if !Task.isCancelled && mode == .alert {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { mode = .collapsed }
             }
+        }
+    }
+
+    func unpinSoon() {
+        guard pinned else { return }
+        Task {
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            if pinned && draft.isEmpty { pinned = false; withAnimation { mode = .collapsed } }
         }
     }
 
@@ -131,7 +142,7 @@ struct Notch {
         if island.reply != nil { return CGSize(width: notch.width + 120, height: notch.height) }
         return CGSize(width: notch.hasNotch ? notch.width : 150, height: notch.height)
     case .expanded:
-        let base: CGFloat = island.state?.session != nil ? 150 : 96
+        let base: CGFloat = island.state?.session != nil ? 150 : 102
         return CGSize(width: 500, height: notch.height + base + (island.reply != nil ? 24 : 0))
     case .alert:
         let img = island.alert?.image_url != nil
@@ -267,8 +278,11 @@ struct IslandView: View {
             HStack {
                 Text("Alibi").font(.system(size: 13, weight: .semibold, design: .serif)).foregroundStyle(coral)
                 Spacer()
-                Text(m.online ? "witness · \(m.state?.witness ?? "?")" : "daemon offline")
+                Text(m.online ? "witness · \(m.state?.witness ?? "?")  ·  ⌥⌘A" : "daemon offline")
                     .font(.system(size: 10.5, design: .monospaced)).foregroundStyle(.white.opacity(0.4))
+                Button { NSApp.terminate(nil) } label: {
+                    Image(systemName: "power").font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.4))
+                }.buttonStyle(.plain).help("Quit Alibi (stops the daemon, camera off)").padding(.leading, 6)
             }
             .frame(height: notch.height - 6, alignment: .bottom)
 
@@ -280,7 +294,8 @@ struct IslandView: View {
                     .foregroundStyle(.white.opacity(0.35)))
                     .textFieldStyle(.plain).font(.system(size: 15, design: .serif)).foregroundStyle(cream)
                     .focused($focused)
-                    .onSubmit { Task { await m.send(m.draft) } }
+                    .onSubmit { Task { await m.send(m.draft); m.unpinSoon() } }
+                    .onExitCommand { m.pinned = false; m.draft = ""; m.mode = .collapsed }
                 if session != nil {
                     Button { Task { await m.end() } } label: {
                         Text("End").font(.system(size: 11.5, weight: .semibold)).padding(.horizontal, 10).padding(.vertical, 4)
@@ -298,11 +313,32 @@ struct IslandView: View {
             if let r = m.reply {
                 Text(r).font(.system(size: 12.5, design: .serif)).foregroundStyle(cream.opacity(0.75)).lineLimit(2)
             } else if session == nil {
-                Text("try “draw for 25 minutes” · “learn C++ for half an hour” · “report”")
-                    .font(.system(size: 11)).foregroundStyle(.white.opacity(0.3))
+                chips
             }
         }
         .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { focused = true } }
+    }
+
+    var chips: some View {
+        let hs = (m.state?.habits ?? []).filter { $0.modality != "strava" }.prefix(4)
+        return HStack(spacing: 6) {
+            ForEach(Array(hs), id: \.self) { h in
+                Button { Task { await m.send("\(h.key) for \(h.default_min ?? 25) minutes") } } label: {
+                    HStack(spacing: 4) {
+                        Text(h.key.capitalized).font(.system(size: 11.5, weight: .medium, design: .serif))
+                            .lineLimit(1).fixedSize()
+                        Text("\(h.default_min ?? 25)m").font(.system(size: 10, design: .monospaced)).opacity(0.5)
+                            .lineLimit(1).fixedSize()
+                    }
+                    .padding(.horizontal, 9).padding(.vertical, 5)
+                    .background(Capsule().strokeBorder(Color.white.opacity(0.16)))
+                }.buttonStyle(.plain).foregroundStyle(cream)
+            }
+            Button { Task { await m.send("report") } } label: {
+                Text("report").font(.system(size: 11.5)).padding(.horizontal, 9).padding(.vertical, 5)
+                    .background(Capsule().fill(coral.opacity(0.18)))
+            }.buttonStyle(.plain).foregroundStyle(coral)
+        }
     }
 
     func sessionCard(_ s: Session) -> some View {
@@ -426,9 +462,44 @@ final class Controller {
         panel.ignoresMouseEvents = true
 
         Task { await island.poll() }
+        Controller.shared = self
+        registerHotkey()
+        NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { _ in
+            MainActor.assumeIsolated {
+                if self.island.pinned { self.island.pinned = false; self.island.mode = .collapsed }
+            }
+        }
         Timer.scheduledTimer(withTimeInterval: 1 / 30, repeats: true) { _ in
             MainActor.assumeIsolated { self.track() }
         }
+    }
+
+    static var shared: Controller?
+
+    func summon() {
+        if island.mode != .collapsed && island.pinned {
+            island.pinned = false
+            island.mode = .collapsed
+            return
+        }
+        island.pinned = true
+        island.mode = .expanded
+        NSApp.activate(ignoringOtherApps: true)
+        panel.makeKeyAndOrderFront(nil)
+    }
+
+    func registerHotkey() {
+        var ref: EventHotKeyRef?
+        let id = EventHotKeyID(signature: OSType(0x414C_4249), id: 1)   // 'ALBI'
+        let status = RegisterEventHotKey(UInt32(kVK_ANSI_A), UInt32(cmdKey | optionKey), id,
+                                         GetApplicationEventTarget(), 0, &ref)
+        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
+            DispatchQueue.main.async { MainActor.assumeIsolated { Controller.shared?.summon() } }
+            return noErr
+        }, 1, &spec, nil, nil)
+        print(status == noErr ? "hotkey ⌥⌘A registered" : "hotkey failed: \(status)")
+        fflush(stdout)
     }
 
     // Hover in -> expand; out (and nothing typed) -> collapse. Clicks pass through everywhere else.
@@ -445,7 +516,7 @@ final class Controller {
                 island.mode = .expanded
                 panel.makeKey()
             }
-        } else if island.mode == .expanded && island.draft.isEmpty && !island.busy {
+        } else if island.mode == .expanded && island.draft.isEmpty && !island.busy && !island.pinned {
             if collapseAt == nil { collapseAt = Date().addingTimeInterval(0.35) }
             if let c = collapseAt, Date() > c {
                 island.mode = .collapsed

@@ -83,8 +83,8 @@ def state():
         "now": time.time(),
         "session": _session_json(con, s, live=True) if s else None,
         "alert": a,
-        "habits": [{"key": k, "modality": h.get("modality", "strava" if h.get("source") else "?")}
-                   for k, h in habits.items()],
+        "habits": [{"key": k, "modality": h.get("modality", "strava" if h.get("source") else "?"),
+                    "default_min": h.get("default_min", 25)} for k, h in habits.items()],
         "witness": config.VISION_BACKEND,
         "text_model": config.LLM_MODEL if config.TEXT_READY else "rules",
         "daemon": {"up_since": STARTED},
