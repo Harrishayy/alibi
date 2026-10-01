@@ -11,4 +11,6 @@ Timeboxed entry for the NVIDIA London Claw Agent Challenge (applications close *
 - Privacy: with NVIDIA Build endpoints, frames are sent to the endpoint. Only claim "frames never leave my network" if `VLM_BASE_URL` points at a local server.
 - No AI co-author trailers in commit messages.
 
-Run everything from the venv: `source .venv/bin/activate`. Daemon: `python -m alibi.daemon`; CLI: `python -m alibi.cli start|status|end|report`.
+Phase 2 (P7–P12) is in PLAN.md §10. Day to day: `./alibi.sh up|down|status|test|demo`. `./alibi.sh test` must stay green.
+Tests never touch real data: harness sets ALIBI_DATA_DIR + ALIBI_HABITS to temp copies. The camera must be off when no physical session runs.
+Swift: `native/Island.swift` (notch island, owns the daemon inside Alibi.app), `native/witness.swift` (Apple Vision); rebuild with `bash scripts/build_native.sh`. Visual check without screen recording: `bin/alibi-island --snapshot DIR`.

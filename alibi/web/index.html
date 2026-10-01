@@ -524,7 +524,8 @@ function renderNow(sess, now) {
   const box = $("#now");
   if (!sess) {
     if (nowSig !== "empty") {
-      nowSig = "empty"; seenLabels = 0; lastFrame = null;
+      nowSig = "empty"; seenLabels = 0; lastFrame = null; liveSess = null;
+      if (popFor?.dataset.live) closePop();
       $("#nowEyebrow").textContent = "no session";
       box.innerHTML = `<div class="empty"><p>Nothing declared. The witness is watching an empty chair — <b>say what you're about to do</b>, and it will check.</p>
         <div class="hint">try “draw for 25 minutes”<br>or “learn C++ for 30 min”</div></div>`;
@@ -534,6 +535,7 @@ function renderNow(sess, now) {
   const sig = "s" + sess.id;
   if (nowSig !== sig) {
     nowSig = sig; seenLabels = 0; lastFrame = null;
+    if (popFor?.dataset.live) closePop();
     const hasCam = sess.modality !== "digital";
     box.innerHTML = `<div class="now">
       <div>
@@ -870,7 +872,7 @@ function openPop(anchor) {
   pop.innerHTML = `<div class="ph">${l.frame_url ? `<img src="${esc(l.frame_url)}" alt="What the witness saw at ${clockT(l.ts)}">` : "no frame kept for this sample"}</div>
     <div class="pt"><span>${clockT(l.ts)}</span>·<b>${esc(LBL_TXT[l.label] || l.label)}</b>${l.corrected_from ? `<span class="was">was ${esc(LBL_TXT[l.corrected_from] || l.corrected_from)}</span>` : l.reused ? `<span class="was">reused · no motion</span>` : ""}</div>
     <p class="pn">${esc(l.note || "")}</p>
-    <div class="eyebrow">${live ? "overrule the witness · counts at the end" : "overrule the witness"}</div>
+    <div class="eyebrow">${live ? "overrule · counts when it ends" : "overrule the witness"}</div>
     <div class="pbtns">${LABELS.map(k => `<button type="button" style="--c:${cvar(k)}" data-label="${k}" aria-pressed="${k === l.label}">${LBL_TXT[k]}</button>`).join("")}</div>
     <div class="pm"></div>`;
   pop.dataset.sid = sid; pop.dataset.ts = l.ts; pop.dataset.live = live ? "1" : "";
