@@ -381,6 +381,11 @@ def correct(sid: int, body: Correction):
     return {"reply": reply, "session": _session_json(con, s, live=s["status"] == "active")}
 
 
+from . import hooks as _hooks
+for _r in _hooks.routers():
+    app.include_router(_r)
+
+
 @app.get("/")
 def index():
     return FileResponse(WEB / "index.html")

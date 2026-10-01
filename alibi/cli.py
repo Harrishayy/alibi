@@ -39,6 +39,8 @@ def start_habit(con, habit: str, minutes: int, said: bool = True) -> str:
         if sid is None:
             s = db.active_session(con)
             return f"Already watching {config.display_name(s['habit']) if s else 'something'}. End it first."
+    from . import hooks
+    hooks.on_session_start(con, db.get_session(con, sid))
     name = config.display_name(habit)
     how = "" if said else " (your usual)"
     return f"Session {sid}: {name} for {minutes} min{how}. Watching — say \"change to 40\" to fix."
@@ -107,7 +109,9 @@ def end(con, artefact: str | None = None, ended_at: float | None = None, missed:
                     {"label": f"Again {done['declared_min']}m",
                      "say": f"{done['habit']} for {done['declared_min']} min"}])
     from .daemon import _reel_later
+    from . import hooks
     _reel_later(done["id"])
+    hooks.on_verdict(con, db.get_session(con, done["id"]))
     return out["voice"] + note
 
 

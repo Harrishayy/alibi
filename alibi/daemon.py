@@ -3,7 +3,7 @@
 Run:  python -m alibi.daemon            (then open http://127.0.0.1:8765 or launch the island)
 """
 import datetime as dt, json, os, threading, time
-from . import camera, config, db, laptop_logger, nudges, verifier
+from . import camera, config, db, laptop_logger, nudges, verifier, hooks
 from .notify import notify, recent_alerts
 
 TICK_S = 5
@@ -34,6 +34,7 @@ def tick(con) -> None:
     if _ticks % 12 == 1:
         _reel_sweep(con)
     _nightly(con, now)
+    hooks.tick(con, now)
 
 
 def _bell(con, s, now: float) -> None:
@@ -59,6 +60,7 @@ def _bell(con, s, now: float) -> None:
                     {"label": "Fix samples", "url": f"/#session-{done['id']}"},
                     {"label": f"Again {done['declared_min']}m", "say": f"{done['habit']} for {done['declared_min']} min"}])
     _reel_later(done["id"])
+    hooks.on_verdict(con, db.get_session(con, done["id"]))
 
 
 # --- F3: behind-pace reminders ------------------------------------------------------------------------------------
@@ -209,6 +211,7 @@ def main():
     from . import api
     con = db.connect()
     api.serve_in_thread()
+    hooks.start(con)
     notify(f"Alibi daemon up — witness: {config.VISION_BACKEND}, "
            f"dashboard: http://{config.API_HOST}:{config.API_PORT}")
     while True:
