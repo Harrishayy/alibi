@@ -1,0 +1,145 @@
+/* onboarding.css: the first-run wizard (#onb). One calm centred column: a quiet step count, one headline, one line of
+   secondary copy, then the step's content. One primary per step, in the footer. Tokens only (tokens.css).
+   Motion: a step enters with opacity + a 6px lift (dur-drawer, ease-out, 40ms stagger), only when the step changes;
+   reduced motion fades. Pinch's lines use the voice style (PinchLine), no bubble. No gradients (README "One gradient"). */
+
+.onb{position:fixed;inset:0;z-index:90;background:var(--bg);overflow-y:auto;opacity:0;pointer-events:none;outline:none;
+  transition:opacity calc(var(--dur-medium) * .65) var(--ease-out)}
+.onb.show{opacity:1;pointer-events:auto;transition-duration:var(--dur-medium)}
+.onbin{max-width:680px;margin:0 auto;padding:var(--space-6) var(--space-6) 128px}
+
+/* top: wordmark left, "Step 2 of 5" + dots right */
+.onbtop{display:flex;justify-content:space-between;align-items:center;gap:var(--space-4);height:40px;margin-bottom:var(--space-8)}
+.onb .wordmark{font:800 13px/1 var(--font-sans);letter-spacing:.13em;color:var(--ink)}
+.onbprog{display:flex;align-items:center;gap:var(--space-3)}
+.onbprog .n{font:500 13px/1 var(--font-sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.onbdots{display:flex;align-items:center;gap:6px}
+.onbdots i{display:block;width:6px;height:6px;border-radius:var(--radius-pill);background:color-mix(in srgb,var(--ink) 18%,transparent)}
+.onbdots i.on{background:var(--ink-2)}
+.onbdots i.cur{width:20px;background:var(--accent)}
+
+/* step entry */
+.onbstep.enter > *{animation:onb-in var(--dur-drawer) var(--ease-out) both}
+.onbstep.enter > :nth-child(2){animation-delay:40ms}
+.onbstep.enter > :nth-child(3){animation-delay:80ms}
+.onbstep.enter > :nth-child(n+4){animation-delay:120ms}
+@keyframes onb-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* headline + one line of secondary copy */
+.onbhead{margin:0 0 var(--space-8)}
+.onb h1{margin:0;font:600 32px/1.15 var(--font-sans);letter-spacing:-.02em;color:var(--ink);text-wrap:balance}
+.onb .lead{margin:var(--space-3) 0 0;max-width:54ch;font:400 16px/1.55 var(--font-sans);color:var(--ink-2);text-wrap:pretty}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .onb .lead{line-height:1.6;letter-spacing:.01em}}
+:root[data-theme=dark] .onb .lead{line-height:1.6;letter-spacing:.01em}
+
+/* Pinch and its line (PinchLine: voice 20/1.45, 500, -0.01em, ink). No bubble: one less surface. */
+.onb-pinch{display:grid;place-items:center;flex:none}
+.onb-pinch[data-size="160"]{width:160px;height:160px}
+.onb-pinch[data-size="64"]{width:64px;height:64px}
+.onb-say{margin:0;font:500 20px/1.45 var(--font-sans);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
+
+/* welcome: centred */
+.onbhero{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:var(--space-2)}
+.onbhero .onb-pinch{margin-bottom:var(--space-4)}
+.onbhero .onb-say{margin:var(--space-3) auto 0;max-width:30ch}
+
+/* practice: the headline, then Pinch (64px rung) beside its line */
+.onbmeet{display:flex;align-items:center;gap:var(--space-4);margin:var(--space-3) 0 var(--space-8)}
+.onbstep--practice .onbhead{margin-bottom:0}
+
+/* one surface, rows split by hairlines (welcome "what it checks", practice "how it goes") */
+.onblist{list-style:none;margin:var(--space-8) 0 0;padding:var(--space-1) var(--space-6);background:var(--surface-1);
+  border:1px solid var(--hairline);border-radius:var(--radius-md)}
+.onbhead + .onblist{margin-top:0}
+.onblist li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:var(--space-4);align-items:start;padding:var(--space-4) 0}
+.onblist li + li{border-top:1px solid var(--hairline)}
+.onblist .e{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--ink-2)}
+.onblist--num .e{border-radius:var(--radius-pill);font:600 15px/1 var(--font-rounded);font-variant-numeric:tabular-nums;color:var(--ink)}
+.onblist b{display:block;padding-top:1px;font:600 15px/1.35 var(--font-sans);letter-spacing:-.01em;color:var(--ink)}
+.onblist span:not(.e){display:block;margin-top:2px;font:400 14px/1.5 var(--font-sans);color:var(--ink-2);text-wrap:pretty}
+.onb-note{margin:var(--space-6) 0 0;font:400 13px/1.45 var(--font-sans);color:var(--ink-3)}
+
+/* habits: selectable cards. Selected = accent ring + filled check (never colour alone) */
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}
+.tcard{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:36px minmax(0,1fr) 22px;column-gap:var(--space-3);row-gap:2px;
+  align-content:start;padding:var(--space-4);border:1px solid var(--hairline);border-radius:var(--radius-md);background:var(--surface-1);
+  transition:border-color var(--dur-micro) ease,transform var(--spring-micro-dur) var(--spring-micro)}
+.tcard:hover{border-color:var(--hairline-strong)}
+.tcard:active{transform:scale(.985)}
+.tcard:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.tcard[aria-pressed=true]{border-color:var(--accent)}
+.tcard .e{grid-column:1;grid-row:1/span 3;display:grid;place-items:center;width:36px;height:36px;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--ink-2);
+  transition:background-color var(--dur-micro) var(--ease-out),color var(--dur-micro) var(--ease-out)}
+.tcard[aria-pressed=true] .e{color:var(--ink)}
+.tcard b{grid-column:2;grid-row:1;padding-top:7px;font:600 15px/1.35 var(--font-sans);letter-spacing:-.01em;color:var(--ink)}
+.tcard span{grid-column:2/span 2;font:400 13px/1.45 var(--font-sans);color:var(--ink-2);text-wrap:pretty}
+.tcard .via{margin-top:var(--space-1);font:400 12px/1.35 var(--font-sans);color:var(--ink-3)}
+.tcard .tk{grid-column:3;grid-row:1;align-self:start;width:22px;height:22px;margin-top:7px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--hairline-strong);
+  display:grid;place-items:center;color:var(--on-accent);transition:background-color var(--dur-micro) var(--ease-out),box-shadow var(--dur-micro) var(--ease-out)}
+.tcard .tk svg{transform:scale(.6);opacity:0;transition:transform var(--spring-bouncy-dur) var(--spring-bouncy),opacity var(--dur-micro) var(--ease-out)}
+.tcard[aria-pressed=true] .tk{background:var(--accent);box-shadow:none}
+.tcard[aria-pressed=true] .tk svg{transform:none;opacity:1}
+.tcard input{grid-column:2/span 2;margin-top:var(--space-3)}
+
+/* schedule: one card per habit, quiet "Add a time" */
+.pickrow{background:var(--surface-1);border:1px solid var(--hairline);border-radius:var(--radius-md);padding:var(--space-4) var(--space-6) var(--space-3);margin-bottom:var(--space-3)}
+.pickrow h3{margin:0;display:flex;gap:var(--space-3);align-items:center;font:600 15px/1.35 var(--font-sans);letter-spacing:-.01em;color:var(--ink)}
+.pickrow h3 .e{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--ink-2)}
+.pickrow .howtxt{margin:var(--space-3) 0 var(--space-2);color:var(--ink-3)}
+.pickrow .srow{border-top-color:var(--hairline)}
+.addtime{display:inline-flex;align-items:center;gap:6px;height:32px;margin:var(--space-1) 0 0 calc(-1 * var(--space-2));padding:0 var(--space-2);border:0;border-radius:var(--radius-xs);
+  background:transparent;font:500 13px/1 var(--font-sans);color:var(--ink-2);cursor:pointer;
+  transition:background-color var(--dur-micro) var(--ease-out),color var(--dur-micro) var(--ease-out),transform var(--spring-micro-dur) var(--spring-micro)}
+.addtime:hover{background:var(--surface-2);color:var(--ink)}
+.addtime:active{transform:scale(.97)}
+.addtime:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.calask{margin-top:var(--space-6);padding:var(--space-4) var(--space-6);display:flex;justify-content:space-between;gap:var(--space-6);align-items:center;
+  background:var(--surface-1);border:1px solid var(--hairline);border-radius:var(--radius-md)}
+.calask b{font:600 15px/1.35 var(--font-sans);letter-spacing:-.01em;color:var(--ink)}
+.calask p{margin:var(--space-1) 0 0;max-width:460px;font:400 13px/1.45 var(--font-sans);color:var(--ink-2);text-wrap:pretty}
+
+/* connect: the drawer's connection cards, set on surface-1 */
+.onb .conn{background:var(--surface-1);padding:var(--space-4) var(--space-6);margin-bottom:var(--space-3);grid-template-columns:36px minmax(0,1fr);gap:var(--space-1) var(--space-4)}
+.onb .conn .ci{width:36px;height:36px;background:var(--surface-2)}
+.onb .conn h4{min-height:36px;font-size:15px}
+.onb .conn.ok{border-color:color-mix(in srgb,var(--accent) 45%,var(--hairline))}
+
+/* footer: fades into the page instead of a hard bar; quiet Back, one primary */
+.onbfoot{position:fixed;left:0;right:0;bottom:0;z-index:91;background:var(--bg);border-top:1px solid transparent;
+  transition:border-color var(--dur-small) ease}
+.onb[data-under] .onbfoot{border-top-color:var(--hairline)}
+.onbfoot .in{max-width:680px;margin:0 auto;padding:var(--space-4) var(--space-6) calc(var(--space-6) + env(safe-area-inset-bottom));
+  display:flex;gap:var(--space-3);align-items:center}
+.onbfoot .msg{flex:1;min-width:0;font:400 13px/1.45 var(--font-sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.onbfoot .msg.bad{color:var(--warn-ink)}
+.onbfoot .primary{height:44px;min-width:136px;padding:0 var(--space-6);font-size:15px}
+.onbfoot .ghostbtn{height:44px;margin-left:calc(-1 * var(--space-3));padding:0 var(--space-3);background:transparent;border-color:transparent;color:var(--ink-2)}
+.onbfoot .ghostbtn:hover{background:var(--surface-2);border-color:transparent;color:var(--ink)}
+.onbfoot .linkbtn{padding:0 var(--space-2)}
+
+@media (max-width:640px){
+  .onbin{padding:var(--space-4) var(--space-4) 112px}
+  .onbtop{margin-bottom:var(--space-8)}
+  .onb h1{font-size:28px}
+  .onb .lead{font-size:16px}
+  .onb-say{font-size:17px}
+  .onblist{margin-top:var(--space-8);padding:var(--space-1) var(--space-4)}
+  .tgrid{grid-template-columns:1fr}
+  .pickrow,.calask,.onb .conn{padding-left:var(--space-4);padding-right:var(--space-4)}
+  .calask{flex-wrap:wrap}
+  .onbfoot .in{padding:var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom))}
+  .onbfoot .primary{min-width:0;flex:none}
+  .onbprog .n{display:none}
+  .onb[data-step=welcome] .onbfoot .msg{display:none}
+  .onb[data-step=welcome] .onbfoot .primary{flex:1}
+  /* practice has Back, a long Skip and a long primary: primary gets its own row, Back and Skip sit under it */
+  .onb[data-step=practice] .onbfoot .in{flex-wrap:wrap;row-gap:var(--space-2)}
+  .onb[data-step=practice] .onbfoot .primary{order:-1;flex:1 0 100%}
+  .onb[data-step=practice] .onbin{padding-bottom:168px}
+}
+@media (prefers-reduced-motion:reduce){
+  .onbstep.enter > *{animation:onb-fade 150ms ease both;animation-delay:0ms}
+  .tcard .tk svg{transition:opacity 150ms ease}
+  .tcard:active,.addtime:active{transform:none}
+  @keyframes onb-fade{from{opacity:0}to{opacity:1}}
+}

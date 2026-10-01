@@ -874,12 +874,17 @@ struct Keycap: View {
     }
 }
 
-/// Every pressable thing: a 0.97 press, so clicks feel heard.
+/// Every pressable thing: a 0.97 press, so clicks feel heard. Reduced motion keeps the click and drops the scale.
 struct Pressable: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(Alibi.Motion.easeOut(Alibi.Motion.durMicro), value: configuration.isPressed)
+    func makeBody(configuration: Configuration) -> some View { PressBody(configuration: configuration) }
+    struct PressBody: View {
+        let configuration: Configuration
+        @Environment(\.accessibilityReduceMotion) private var reduce
+        var body: some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed && !reduce ? 0.97 : 1)
+                .animation(Alibi.Motion.easeOut(Alibi.Motion.durMicro), value: configuration.isPressed)
+        }
     }
 }
 
@@ -938,17 +943,24 @@ struct IconButton: View {
     }
 }
 
-/// Hover wash + press for suggestion chips.
+/// Suggestion chips (Chip spec: 32 pt, radius-xs): a quiet surface-1 at rest, surface-2 on hover, a press. `quiet`
+/// rests bare (slim rows such as "Finish setup"). The content shape makes the whole chip take the click, not its text.
 struct Chip: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View { ChipBody(configuration: configuration) }
+    var quiet = false
+    func makeBody(configuration: Configuration) -> some View { ChipBody(configuration: configuration, quiet: quiet) }
     struct ChipBody: View {
         let configuration: Configuration
+        let quiet: Bool
+        @Environment(\.accessibilityReduceMotion) private var reduce
         @State private var hover = false
         var body: some View {
+            let shape = RoundedRectangle(cornerRadius: quiet ? Alibi.Radius.sm : Alibi.Radius.xs, style: .continuous)
             configuration.label
-                .background(RoundedRectangle(cornerRadius: Alibi.Radius.sm, style: .continuous).fill(hover ? P.surface2 : .clear))
-                .scaleEffect(configuration.isPressed ? 0.97 : 1)
+                .background(shape.fill(hover ? P.surface2 : quiet ? .clear : P.surface1))
+                .contentShape(shape)
+                .scaleEffect(configuration.isPressed && !reduce ? 0.97 : 1)
                 .animation(Alibi.Motion.easeOut(Alibi.Motion.durMicro), value: configuration.isPressed)
+                .animation(Alibi.Motion.adaptive(Alibi.Motion.micro, reduceMotion: reduce), value: hover)
                 .onHover { hover = $0 }
         }
     }
@@ -1099,6 +1111,11 @@ struct IslandView: View {
         .preferredColorScheme(.dark)
     }
 
+    /// First run with nothing to track: the panel is the welcome. Once habits exist, setup never hides the composer.
+    var welcoming: Bool {
+        m.needsSetup && session == nil && m.habits.isEmpty && (m.state?.habits ?? []).isEmpty && (m.online || m.connecting)
+    }
+
     /// A still hairline on the closed shape: warn while drifting, accent while an alert waits. No loops in the wings.
     @ViewBuilder func edge(_ c: (flare: CGFloat, bottom: CGFloat)) -> some View {
         if m.mode == .collapsed && hasWings(m) && drifting != nil {
@@ -1234,7 +1251,7 @@ struct IslandView: View {
             Group {
                 if !m.online && !m.connecting {
                     offlineCard
-                } else if m.needsSetup && session == nil {
+                } else if welcoming {
                     welcomeCard
                 } else if let s = session {
                     VStack(alignment: .leading, spacing: Alibi.Space.s3) { sessionCard(s); sessionControls(s) }
@@ -1248,14 +1265,18 @@ struct IslandView: View {
             .padding(.top, Alibi.Space.s2)
             .tier(1, plain: plain)
             if let r = m.reply { replyLine(r).padding(.top, Alibi.Space.s3).tier(1, plain: plain) }
-            VStack(alignment: .leading, spacing: Alibi.Space.s3) {
-                if session == nil && !m.needsSetup && !m.habits.isEmpty && (m.online || m.connecting) {
-                    chips.opacity(m.online ? 1 : 0.45)
+            if !welcoming {
+                VStack(alignment: .leading, spacing: Alibi.Space.s3) {
+                    if session == nil && !m.habits.isEmpty && (m.online || m.connecting) {
+                        chips.opacity(m.online ? 1 : 0.45)
+                    }
+                    if session == nil && m.needsSetup && m.online { finishSetupRow }
+                    Rectangle().fill(P.hairline).frame(height: 1).padding(.horizontal, Alibi.Space.s1)
+                    footer
                 }
-                footer
+                .padding(.top, Alibi.Space.s3)
+                .tier(2, lift: true, plain: plain)
             }
-            .padding(.top, Alibi.Space.s3)
-            .tier(2, lift: true, plain: plain)
         }
         .onAppear {
             m.markNudgesSeen()
@@ -1281,7 +1302,8 @@ struct IslandView: View {
     var header: some View {
         let mood: PinchMood = m.composing ? .listening : onBreak ? .sleepy : session != nil ? .focused : .idle
         return HStack(spacing: Alibi.Space.s2) {
-            if m.online || m.connecting { pinch(mood, size: 28) }   // no Pinch on system errors (Mascot.md)
+            // No Pinch on system errors (Mascot.md); one Pinch per view, so the welcome's 56 pt Pinch replaces this one.
+            if (m.online || m.connecting) && !welcoming { pinch(mood, size: 28) }
             Text("ALIBI").font(F.islandWordmark).tracking(F.wordmarkTracking).foregroundStyle(P.ink)
             Circle().fill(m.online ? P.accent : P.partial).frame(width: 6, height: 6)
                 .accessibilityLabel(m.online ? "Online" : "Offline")
@@ -1321,6 +1343,25 @@ struct IslandView: View {
         .font(F.islandSecondary).foregroundStyle(P.ink2).lineLimit(1)
         .padding(.horizontal, Alibi.Space.s1)
         .help(m.online ? "Checked by: \(m.state?.witness_label ?? m.state?.witness ?? "—")" : "")
+    }
+
+    /// Habits exist but the wizard isn't finished: one slim, quiet row that reopens it. It never blocks the composer.
+    var finishSetupRow: some View {
+        Button { m.open(m.setupPath) } label: {
+            HStack(spacing: Alibi.Space.s2) {
+                Image(systemName: "checklist").font(F.sans(12, .medium)).foregroundStyle(P.ink3)
+                Text("Setup isn't finished").foregroundStyle(P.ink2)
+                Spacer(minLength: Alibi.Space.s2)
+                Text("Finish setup").fontWeight(.medium).foregroundStyle(P.ink)
+                Image(systemName: "arrow.up.right").font(F.sans(10, .semibold)).foregroundStyle(P.ink3)
+            }
+            .font(F.islandSecondary).lineLimit(1)
+            .padding(.horizontal, Alibi.Space.s2).frame(height: 32)
+        }
+        .buttonStyle(Chip(quiet: true))
+        // Content lines up with the footer and divider (s1 in); the hover wash keeps s2 of air around it.
+        .padding(.horizontal, -Alibi.Space.s1)
+        .help("Opens the setup in your browser")
     }
 
     func replyLine(_ r: String) -> some View {
@@ -1399,20 +1440,63 @@ struct IslandView: View {
         .card()
     }
 
-    /// First run: nothing to track yet, so the only useful thing is the setup wizard.
+    /// First run, no habits yet (matches the dashboard's welcome step): Pinch says hello at 56 pt beside one headline
+    /// and its line, the three steps ahead on one card, then one primary button and a quiet way out.
     var welcomeCard: some View {
-        VStack(alignment: .leading, spacing: Alibi.Space.s3) {
-            Text("Welcome to Alibi").font(F.islandTitle).foregroundStyle(P.ink)
-            Text("Pick a habit or two, say when you'll do them, and Alibi checks you actually did. About two minutes.")
-                .font(F.islandBody).lineSpacing(3).foregroundStyle(P.ink2).fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: Alibi.Space.s4) {
+            HStack(alignment: .center, spacing: Alibi.Space.s3) {
+                helloPinch(size: 56)
+                VStack(alignment: .leading, spacing: Alibi.Space.s1) {
+                    Text("Welcome to Alibi").font(F.islandTitle).foregroundStyle(P.ink)
+                    // Body size keeps the line on one row beside the 56 pt Pinch (island-voice wraps "I check." alone).
+                    Text("I'm Pinch. You say what you'll do; I check.").font(F.islandBody).foregroundStyle(P.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, Alibi.Space.s1)
+            VStack(alignment: .leading, spacing: Alibi.Space.s3) {
+                setupStep(1, "Pick a habit or two", current: true)
+                setupStep(2, "Say when you'll do them", current: false)
+                setupStep(3, "Try a short practice run", current: false)
+            }
+            .padding(Alibi.Space.cardIsland)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card()
             HStack(spacing: Alibi.Space.s2) {
-                IslandButton(title: "Set up my habits", variant: .primary, icon: "sparkle") { m.open(m.setupPath) }
-                Text("Opens in your browser").font(F.islandSecondary).foregroundStyle(P.ink3)
+                IslandButton(title: "Set up my habits", variant: .primary) { m.open(m.setupPath) }
+                    .help("Opens the setup in your browser")
+                IslandButton(title: "Not now", variant: .quiet) { Controller.shared?.collapse() }
+                Spacer(minLength: Alibi.Space.s2)
+                Text("About two minutes").font(F.islandSecondary).foregroundStyle(P.ink3).lineLimit(1).fixedSize()
             }
         }
-        .padding(Alibi.Space.cardIsland)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .card()
+        .padding(.top, Alibi.Space.s2)
+    }
+
+    /// One setup step: a numbered mark (the current one raised) and its line.
+    func setupStep(_ n: Int, _ text: String, current: Bool) -> some View {
+        HStack(spacing: Alibi.Space.s3) {
+            Text("\(n)").font(F.sans(11, .semibold)).monospacedDigit()
+                .foregroundStyle(current ? P.ink : P.ink3)
+                .frame(width: 20, height: 20)
+                .background(Circle().fill(current ? P.surface3 : P.surface2))
+                .overlay(Circle().strokeBorder(current ? P.accent : .clear, lineWidth: 1.5))
+            Text(text).font(F.islandBody).foregroundStyle(current ? P.ink : P.ink2).lineLimit(1)
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Pinch waving hello (Mascot.md `hello`): plays once when the welcome appears; snapshots draw its key frame.
+    @ViewBuilder func helloPinch(size: CGFloat) -> some View {
+        if snapshotting {
+            PinchFigure(pose: PinchView.pose(mood: .idle, clip: .hello, ms: PinchClip.hello.motion.key), size: size)
+                .accessibilityHidden(true)
+        } else {
+            PinchView(mood: .idle, clip: .hello, clipID: 1, size: size, camera: false, force: m.pinchForce)
+                .accessibilityHidden(true)
+        }
     }
 
     /// A block planned for now: a card with Start (primary) and Skip.
@@ -1423,7 +1507,7 @@ struct IslandView: View {
                 .background(RoundedRectangle(cornerRadius: Alibi.Radius.sm, style: .continuous).fill(P.surface2))
             VStack(alignment: .leading, spacing: 2) {
                 Text(b.name).font(F.islandTitle).foregroundStyle(P.ink).lineLimit(1)
-                Text("Planned now · \(clock(b.start))–\(clock(b.end))").font(F.islandSecondary).monospacedDigit()
+                Text("Now · \(clock(b.start))–\(clock(b.end))").font(F.islandSecondary).monospacedDigit()
                     .foregroundStyle(P.accentInk).lineLimit(1)
             }
             .layoutPriority(1)
@@ -1474,15 +1558,15 @@ struct IslandView: View {
     }
 
     func chipLabel(_ name: String, detail: String?, done: Bool) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Alibi.Radius.sm, style: .continuous)
-        return HStack(spacing: 6) {
+        let shape = RoundedRectangle(cornerRadius: Alibi.Radius.xs, style: .continuous)
+        return HStack(spacing: Alibi.Space.s2) {
             if done { StatusDot(label: "on_task", size: 6) }
-            Text(name).font(F.islandSecondary).foregroundStyle(P.ink).lineLimit(1).fixedSize()
+            Text(name).font(F.sans(13, .medium)).foregroundStyle(detail == nil ? P.ink2 : P.ink).lineLimit(1).fixedSize()
             if let detail {
                 Text(detail).font(F.islandSecondary).monospacedDigit().foregroundStyle(P.ink3).lineLimit(1).fixedSize()
             }
         }
-        .padding(.horizontal, Alibi.Space.s3).frame(height: 28)
+        .padding(.horizontal, Alibi.Space.s3).frame(height: 32)
         .overlay(shape.strokeBorder(P.hairline, lineWidth: 1))
         .contentShape(shape)
     }
