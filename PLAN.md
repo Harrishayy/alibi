@@ -201,3 +201,40 @@ Build:
 Declare → timer → you drawing / on phone / gone → nudge arrives → verdict + contact sheet → "learn C++ for 30 min" → title verdict → nightly report "aligned on building, 1 run behind" → terminal showing daemon uptime + schedule.
 
 ## 9. Submission — see `submission.md` (draft description ready to paste)
+
+---
+
+## 10. Phase 2 — easy to use, then more capability (added 2026-10-01, after p6)
+
+Same rules: vertical slices, DoD = a command + an output, tag each, `tests/run_all.sh` stays green.
+
+### P7 — One-command life (`./alibi`) + Alibi.app
+- `./alibi up|down|status|open|logs|test|demo|seed` at the repo root; pidfile in `data/`, `down` always turns the camera off.
+- `Alibi.app` (double-click / Spotlight / login item). Camera + Accessibility permission get granted to *Alibi*, not your terminal.
+**DoD:** `./alibi up` → `./alibi status` shows daemon + island running → `./alibi down` → nothing running.
+
+### P8 — Island you never have to aim at
+- Global hotkey **⌥⌘A** opens the island and focuses the prompt (Carbon hotkey, no extra permission).
+- Idle island shows one-tap habit chips (`default_min` per habit in habits.yaml); quit button.
+**DoD:** snapshot of the expanded idle island shows habit chips; hotkey registers without error.
+
+### P9 — Setup without YAML
+- `GET /api/health`: camera, window titles (Accessibility), witness, text model, Strava, island — each ok/needs-action with a one-line fix.
+- `GET/PUT /api/habits`: edit habits + weekly targets from the dashboard (writes habits.yaml, keeps comments out of the way).
+- Dashboard "Setup" drawer: health checklist + habits editor.
+**DoD:** test PUTs a new habit → `intent.parse` recognises it; health lists every check.
+
+### P10 — Memories reel (the original video idea)
+- `alibi/reel.py`: a session's or a day's frames → H.264 timelapse with title card, timestamps and label colour bar.
+- `GET /api/reel?session=ID` / `?date=YYYY-MM-DD`; dashboard plays it under the contact sheet; verdict alert links to it.
+**DoD:** test builds a reel from the P1 fixture session → mp4 exists, plays in a browser (H.264), duration > 0.
+
+### P11 — Annotations you can correct
+- Click any label dot (dashboard) → relabel → `events(source='user', kind='correction')`; verifier honours corrections, re-scores the session, re-renders the contact sheet. The witness is fallible; *you* get the last word, on the record.
+**DoD:** correct 2 phone samples to on_task → verdict moves from partial to done, contact sheet shows the "corrected" mark.
+
+### P12 — Demo script + submit
+- `./alibi demo`: fast scripted session (fixture video, 10 s samples) that triggers nudge → verdict → reel, for recording.
+- Update submission.md, shotlist, record, submit.
+
+Cut order if behind: P11 → P10 → P9 editor (keep health) → P8 chips (keep hotkey). Never cut P7, P12.
