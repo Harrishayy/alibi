@@ -138,6 +138,8 @@ enum Alibi {
         static let island = Animation.spring(duration: 0.45, bounce: 0.2)     // notch to panel open
         static let bouncy = Animation.spring(duration: 0.5, bounce: 0.3)      // alert drop, verdict pill, streak
         static let celebrate = Animation.spring(duration: 0.6, bounce: 0.4)   // Pinch only
+        /// The island opened from the keyboard (⌥⌘A): the shape only, a touch quicker than `island`.
+        static let key = Animation.spring(duration: 0.3, bounce: 0.2)
         /// What every animation becomes under Reduce Motion: a short fade-friendly ease.
         static let reduced = Animation.easeOut(duration: 0.15)
 
