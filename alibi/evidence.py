@@ -45,7 +45,7 @@ def contact_sheet(session, label_events: list[dict], ratio: float, verdict: str)
     d.rounded_rectangle([W - pad - vw - 32, pad + 34, W - pad, pad + 70], radius=18, fill=vc)
     d.text((W - pad - vw - 16, pad + 43), vtxt, font=mono, fill="white")
     d.text((pad, pad + 84), f"{_hhmm(session['started_at'])} → {_hhmm(label_events[-1]['ts'])}  ·  "
-                            f"{len(label_events)} samples  ·  witness: {label_events[-1]['payload'].get('backend', '?')}",
+                            f"{len(label_events)} samples  ·  witness: {_witness(label_events)}",
            font=mono, fill=MUTED)
 
     # timeline: every sample, in order, as a coloured segment
@@ -72,6 +72,11 @@ def contact_sheet(session, label_events: list[dict], ratio: float, verdict: str)
     out = config.EVIDENCE_DIR / f"{session['id']}.jpg"
     sheet.save(out, quality=88)
     return str(out)
+
+
+def _witness(events) -> str:
+    seen = Counter(e["payload"].get("backend") for e in events if e["payload"].get("backend") != "motion-gate")
+    return seen.most_common(1)[0][0] if seen else "?"
 
 
 def title_summary(window_events: list[dict], labels: dict[str, str], top: int = 5) -> list[dict]:
