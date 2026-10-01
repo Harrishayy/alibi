@@ -188,6 +188,139 @@ section.block{padding:44px 0;border-bottom:1px solid var(--rule)}
 .toast.nudge .k,.toast.nudge .k button{color:rgba(255,255,255,.8)}
 .toast.verdict .k span{color:var(--c,var(--accent))}
 
+/* setup entry */
+.hright{display:flex;align-items:center;gap:22px}
+.setupbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule);background:transparent;border-radius:999px;padding:7px 13px 7px 11px;font:500 12px/1 var(--mono);color:var(--muted);letter-spacing:.02em;transition:border-color .15s,color .15s,background .15s}
+.setupbtn:hover{border-color:var(--ink);color:var(--ink)}
+.setupbtn:focus-visible,.ghostbtn:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.sdot.ok{background:var(--on_task)}
+.sdot.bad{background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.setupbtn .n{color:var(--accent-ink)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;z-index:60;background:color-mix(in srgb,var(--ink) 22%,transparent);opacity:0;pointer-events:none;transition:opacity .3s ease}
+.scrim.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:61;width:min(560px,100vw);background:var(--paper);border-left:1px solid var(--rule);box-shadow:-30px 0 60px -40px rgba(31,30,28,.45);display:flex;flex-direction:column;transform:translateX(102%);visibility:hidden;transition:transform .42s cubic-bezier(.2,.75,.2,1),visibility 0s linear .42s}
+.drawer.show{transform:none;visibility:visible;transition:transform .42s cubic-bezier(.2,.75,.2,1),visibility 0s}
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:30px 32px 22px;border-bottom:1px solid var(--rule)}
+.dhead h2{margin:10px 0 0;font:400 30px/1.1 var(--serif);letter-spacing:-.015em}
+.dhead h2 em{font-style:italic;font-weight:300;color:var(--muted)}
+.xbtn{border:0;background:transparent;color:var(--muted);font-size:24px;line-height:1;width:34px;height:34px;border-radius:50%;flex:none;transition:background .15s,color .15s}
+.xbtn:hover{background:var(--rule-2);color:var(--ink)}
+.xbtn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.dbody{flex:1;overflow-y:auto;padding:6px 32px 32px;overscroll-behavior:contain}
+.dsec{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:28px 0 12px}
+.dsec h3{margin:0;font:400 22px/1.1 var(--serif);letter-spacing:-.01em}
+.linkbtn{border:0;background:none;padding:0;font:12px/1 var(--mono);color:var(--muted);text-decoration:underline;text-decoration-color:var(--rule);text-underline-offset:3px}
+.linkbtn:hover{color:var(--ink)}
+.chk{display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;padding:13px 0;border-top:1px solid var(--rule-2)}
+.chk:last-child{border-bottom:1px solid var(--rule-2)}
+.mk{width:18px;height:18px;border-radius:50%;margin-top:1px;display:grid;place-items:center;font:600 10px/1 var(--sans);color:#fff;background:var(--on_task)}
+.chk.bad .mk{background:transparent;border:1.5px solid var(--accent);color:var(--accent)}
+.chk.opt .mk{background:transparent;border:1.5px dashed var(--faint);color:var(--faint)}
+.cl{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.cl b{font-weight:500;font-size:14px}
+.cl .st{font:11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--on_task);white-space:nowrap}
+.chk.bad .st{color:var(--accent-ink)}
+.chk.opt .st{color:var(--faint)}
+.cd{font-size:13px;color:var(--muted);margin-top:3px}
+.fix{display:block;margin-top:8px;font:12px/1.5 var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--rule-2);border-radius:6px;padding:7px 10px;overflow-wrap:anywhere}
+.chk.bad .fix{border-left:2px solid var(--accent)}
+.quiet{color:var(--faint);font:italic 300 16px/1.4 var(--serif);padding:10px 0}
+.hab{border:1px solid var(--rule);border-radius:12px;background:var(--bg);padding:16px 16px 14px;margin-bottom:12px;transition:border-color .2s,opacity .25s,transform .25s}
+.hab.err{border-color:var(--accent)}
+.hab.new{border-style:dashed}
+.habtop{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.habtop .hn{flex:1;min-width:0;font:400 22px/1.1 var(--serif);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.habtop .hn small{font:11px/1 var(--mono);color:var(--faint);margin-left:8px;letter-spacing:.02em}
+.habtop .hn input{font:400 20px/1.1 var(--serif)}
+.badge{font:500 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-wash);border-radius:999px;padding:5px 8px}
+.del{border:0;background:transparent;color:var(--faint);font:12px/1 var(--mono);padding:6px 4px;border-radius:6px}
+.del:hover{color:var(--accent-ink)}
+.hgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+.hgrid label{display:grid;gap:5px;font:10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.hgrid .wide{grid-column:1/-1}
+.unit{position:relative}
+.unit::after{content:attr(data-u);position:absolute;right:10px;top:50%;transform:translateY(-50%);font:12px/1 var(--mono);color:var(--faint);text-transform:none;letter-spacing:0;pointer-events:none}
+.fld{width:100%;border:1px solid var(--rule);background:var(--paper);border-radius:8px;padding:8px 10px;font:14px/1.35 var(--sans);color:var(--ink);text-transform:none;letter-spacing:0;transition:border-color .15s,box-shadow .15s;appearance:none;-webkit-appearance:none}
+.fld:focus{outline:0;border-color:var(--ink);box-shadow:0 0 0 3px var(--accent-wash)}
+.fld.bad{border-color:var(--accent)}
+.unit .fld{padding-right:44px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+textarea.fld{resize:vertical;min-height:58px;font:14px/1.45 var(--sans)}
+select.fld{width:auto;padding:6px 26px 6px 10px;font:12px/1.2 var(--mono);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23A39E95' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 9px center}
+.herr{font:12px/1.4 var(--mono);color:var(--accent-ink);margin-top:10px}
+.herr:empty{display:none}
+.addbtn{width:100%;border:1px dashed var(--rule);background:transparent;border-radius:12px;padding:13px;font:500 13px/1 var(--sans);color:var(--muted);transition:border-color .15s,color .15s}
+.addbtn:hover{border-color:var(--ink);color:var(--ink)}
+.dfoot{display:flex;align-items:center;gap:12px;padding:16px 32px;border-top:1px solid var(--rule);background:var(--paper)}
+.dfoot .msg{flex:1;font:12px/1.4 var(--mono);color:var(--muted)}
+.dfoot .msg.bad{color:var(--accent-ink)}
+.dfoot .msg.good{color:var(--on_task)}
+.primary{border:0;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 18px;font:500 13px/1 var(--sans);transition:transform .15s,opacity .15s}
+.primary:active{transform:scale(.97)}
+.primary[disabled]{opacity:.45;cursor:default}
+.ghostbtn{border:1px solid var(--rule);background:transparent;border-radius:999px;padding:7px 13px;font:500 12px/1 var(--sans);color:var(--muted);display:inline-flex;align-items:center;gap:7px;transition:border-color .15s,color .15s}
+.ghostbtn:hover{border-color:var(--ink);color:var(--ink)}
+.ghostbtn[disabled]{opacity:.6;cursor:progress}
+.ghostbtn .tri{font-size:9px;color:var(--accent)}
+
+/* reels */
+.sacts{display:flex;align-items:center;gap:16px}
+.media{display:grid;gap:12px;align-content:start}
+.media video,.lbbody video{width:100%;display:block;border-radius:8px;border:1px solid var(--rule);background:#000;aspect-ratio:16/9}
+.shot{position:relative}
+.shot .veil{position:absolute;inset:0;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--paper) 72%,transparent);backdrop-filter:blur(2px);font:italic 300 17px/1.4 var(--serif);color:var(--ink);opacity:0;pointer-events:none;transition:opacity .3s}
+.shot.busy .veil{opacity:1}
+.reelrow{display:flex;align-items:center;gap:12px;font:12px/1.4 var(--mono);color:var(--faint)}
+.spin{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 25%,transparent);border-top-color:currentColor;animation:spin .8s linear infinite;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lightbox{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;background:color-mix(in srgb,#14120F 62%,transparent);opacity:0;pointer-events:none;transition:opacity .3s ease}
+.lightbox.show{opacity:1;pointer-events:auto}
+.lbin{width:min(960px,100%);background:var(--paper);border:1px solid var(--rule);border-radius:14px;box-shadow:var(--shadow);padding:18px 18px 20px;transform:translateY(10px) scale(.985);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.lightbox.show .lbin{transform:none}
+.lbhead{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 14px 4px}
+.lbhead h3{margin:0;font:400 24px/1.1 var(--serif);letter-spacing:-.01em}
+.lbhead h3 em{font-style:italic;font-weight:300;color:var(--muted)}
+.lbbody .wait{aspect-ratio:16/9;border-radius:8px;border:1px dashed var(--rule);display:grid;place-items:center;text-align:center;color:var(--muted);font:italic 300 19px/1.5 var(--serif);padding:24px}
+
+/* samples + corrections */
+.samples{grid-column:1/-1;margin-top:4px}
+.samples .eyebrow{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}
+.samples .eyebrow span:last-child{text-transform:none;letter-spacing:.02em;color:var(--faint)}
+.seg{display:flex;gap:2px;height:26px;align-items:stretch;padding-top:6px}
+.sm{all:unset;cursor:pointer;flex:1;min-width:3px;border-radius:2px;background:var(--c);position:relative;transition:transform .15s ease,filter .15s}
+.sm:hover,.sm.sel{transform:scaleY(1.35);filter:brightness(1.06)}
+.sm:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sm.fixed{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ink) 75%,transparent)}
+.sm.fixed::after{content:"";position:absolute;left:50%;top:-6px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--ink)}
+.axis{display:flex;justify-content:space-between;font:10px/1 var(--mono);color:var(--faint);margin-top:7px}
+.strip .dot{all:unset;cursor:pointer;width:12px;height:12px;border-radius:3px;background:var(--c,var(--absent));position:relative;animation:pop .6s ease both;transition:transform .15s,background .4s}
+.strip .dot:hover,.strip .dot.sel{transform:scale(1.25)}
+.strip .dot:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.strip .dot.fixed{box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--ink)}
+.pop{position:absolute;z-index:55;width:300px;background:var(--paper);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow),0 24px 50px -24px rgba(31,30,28,.4);padding:10px 10px 12px;opacity:0;transform:translateY(-4px) scale(.98);transform-origin:top center;pointer-events:none;transition:opacity .18s ease,transform .22s cubic-bezier(.2,.7,.2,1)}
+.pop.show{opacity:1;transform:none;pointer-events:auto}
+.pop .ph{aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:var(--bg);border:1px solid var(--rule-2);display:grid;place-items:center;color:var(--faint);font:italic 300 14px/1.3 var(--serif)}
+.pop .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.pop .pt{display:flex;align-items:center;gap:8px;margin:10px 4px 0;font:12px/1.3 var(--mono);color:var(--muted)}
+.pop .pt b{font-weight:500;color:var(--c)}
+.pop .pt .was{margin-left:auto;font-size:11px;color:var(--faint)}
+.pop .pn{margin:6px 4px 0;font:400 16px/1.35 var(--serif);color:var(--ink)}
+.pop .pn:empty{display:none}
+.pop .eyebrow{margin:12px 4px 8px;font-size:10px}
+.pbtns{display:flex;flex-wrap:wrap;gap:6px;margin:0 2px}
+.pbtns button{border:1px solid var(--rule);background:transparent;border-radius:999px;padding:6px 10px 6px 8px;font:12px/1 var(--sans);color:var(--ink);display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,background .15s}
+.pbtns button::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.pbtns button:hover{border-color:var(--c);background:color-mix(in srgb,var(--c) 10%,transparent)}
+.pbtns button[aria-pressed=true]{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);cursor:default}
+.pbtns button[disabled]{opacity:.5;cursor:progress}
+.pop .pm{margin:10px 4px 0;font:12px/1.4 var(--mono);color:var(--muted)}
+.pop .pm:empty{display:none}
+.pill.flip{animation:flip .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes flip{0%{transform:scale(.6);opacity:0;box-shadow:0 0 0 0 color-mix(in srgb,var(--c) 50%,transparent)}45%{transform:scale(1.12);opacity:1}100%{transform:none;box-shadow:0 0 0 9px transparent}}
+.pill .was{font-weight:400;opacity:.7;text-decoration:line-through;margin-left:2px}
+
 footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--faint);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 
 @media (max-width:900px){
@@ -218,6 +351,17 @@ footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--faint);display:
   .line{grid-template-columns:1fr;gap:2px}
   .line.alibi .txt{font-size:18px}
   .sechead{flex-direction:column;gap:12px}
+  header{position:relative}
+  .hright{width:100%;justify-content:space-between;align-items:flex-start}
+  .setupbtn{flex:none}
+  .dhead{padding:22px 18px 16px}
+  .dhead h2{font-size:26px}
+  .dbody{padding:4px 18px 24px}
+  .dfoot{padding:12px 18px calc(12px + env(safe-area-inset-bottom))}
+  .hgrid{grid-template-columns:1fr 1fr}
+  .lightbox{padding:12px}
+  .lbin{padding:12px 12px 14px}
+  .pop{width:min(320px,calc(100vw - 24px))}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -229,14 +373,42 @@ footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--faint);display:
   <img id="toastImg" alt="" hidden>
 </div>
 
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
+  <div class="dhead">
+    <div><div class="eyebrow">setup</div><h2 id="drawerTitle">Before the witness <em>takes the stand</em></h2></div>
+    <button class="xbtn" type="button" data-close="drawer" aria-label="Close setup">×</button>
+  </div>
+  <div class="dbody">
+    <div class="dsec"><h3>Checklist</h3><button class="linkbtn" id="recheck" type="button">check again</button></div>
+    <div id="checks"><div class="quiet">Checking…</div></div>
+    <div class="dsec"><h3>Habits</h3><span class="eyebrow">what you can declare</span></div>
+    <div id="habitsEd"><div class="quiet">Loading habits…</div></div>
+    <button class="addbtn" id="addHabit" type="button">+ Add a habit</button>
+  </div>
+  <div class="dfoot"><span class="msg" id="saveMsg"></span><button class="ghostbtn" id="revertHabits" type="button">Revert</button><button class="primary" id="saveHabits" type="button">Save habits</button></div>
+</aside>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lbTitle" aria-hidden="true">
+  <div class="lbin">
+    <div class="lbhead"><h3 id="lbTitle">Today's reel</h3><button class="xbtn" type="button" data-close="lightbox" aria-label="Close reel">×</button></div>
+    <div class="lbbody" id="lbBody"></div>
+  </div>
+</div>
+
+<div class="pop" id="pop" role="dialog" aria-label="Correct this sample"></div>
+
 <div class="wrap">
   <header>
     <div class="brand">
       <h1 class="wordmark">Alibi<i>.</i></h1>
       <span class="tagline">the habit tracker that checks your alibi</span>
     </div>
-    <div class="status" id="status">
-      <span><span class="pulse off" id="pulse"></span><span id="conn">connecting</span></span>
+    <div class="hright">
+      <div class="status" id="status">
+        <span><span class="pulse off" id="pulse"></span><span id="conn">connecting</span></span>
+      </div>
+      <button class="setupbtn" id="setupBtn" type="button" aria-haspopup="dialog"><span class="sdot" id="sdot"></span>Setup<span class="n" id="setupN"></span></button>
     </div>
   </header>
 
@@ -268,7 +440,8 @@ footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--faint);display:
   </section>
 
   <section class="block">
-    <div class="sechead"><h2>Sessions <em>— the record</em></h2><span class="eyebrow" id="sessCount"></span></div>
+    <div class="sechead"><h2>Sessions <em>— the record</em></h2>
+      <div class="sacts"><button class="ghostbtn" id="todayReel" type="button"><span class="tri">▶</span>Today's reel</button><span class="eyebrow" id="sessCount"></span></div></div>
     <div id="sessions"></div>
   </section>
 
@@ -299,9 +472,15 @@ async function api(path, opts) {
 }
 
 /* ---------- prompt ---------- */
-const CHIPS = ["draw for 25 minutes","learn C++ for 30 min","how am I doing","report"];
-$("#chips").innerHTML = CHIPS.map(c => `<button class="chip" type="button">${esc(c)}</button>`).join("");
-$("#chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (b) say(b.textContent); });
+const TAIL_CHIPS = [["how am I doing","how am I doing"],["report","report"]];
+function renderChips(habits) {
+  const hs = Object.entries(habits || {}).filter(([, h]) => h && !h.source && h.default_min);
+  const chips = (hs.length ? hs.map(([k, h]) => [`${hname(k)} · ${h.default_min} min`, `${k} for ${h.default_min} minutes`])
+                           : [["draw for 25 minutes","draw for 25 minutes"],["learn C++ for 30 min","learn C++ for 30 min"]]).concat(TAIL_CHIPS);
+  $("#chips").innerHTML = chips.map(([l, t]) => `<button class="chip" type="button" data-say="${esc(t)}">${esc(l)}</button>`).join("");
+}
+renderChips();
+$("#chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (b) say(b.dataset.say || b.textContent); });
 $("#sayForm").addEventListener("submit", e => { e.preventDefault(); const v = $("#sayInput").value.trim(); if (v) say(v); });
 
 async function say(text) {
@@ -322,7 +501,7 @@ function reply(t) {
 }
 
 /* ---------- state / now ---------- */
-let lastAlertId = null, firstState = true, nowSig = "", seenLabels = 0, lastFrame = null;
+let lastAlertId = null, firstState = true, nowSig = "", seenLabels = 0, lastFrame = null, liveSess = null;
 
 async function pollState() {
   let s;
@@ -388,14 +567,21 @@ function renderNow(sess, now) {
   const strip = $("#strip");
   if (strip) {
     if (labels.length < seenLabels) { strip.innerHTML = ""; seenLabels = 0; }
+    liveSess = sess;
     for (let i = seenLabels; i < labels.length; i++) {
-      const l = labels[i], d = document.createElement("span");
-      d.className = "dot"; d.style.background = cvar(l.label);
-      d.title = `${clockT(l.ts)} · ${LBL_TXT[l.label] || l.label}${l.note ? " — " + l.note : ""}`;
+      const d = document.createElement("button");
+      d.type = "button"; d.className = "dot"; d.dataset.sid = sess.id; d.dataset.i = i; d.dataset.live = "1";
       if (firstState || i < labels.length - 3) d.style.animation = "none";
       strip.appendChild(d);
     }
     seenLabels = labels.length;
+    strip.querySelectorAll(".dot").forEach((d, i) => {     // corrections recolour samples already on the strip
+      const l = labels[i]; if (!l) return;
+      d.style.setProperty("--c", cvar(l.label));
+      d.classList.toggle("fixed", !!l.corrected_from);
+      d.title = sampleTip(l);
+      d.setAttribute("aria-label", `Sample at ${clockT(l.ts)}: ${LBL_TXT[l.label] || l.label}. Correct it`);
+    });
     if (!labels.length && !strip.childElementCount) strip.innerHTML = `<span class="now-sub">No observations yet.</span>`;
     else strip.querySelector(".now-sub")?.remove();
   }
@@ -498,49 +684,368 @@ function renderReport(r) {
 }
 
 /* ---------- sessions ---------- */
-const openSet = new Set();
+const openSet = new Set(), sessHtml = new Map(), sessVerdict = new Map(), sessById = new Map();
+let pendingPlay = null;
+const sampleTip = l => `${clockT(l.ts)} · ${LBL_TXT[l.label] || l.label}${l.corrected_from ? ` — was ${LBL_TXT[l.corrected_from] || l.corrected_from}, corrected by you` : ""}${l.note ? ` — ${l.note}` : ""}`;
+
+function sessionHtml(s) {
+  const labels = s.labels || [];
+  let tl;
+  if (labels.length) tl = `<div class="tl">${labels.map(l => `<i style="--c:${cvar(l.label)}" title="${esc(sampleTip(l))}"></i>`).join("")}</div>`;
+  else if (s.windows && s.windows.length) tl = `<div class="tl" title="window share">${s.windows.map(w => `<i style="--c:${cvar(w.label)};flex:${w.share || 0}"></i>`).join("")}</div>`;
+  else tl = `<div class="tl empty"></div>`;
+  const v = s.verdict || "—";
+  let media = "";
+  if (s.reel_url) {
+    media = `<div class="media"><video controls playsinline preload="none" src="${esc(s.reel_url)}" ${s.evidence_url ? `poster="${esc(s.evidence_url)}"` : ""} aria-label="Memories reel for session ${s.id}"></video>
+      <div class="reelrow"><span>memories reel · ${labels.length} frames</span>${s.evidence_url ? `<a href="${esc(s.evidence_url)}" target="_blank" rel="noopener">contact sheet ↗</a>` : ""}</div></div>`;
+  } else if (s.evidence_url || labels.length) {
+    media = `<div class="media">${s.evidence_url ? `<div class="shot"><a href="${esc(s.evidence_url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(s.evidence_url)}" alt="Contact sheet for session ${s.id}"></a><div class="veil"><span><span class="spin"></span>&nbsp; cutting the reel…</span></div></div>` : ""}
+      ${labels.length ? `<div class="reelrow"><button class="ghostbtn" type="button" data-reel="${s.id}"><span class="tri">▶</span>Make reel</button><span class="rmsg">a timelapse of the witness's ${labels.length} frame${labels.length === 1 ? "" : "s"}</span></div>` : ""}</div>`;
+  }
+  const counts = LABELS.map(l => [l, labels.filter(x => x.label === l).length]).filter(x => x[1]);
+  const fixedN = labels.filter(l => l.corrected_from).length;
+  const meta = `<div class="meta">
+      <div><b>#${s.id}</b> · ${esc(s.modality || "")} · ${clockT(s.started_at)} → ${clockT(s.ended_at || s.ends_at)}</div>
+      <div>declared <b>${esc(hm(s.declared_min))}</b> · on task <b>${pct(s.on_task_ratio)}</b></div>
+      ${counts.length ? `<div>${counts.map(([l,n]) => `<span style="color:${cvar(l)}">●</span> ${LBL_TXT[l]} ${n}`).join(" &nbsp;")}</div>` : ""}
+      ${fixedN ? `<div>${fixedN} sample${fixedN === 1 ? "" : "s"} corrected by you</div>` : ""}
+      ${s.artefact ? `<div>artefact <a href="${esc(s.artefact)}" target="_blank" rel="noopener"><b>${esc(s.artefact)}</b></a></div>` : ""}
+    </div>`;
+  const wins = s.windows && s.windows.length ? `<div class="wins" style="margin-top:16px">${renderWindows(s.windows)}</div>` : "";
+  const side = `<div>${meta}${wins}</div>`;
+  const samples = labels.length ? `<div class="samples">
+      <div class="eyebrow"><span>the witness's samples</span><span>click one to overrule it</span></div>
+      <div class="seg">${labels.map((l, i) => `<button type="button" class="sm${l.corrected_from ? " fixed" : ""}" style="--c:${cvar(l.label)}" data-sid="${s.id}" data-i="${i}" title="${esc(sampleTip(l))}" aria-label="Sample at ${clockT(l.ts)}: ${esc(LBL_TXT[l.label] || l.label)}. Correct it"></button>`).join("")}</div>
+      <div class="axis"><span>${clockT(labels[0].ts)}</span><span>${clockT(labels[labels.length - 1].ts)}</span></div></div>` : "";
+  const inner = media ? `<div class="in">${media}${side}${samples}</div>` : `<div class="in solo">${side}${samples}</div>`;
+  return `<div class="sess" data-id="${s.id}">
+    <button type="button" aria-expanded="false">
+      <span class="when"><b>${dayT(s.started_at)}</b>${clockT(s.started_at)}</span>
+      <span class="h">${esc(hname(s.habit))}<small>${esc(hm(s.declared_min))} declared</small></span>
+      <span class="pill" style="--c:${vvar(s.verdict)}">${esc(v)}</span>
+      ${tl}
+      <span class="ratio">${pct(s.on_task_ratio)}</span>
+      <span class="chev">▸</span>
+    </button>
+    <div class="detail"><div>${inner}</div></div>
+  </div>`;
+}
+
 function renderSessions(list) {
   list = list || [];
+  const box = $("#sessions");
   $("#sessCount").textContent = `${list.length} closed`;
-  if (!list.length) { $("#sessions").innerHTML = `<p class="none">No closed sessions yet. The record starts with the first declaration.</p>`; return; }
-  $("#sessions").innerHTML = list.map(s => {
-    const labels = s.labels || [];
-    let tl;
-    if (labels.length) tl = `<div class="tl">${labels.map(l => `<i style="--c:${cvar(l.label)}" title="${clockT(l.ts)} ${esc(LBL_TXT[l.label] || l.label)}"></i>`).join("")}</div>`;
-    else if (s.windows && s.windows.length) tl = `<div class="tl" title="window share">${s.windows.map(w => `<i style="--c:${cvar(w.label)};flex:${w.share || 0}"></i>`).join("")}</div>`;
-    else tl = `<div class="tl empty"></div>`;
-    const v = s.verdict || "—";
-    const img = s.evidence_url ? `<a href="${esc(s.evidence_url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(s.evidence_url)}" alt="Contact sheet for session ${s.id}"></a>` : "";
-    const counts = LABELS.map(l => [l, labels.filter(x => x.label === l).length]).filter(x => x[1]);
-    const meta = `<div class="meta">
-        <div><b>#${s.id}</b> · ${esc(s.modality || "")} · ${clockT(s.started_at)} → ${clockT(s.ended_at || s.ends_at)}</div>
-        <div>declared <b>${esc(hm(s.declared_min))}</b> · on task <b>${pct(s.on_task_ratio)}</b></div>
-        ${counts.length ? `<div>${counts.map(([l,n]) => `<span style="color:${cvar(l)}">●</span> ${LBL_TXT[l]} ${n}`).join(" &nbsp;")}</div>` : ""}
-        ${s.artefact ? `<div>artefact <a href="${esc(s.artefact)}" target="_blank" rel="noopener"><b>${esc(s.artefact)}</b></a></div>` : ""}
-      </div>`;
-    const wins = s.windows && s.windows.length ? `<div class="wins" style="margin-top:16px">${renderWindows(s.windows)}</div>` : "";
-    const side = `<div>${meta}${wins}</div>`;
-    const inner = img ? `<div class="in">${img}${side}</div>` : `<div class="in solo">${side}</div>`;
-    return `<div class="sess ${openSet.has(s.id) ? "open" : ""}" data-id="${s.id}">
-      <button type="button" aria-expanded="${openSet.has(s.id)}">
-        <span class="when"><b>${dayT(s.started_at)}</b>${clockT(s.started_at)}</span>
-        <span class="h">${esc(hname(s.habit))}<small>${esc(hm(s.declared_min))} declared</small></span>
-        <span class="pill" style="--c:${vvar(s.verdict)}">${esc(v)}</span>
-        ${tl}
-        <span class="ratio">${pct(s.on_task_ratio)}</span>
-        <span class="chev">▸</span>
-      </button>
-      <div class="detail"><div>${inner}</div></div>
-    </div>`;
-  }).join("");
+  sessById.clear(); list.forEach(s => sessById.set(s.id, s));
+  if (!list.length) { box.innerHTML = `<p class="none">No closed sessions yet. The record starts with the first declaration.</p>`; sessHtml.clear(); return; }
+  box.querySelector(":scope>.none")?.remove();
+  // keyed: only sessions whose data changed are rebuilt, so a playing reel or an open popover survives the 15 s refresh
+  const nodes = list.map(s => {
+    const html = sessionHtml(s);
+    let el = box.querySelector(`:scope>.sess[data-id="${s.id}"]`);
+    if (!el || sessHtml.get(s.id) !== html) {
+      const t = document.createElement("div"); t.innerHTML = html.trim();
+      const n = t.firstElementChild, open = openSet.has(s.id);
+      n.classList.toggle("open", open); n.firstElementChild.setAttribute("aria-expanded", open);
+      const oldV = el && el.querySelector("video");
+      const newV = n.querySelector("video");
+      if (oldV && newV && !oldV.paused && oldV.getAttribute("src") === newV.getAttribute("src")) newV.replaceWith(oldV);
+      const was = sessVerdict.get(s.id);
+      if (el && was && was !== s.verdict) n.querySelector(".pill").classList.add("flip");
+      if (el) el.replaceWith(n);
+      el = n; sessHtml.set(s.id, html);
+    }
+    sessVerdict.set(s.id, s.verdict);
+    return el;
+  });
+  [...box.children].forEach(c => { if (!nodes.includes(c)) c.remove(); });
+  nodes.forEach((n, i) => { if (box.children[i] !== n) box.insertBefore(n, box.children[i] || null); });
+  if (pendingPlay != null) {
+    const v = box.querySelector(`.sess[data-id="${pendingPlay}"] video`);
+    if (v) { pendingPlay = null; v.play().catch(() => {}); }
+  }
 }
 $("#sessions").addEventListener("click", e => {
+  const sm = e.target.closest(".sm"); if (sm) { openPop(sm); return; }
+  const rb = e.target.closest("[data-reel]"); if (rb) { makeReel(+rb.dataset.reel, rb); return; }
   const b = e.target.closest(".sess>button"); if (!b) return;
   const el = b.parentElement, id = +el.dataset.id;
   el.classList.toggle("open");
   el.classList.contains("open") ? openSet.add(id) : openSet.delete(id);
   b.setAttribute("aria-expanded", el.classList.contains("open"));
+  if (!el.classList.contains("open")) { el.querySelector("video")?.pause(); closePop(); }
 });
+
+/* ---------- reels ---------- */
+async function makeReel(id, btn) {
+  const sess = btn.closest(".sess"), shot = sess.querySelector(".shot"), msg = sess.querySelector(".rmsg");
+  btn.disabled = true; btn.innerHTML = `<span class="spin"></span>Cutting…`;
+  shot?.classList.add("busy");
+  if (msg) msg.textContent = "stitching frames — a few seconds";
+  try {
+    const r = await fetch(`/api/reel?session=${id}`);
+    if (r.status === 404) throw new Error("none");
+    if (!r.ok) throw new Error("fail");
+    const { url } = await r.json();
+    pendingPlay = id;
+    await refreshSlow();
+    if (pendingPlay === id) {            // the server didn't report it yet; play what we were given
+      pendingPlay = null;
+      const media = sess.isConnected ? sess.querySelector(".media") : document.querySelector(`.sess[data-id="${id}"] .media`);
+      if (media) { media.innerHTML = `<video controls playsinline autoplay src="${esc(url)}"></video>`; media.querySelector("video").play().catch(() => {}); }
+    }
+  } catch (err) {
+    shot?.classList.remove("busy");
+    btn.disabled = false; btn.innerHTML = `<span class="tri">▶</span>Make reel`;
+    if (msg) msg.textContent = err.message === "none" ? "no frames were kept for this session" : "couldn't cut the reel — is ffmpeg installed?";
+  }
+}
+
+const localDate = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+async function todayReel() {
+  const day = new Date();
+  $("#lbTitle").innerHTML = `Today's reel <em>— ${esc(day.toLocaleDateString(undefined, {weekday:"long", day:"numeric", month:"long"}))}</em>`;
+  $("#lbBody").innerHTML = `<div class="wait"><span><span class="spin"></span>&nbsp; Cutting today's frames into a reel…</span></div>`;
+  openLayer("lightbox");
+  const b = $("#todayReel"); b.disabled = true;
+  try {
+    const r = await fetch(`/api/reel?date=${localDate(day)}`);
+    if (r.status === 404) { $("#lbBody").innerHTML = `<div class="wait">No frames today.<br>The witness only keeps frames from physical sessions.</div>`; return; }
+    if (!r.ok) throw new Error(r.status);
+    const { url } = await r.json();
+    if (!$("#lightbox").classList.contains("show")) return;
+    $("#lbBody").innerHTML = `<video controls playsinline autoplay src="${esc(url)}?t=${Date.now()}"></video>`;
+    $("#lbBody video").play().catch(() => {});
+  } catch { $("#lbBody").innerHTML = `<div class="wait">Couldn't cut today's reel.<br>Is ffmpeg installed?</div>`; }
+  finally { b.disabled = false; }
+}
+$("#todayReel").addEventListener("click", todayReel);
+
+/* ---------- layers: drawer, lightbox ---------- */
+let lastFocus = null;
+function openLayer(id) {
+  lastFocus = document.activeElement;
+  const el = document.getElementById(id);
+  el.classList.add("show"); el.setAttribute("aria-hidden", "false");
+  if (id === "drawer") $("#scrim").classList.add("show");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => el.querySelector(".xbtn")?.focus({preventScroll: true}), 60);
+}
+function closeLayer(id) {
+  const el = document.getElementById(id);
+  if (!el.classList.contains("show")) return;
+  el.classList.remove("show"); el.setAttribute("aria-hidden", "true");
+  if (id === "drawer") { $("#scrim").classList.remove("show"); loadHealth(); }
+  if (id === "lightbox") { el.querySelector("video")?.pause(); setTimeout(() => { if (!el.classList.contains("show")) $("#lbBody").innerHTML = ""; }, 350); }
+  if (!document.querySelector(".drawer.show,.lightbox.show")) document.body.style.overflow = "";
+  lastFocus?.focus?.({preventScroll: true});
+}
+document.addEventListener("click", e => {
+  const c = e.target.closest("[data-close]"); if (c) closeLayer(c.dataset.close);
+  if (e.target.id === "lightbox") closeLayer("lightbox");
+  if (e.target.id === "scrim") closeLayer("drawer");
+  if ($("#pop").classList.contains("show") && !e.target.closest("#pop,.sm,.strip .dot")) closePop();
+});
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if ($("#pop").classList.contains("show")) return closePop(true);
+  if ($("#lightbox").classList.contains("show")) return closeLayer("lightbox");
+  closeLayer("drawer");
+});
+
+/* ---------- corrections ---------- */
+let popFor = null;
+function sampleFor(el) {
+  const i = +el.dataset.i;
+  if (el.dataset.live) return {sid: +el.dataset.sid, live: true, l: (liveSess && liveSess.id === +el.dataset.sid ? liveSess.labels || [] : [])[i]};
+  return {sid: +el.dataset.sid, live: false, l: (sessById.get(+el.dataset.sid)?.labels || [])[i]};
+}
+function openPop(anchor) {
+  if (popFor === anchor && $("#pop").classList.contains("show")) return closePop();
+  const {sid, live, l} = sampleFor(anchor); if (!l) return;
+  document.querySelectorAll(".sm.sel,.strip .dot.sel").forEach(x => x.classList.remove("sel"));
+  anchor.classList.add("sel"); popFor = anchor;
+  const pop = $("#pop");
+  pop.style.setProperty("--c", cvar(l.label));
+  pop.innerHTML = `<div class="ph">${l.frame_url ? `<img src="${esc(l.frame_url)}" alt="What the witness saw at ${clockT(l.ts)}">` : "no frame kept for this sample"}</div>
+    <div class="pt"><span>${clockT(l.ts)}</span>·<b>${esc(LBL_TXT[l.label] || l.label)}</b>${l.corrected_from ? `<span class="was">was ${esc(LBL_TXT[l.corrected_from] || l.corrected_from)}</span>` : l.reused ? `<span class="was">reused · no motion</span>` : ""}</div>
+    <p class="pn">${esc(l.note || "")}</p>
+    <div class="eyebrow">${live ? "overrule the witness · counts at the end" : "overrule the witness"}</div>
+    <div class="pbtns">${LABELS.map(k => `<button type="button" style="--c:${cvar(k)}" data-label="${k}" aria-pressed="${k === l.label}">${LBL_TXT[k]}</button>`).join("")}</div>
+    <div class="pm"></div>`;
+  pop.dataset.sid = sid; pop.dataset.ts = l.ts; pop.dataset.live = live ? "1" : "";
+  placePop(anchor);
+  requestAnimationFrame(() => pop.classList.add("show"));
+  pop.querySelector(`.pbtns button[aria-pressed=false]`)?.focus({preventScroll: true});
+}
+function placePop(anchor) {
+  const pop = $("#pop"), r = anchor.getBoundingClientRect();
+  pop.style.left = "0px"; pop.style.top = "0px";
+  const w = pop.offsetWidth, h = pop.offsetHeight, vw = document.documentElement.clientWidth;
+  let left = r.left + r.width / 2 - w / 2;
+  left = Math.max(12, Math.min(left, vw - w - 12));
+  let top = r.bottom + 10;
+  if (top + h > innerHeight - 12 && r.top - h - 10 > 12) top = r.top - h - 10;
+  pop.style.left = `${left + scrollX}px`; pop.style.top = `${top + scrollY}px`;
+}
+function closePop(refocus) {
+  const pop = $("#pop"); if (!pop.classList.contains("show")) return;
+  pop.classList.remove("show");
+  popFor?.classList.remove("sel");
+  if (refocus && popFor?.isConnected) popFor.focus({preventScroll: true});
+  popFor = null;
+}
+$("#pop").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-label]"); if (!b || b.getAttribute("aria-pressed") === "true") return;
+  const pop = $("#pop"), sid = +pop.dataset.sid, live = !!pop.dataset.live;
+  pop.querySelectorAll(".pbtns button").forEach(x => x.disabled = true);
+  pop.querySelector(".pm").innerHTML = `<span class="spin"></span>&nbsp; re-weighing the evidence…`;
+  try {
+    const r = await fetch(`/api/sessions/${sid}/correct`, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ts: +pop.dataset.ts, label: b.dataset.label})});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.detail || r.status);
+    closePop();
+    if (live) await pollState(); else await refreshSlow();
+    const v = /\b(done|partial|slacked)\b/i.exec(j.reply || "");
+    showToast("correction", j.reply || "Correction noted.", v ? vvar(v[1].toLowerCase()) : "var(--accent)");
+  } catch (err) {
+    pop.querySelectorAll(".pbtns button").forEach(x => x.disabled = false);
+    pop.querySelector(".pm").textContent = `Couldn't record that: ${err.message}`;
+  }
+});
+$("#now").addEventListener("click", e => { const d = e.target.closest(".strip .dot"); if (d) openPop(d); });
+addEventListener("resize", () => closePop());
+function showToast(kind, text, c) {
+  const t = $("#toast");
+  t.className = "toast verdict"; t.style.setProperty("--c", c || "var(--accent)");
+  $("#toastKind").innerHTML = `<span>${esc(kind === "correction" ? "correction — you have the last word" : kind)}</span>`;
+  $("#toastText").textContent = text;
+  const img = $("#toastImg"); img.hidden = true; img.removeAttribute("src");
+  requestAnimationFrame(() => t.classList.add("show"));
+  clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 9000);
+}
+
+/* ---------- setup: health + habits ---------- */
+const REQUIRED = new Set(["camera","windows","witness","island"]);
+async function loadHealth() {
+  let h;
+  try { h = await api("/api/health"); } catch { $("#sdot").className = "sdot"; return null; }
+  const bad = h.checks.filter(c => !c.ok && REQUIRED.has(c.key)).length;
+  $("#sdot").className = "sdot " + (h.ok ? "ok" : "bad");
+  $("#setupN").textContent = bad ? ` · ${bad}` : "";
+  $("#setupBtn").title = h.ok ? "Setup — all required checks pass" : `Setup — ${bad} check${bad === 1 ? "" : "s"} need${bad === 1 ? "s" : ""} action`;
+  return h;
+}
+function renderChecks(h) {
+  if (!h) { $("#checks").innerHTML = `<div class="quiet">Couldn't reach the daemon.</div>`; return; }
+  $("#checks").innerHTML = h.checks.map(c => {
+    const cls = c.ok ? "ok" : REQUIRED.has(c.key) ? "bad" : "opt";
+    return `<div class="chk ${cls}"><span class="mk" aria-hidden="true">${c.ok ? "✓" : cls === "bad" ? "!" : ""}</span><div>
+      <div class="cl"><b>${esc(c.label)}</b><span class="st">${c.ok ? "ok" : cls === "bad" ? "needs action" : "optional"}</span></div>
+      <div class="cd">${esc(c.detail)}</div>${!c.ok && c.fix ? `<code class="fix">${esc(c.fix)}</code>` : ""}</div></div>`;
+  }).join("");
+}
+
+let habitsCfg = null, habModel = [];
+const SLUG = /^[a-z][a-z0-9_]{0,23}$/;
+async function loadHabits() {
+  try { habitsCfg = await api("/api/habits"); } catch { return; }
+  renderChips(habitsCfg.habits);
+}
+function modelFromCfg() {
+  habModel = Object.entries(habitsCfg?.habits || {}).map(([k, h]) => ({key: k, isNew: false, h: {...h, aliases: (h.aliases || []).join(", ")}}));
+}
+function habCard(m, i) {
+  const h = m.h, strava = h.source === "strava";
+  const num = (f, label, u, v, step = 1) => `<label><span>${label}</span><span class="unit" data-u="${u}"><input class="fld" type="number" inputmode="decimal" min="0" step="${step}" data-f="${f}" value="${esc(v ?? "")}"></span></label>`;
+  const top = `<div class="habtop">
+      <div class="hn">${m.isNew ? `<input class="fld" data-f="key" placeholder="habit_name" value="${esc(m.key)}" aria-label="Habit name" autocapitalize="off" spellcheck="false">` : `${esc(hname(m.key))}<small>${esc(m.key)}</small>`}</div>
+      ${strava ? `<span class="badge">strava</span>` : `<select class="fld" data-f="modality" aria-label="Modality">${["physical","digital","hybrid"].map(o => `<option${h.modality === o ? " selected" : ""}>${o}</option>`).join("")}</select>`}
+      <button class="del" type="button" data-del="${i}" aria-label="Delete ${esc(m.key || "new habit")}">delete</button></div>`;
+  const body = strava
+    ? `<div class="hgrid">${num("weekly_sessions", "Runs per week", "runs", h.weekly_sessions)}${num("min_km", "Counts if at least", "km", h.min_km, 0.5)}</div>`
+    : `<div class="hgrid">${num("default_min", "Default length", "min", h.default_min)}${num("weekly_target_min", "Weekly target", "min", h.weekly_target_min, 5)}
+        <label class="wide"><span>Aliases — comma separated</span><input class="fld" data-f="aliases" value="${esc(h.aliases)}" placeholder="sketch, draw, art" spellcheck="false"></label>
+        <label class="wide"><span>On task looks like</span><textarea class="fld" rows="2" data-f="on_task_looks_like" placeholder="what the camera should see when you're really doing it">${esc(h.on_task_looks_like || "")}</textarea></label></div>`;
+  return `<div class="hab${m.isNew ? " new" : ""}" data-i="${i}">${top}${body}<div class="herr"></div></div>`;
+}
+function renderHabitsEd() {
+  $("#habitsEd").innerHTML = habModel.length ? habModel.map(habCard).join("") : `<div class="quiet">No habits. Add one below.</div>`;
+}
+function setMsg(t, cls = "") { const m = $("#saveMsg"); m.textContent = t; m.className = "msg " + cls; }
+$("#habitsEd").addEventListener("input", e => {
+  const f = e.target.dataset.f, card = e.target.closest(".hab"); if (!f || !card) return;
+  const m = habModel[+card.dataset.i];
+  if (f === "key") m.key = e.target.value.trim(); else m.h[f] = e.target.value;
+  e.target.classList.remove("bad"); card.classList.remove("err"); card.querySelector(".herr").textContent = "";
+  setMsg("unsaved changes");
+});
+$("#habitsEd").addEventListener("click", e => {
+  const d = e.target.closest("[data-del]"); if (!d) return;
+  const card = d.closest(".hab");
+  card.style.opacity = "0"; card.style.transform = "translateX(12px)";
+  setTimeout(() => { habModel.splice(+d.dataset.del, 1); renderHabitsEd(); setMsg("unsaved changes — revert to undo"); }, 200);
+});
+$("#addHabit").addEventListener("click", () => {
+  habModel.push({key: "", isNew: true, h: {modality: "physical", default_min: 25, weekly_target_min: 150, aliases: "", on_task_looks_like: ""}});
+  renderHabitsEd();
+  const cards = $("#habitsEd").querySelectorAll(".hab"), last = cards[cards.length - 1];
+  last.scrollIntoView({behavior: "smooth", block: "center"});
+  setTimeout(() => last.querySelector('[data-f="key"]').focus({preventScroll: true}), 250);
+  setMsg("unsaved changes");
+});
+$("#revertHabits").addEventListener("click", () => { modelFromCfg(); renderHabitsEd(); setMsg(""); });
+function cardErr(i, text, field) {
+  const card = $("#habitsEd").querySelector(`.hab[data-i="${i}"]`); if (!card) return false;
+  card.classList.add("err"); card.querySelector(".herr").textContent = text;
+  if (field) card.querySelector(`[data-f="${field}"]`)?.classList.add("bad");
+  return true;
+}
+$("#saveHabits").addEventListener("click", async () => {
+  $("#habitsEd").querySelectorAll(".hab.err").forEach(c => { c.classList.remove("err"); c.querySelector(".herr").textContent = ""; });
+  $("#habitsEd").querySelectorAll(".fld.bad").forEach(f => f.classList.remove("bad"));
+  let bad = null; const seen = new Set(), out = {};
+  habModel.forEach((m, i) => {
+    const h = m.h, key = m.key;
+    const fail = (t, f) => { cardErr(i, t, f); bad = bad ?? i; };
+    if (!SLUG.test(key)) return fail(key ? "Name: lowercase letters, digits and underscores, starting with a letter." : "Give the habit a name.", "key");
+    if (seen.has(key)) return fail(`There's already a habit called “${key}”.`, "key");
+    seen.add(key);
+    if (h.source === "strava") { out[key] = {source: "strava", weekly_sessions: +h.weekly_sessions || 0, min_km: +h.min_km || 0}; return; }
+    if (!(+h.default_min >= 1)) return fail("Default length needs to be at least 1 minute.", "default_min");
+    if (!(+h.weekly_target_min >= 0)) return fail("Weekly target can't be negative.", "weekly_target_min");
+    out[key] = {modality: h.modality, default_min: Math.round(+h.default_min), weekly_target_min: Math.round(+h.weekly_target_min || 0),
+                aliases: String(h.aliases || "").split(",").map(a => a.trim()).filter(Boolean), on_task_looks_like: String(h.on_task_looks_like || "").trim() || key};
+  });
+  if (bad != null) { setMsg("fix the highlighted habit", "bad"); $("#habitsEd").querySelector(`.hab[data-i="${bad}"]`)?.scrollIntoView({behavior: "smooth", block: "center"}); return; }
+  if (!Object.keys(out).length) { setMsg("keep at least one habit", "bad"); return; }
+  const btn = $("#saveHabits"); btn.disabled = true; setMsg("saving…");
+  try {
+    const r = await fetch("/api/habits", {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify({habits: out})});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const d = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail || r.status);
+      const k = (/habit name '([^']+)'/.exec(d) || /^([a-z][a-z0-9_]*):/.exec(d) || [])[1];
+      const i = k != null ? habModel.findIndex(m => m.key === k) : -1;
+      if (i < 0 || !cardErr(i, d)) setMsg(d, "bad"); else setMsg("fix the highlighted habit", "bad");
+      return;
+    }
+    habitsCfg = j; modelFromCfg(); renderHabitsEd(); renderChips(j.habits);
+    setMsg("saved — habits.yaml updated", "good");
+    refreshSlow();
+  } catch { setMsg("couldn't reach the daemon", "bad"); }
+  finally { btn.disabled = false; }
+});
+async function openSetup() {
+  openLayer("drawer");
+  $("#checks").innerHTML = `<div class="quiet"><span class="spin"></span>&nbsp; Checking…</div>`;
+  setMsg("");
+  const [h] = await Promise.all([loadHealth(), loadHabits()]);
+  renderChecks(h); modelFromCfg(); renderHabitsEd();
+}
+$("#setupBtn").addEventListener("click", openSetup);
+$("#recheck").addEventListener("click", async () => { $("#checks").style.opacity = ".5"; renderChecks(await loadHealth()); $("#checks").style.opacity = ""; });
 
 async function refreshSlow() {
   const [r, s] = await Promise.allSettled([api("/api/report"), api("/api/sessions")]);
@@ -549,9 +1054,10 @@ async function refreshSlow() {
   $("#foot").textContent = `updated ${clockT(Date.now()/1000)}`;
 }
 
-pollState(); refreshSlow();
+pollState(); refreshSlow(); loadHabits(); loadHealth();
 setInterval(pollState, 1000);
 setInterval(refreshSlow, 15000);
+setInterval(loadHealth, 120000);
 </script>
 </body>
 </html>

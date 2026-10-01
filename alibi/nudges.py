@@ -24,8 +24,10 @@ def check(con, session) -> str | None:
     if len(labels) < n or "on_task" in labels:
         return None
     worst = max(set(labels), key=labels.count)
-    mins = max(1, round(n * config.SAMPLE_EVERY_S / 60))
-    text = LINES[worst].format(habit=session["habit"], mins=f"{mins} minute{'s' * (mins != 1)}")
+    secs = n * config.SAMPLE_EVERY_S
+    mins = round(secs / 60)
+    span = f"{secs} seconds" if secs < 90 else f"{mins} minute{'s' * (mins != 1)}"
+    text = LINES[worst].format(habit=session["habit"], mins=span)
     _last_nudge[session["id"]] = now
     notify(text, kind="nudge")
     return text
