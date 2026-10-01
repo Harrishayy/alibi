@@ -16,8 +16,8 @@ targets:
     platform: iOS
     sources:
       - path: AlibiPhone
-    resources:
       - path: Generated/AlibiConfig.plist
+        buildPhase: resources
         optional: true
     entitlements:
       path: AlibiPhone/AlibiPhone.entitlements
