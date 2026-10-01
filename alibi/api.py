@@ -13,7 +13,7 @@ GET  /api/habits           P9: habits.yaml as JSON;  PUT /api/habits {habits: {.
 GET  /api/reel?session=ID | ?date=YYYY-MM-DD    P10: build (or reuse) an H.264 timelapse -> {url}
 POST /api/sessions/{id}/correct {ts, label}     P11: relabel a sample; re-scores the session
 """
-import datetime as dt, pathlib, time
+import datetime as dt, hmac, pathlib, time
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -33,6 +33,21 @@ for _sub in ("frames", "evidence", "reels"):
 _hosts = config.ALLOWED_HOSTS or (["127.0.0.1", "localhost", "testserver", "::1"]
                                   if config.API_HOST in ("127.0.0.1", "localhost") else ["*"])
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=_hosts)
+
+
+_LOOPBACK = {"127.0.0.1", "::1", "localhost", "testclient"}
+
+
+@app.middleware("http")
+async def _remote_auth(request: Request, call_next):
+    """The Spark relay reaches this over Tailscale. Anyone not on this Mac needs ALIBI_REMOTE_TOKEN; no token set means
+    remote callers are refused outright. /ingest keeps its own X-Alibi-Secret check."""
+    host = request.client.host if request.client else ""
+    if host not in _LOOPBACK and request.url.path != "/ingest":
+        given = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
+        if not config.REMOTE_TOKEN or not hmac.compare_digest(given.encode(), config.REMOTE_TOKEN.encode()):
+            return JSONResponse({"error": "remote callers need a valid ALIBI_REMOTE_TOKEN"}, status_code=401)
+    return await call_next(request)
 
 
 @app.exception_handler(Exception)

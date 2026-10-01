@@ -1,0 +1,22 @@
+preset:
+  name: alibi-relay
+  description: "Alibi relay on the Spark host: the only route from the sandbox to the user's Mac"
+network_policies:
+  alibi_relay:
+    name: alibi_relay
+    endpoints:
+      - host: {{RELAY_HOST}}
+        port: {{RELAY_PORT}}
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/status" }
+          - allow: { method: GET, path: "/state" }
+          - allow: { method: GET, path: "/feed" }
+          - allow: { method: GET, path: "/alerts" }
+          - allow: { method: GET, path: "/report" }
+          - allow: { method: GET, path: "/sessions" }
+          - allow: { method: POST, path: "/say" }
+          - allow: { method: POST, path: "/end" }
+    binaries:
+      - { path: /usr/bin/curl }

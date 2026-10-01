@@ -250,3 +250,18 @@ Audit (fresh-install journey 5.2, island 6.2, integrations 3.5) → calendar / s
 - Strava: guided connect at /strava/setup (OAuth callback, tokens in data/secrets.json, refresh rotation, rate limits, all run types).
 - Apple Health: opt-in phone listener + /phone setup page (QR + Shortcut steps); steps/sleep/mindful/workout habits.
 Manual checks only the user can do: Calendar permission prompt, real Strava app, real iPhone Shortcut.
+
+### P15 — Always-on agent on the DGX Spark (NemoClaw) (added 2026-10-01)
+Mac stays the hub. The Spark runs OpenClaw in a NemoClaw/OpenShell sandbox on a local vLLM model, reaching the Mac
+over Tailscale only through `alibi/relay.py` (allow-listed API, Mac token kept on the host, 20 s mirror into
+`data/relay/`). Mac API refuses tailnet callers without `ALIBI_REMOTE_TOKEN`. Skill + heartbeat + egress preset live in
+`spark/`; `scripts/spark_setup.sh` wires it all. Details: docs/SPARK.md.
+**DoD:** `tests/test_relay.py` passes; on the Spark, `nemoclaw alibi exec -- openclaw agent --agent main -m "How am I
+doing on Alibi?"` answers from the Mac's live state; with the Mac asleep it says so and gives last-seen.
+**Clip:** OpenClaw web UI: "draw for 25 minutes" → the notch island on the Mac starts the session.
+
+### Later (after submission)
+- **Agent → Alibi app notifications.** Let the Spark agent push messages into the island / iPhone app (a `POST
+  /api/notify` on the Mac, kind `agent`, rendered like nudges). Parked: the Mac UI is mid-redesign.
+- Witness on the Spark's VLM by default once a vision-capable local model is validated on GB10.
+- Telegram channel via `nemoclaw alibi channels add telegram`.

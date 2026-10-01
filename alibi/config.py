@@ -17,6 +17,8 @@ VLM_BASE_URL = os.getenv("VLM_BASE_URL", LLM_BASE_URL)
 VLM_MODEL = os.getenv("VLM_MODEL", "")
 
 CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "0"))
+# Judge a one-minute timelapse clip instead of a single frame (video VLM, e.g. nvidia/nemotron-3-nano-omni-30b-a3b-reasoning).
+VLM_VIDEO = os.getenv("VLM_VIDEO", "0") == "1"
 SAMPLE_EVERY_S = int(os.getenv("SAMPLE_EVERY_S", "60"))
 MOTION_THRESHOLD = float(os.getenv("MOTION_THRESHOLD", "6.0"))
 NOTIFY = os.getenv("NOTIFY", "print")
@@ -33,10 +35,15 @@ LAPTOP_EVERY_S = int(os.getenv("LAPTOP_EVERY_S", "30"))
 API_HOST = os.getenv("API_HOST", "127.0.0.1")
 API_PORT = int(os.getenv("API_PORT", "8765"))
 INGEST_SECRET = os.getenv("INGEST_SECRET", "")
+# Remote agent (NemoClaw on the DGX Spark, over Tailscale). Non-loopback callers must send this as a bearer token.
+REMOTE_TOKEN = os.getenv("ALIBI_REMOTE_TOKEN", "")
 ALERTS_PATH = DATA_DIR / "alerts.jsonl"
 
 # No key yet? Everything still runs: text falls back to rules, vision to Apple's on-device Vision framework.
-TEXT_READY = bool(NVIDIA_API_KEY.startswith("nvapi-") and len(NVIDIA_API_KEY) > 12 and LLM_MODEL and "<" not in LLM_MODEL)
+# A self-hosted endpoint (the Spark relay over Tailscale) takes its own bearer token instead of an nvapi- key.
+_SELF_HOSTED = "integrate.api.nvidia.com" not in LLM_BASE_URL
+TEXT_READY = bool((NVIDIA_API_KEY.startswith("nvapi-") and len(NVIDIA_API_KEY) > 12 or _SELF_HOSTED and NVIDIA_API_KEY)
+                  and LLM_MODEL and "<" not in LLM_MODEL)
 VISION_BACKEND = os.getenv("VISION_BACKEND") or (
     "nvidia" if TEXT_READY and VLM_MODEL and "<" not in VLM_MODEL else "apple")   # nvidia | apple | mock
 

@@ -22,6 +22,7 @@ the evidence agrees. Entry for the NVIDIA London Claw Agent Challenge (applicati
 | Talk to it | `./alibi.sh say "draw for 25 minutes"` |
 | Demo data / recording run | `./alibi.sh seed` · `./alibi.sh demo [--fixture]` |
 | iPhone companion (USB) | `bash ios/build_install.sh` |
+| Spark agent (NemoClaw sandbox + relay) | `bash scripts/spark_setup.sh` · docs/SPARK.md |
 
 Dashboard: http://127.0.0.1:8765. Phone API: :8766 (needs the `X-Alibi-Secret` header).
 
@@ -32,8 +33,10 @@ alibi/            Python daemon + FastAPI (api.py, routes_*.py), verifier, witne
   db.py           FROZEN data contract: tables `sessions`, `events`
   web/index.html  dashboard (single file; colour tokens in :root)
   pinch.py        mascot mood rulebook (pure function of state)
+  relay.py        DGX Spark side: sandbox <-> Mac bridge over Tailscale, mirrors state into data/relay/
 native/           Swift: Island.swift (notch island, hosts the daemon in Alibi.app), witness.swift (Apple Vision),
                   sense.swift (macOS signals), calendar.swift
+spark/            NemoClaw/OpenClaw: `alibi` skill, HEARTBEAT.md, egress policy preset for the relay
 ios/              iPhone companion (XcodeGen: project.yml) + Screen Time / Shield extensions, Shared/
 tests/            one script per DoD, run by tests/run_all.sh; harness.py = temp data dir + fake clock
 scripts/          setup, build_native, demo, seed, smoke_test
@@ -54,7 +57,8 @@ data/             runtime data — personal, git-ignored, never commit
    output, not when the code is written.
 4. **Camera off** whenever no physical session is running. Never leave a capture loop alive in a test or script.
 5. **Privacy claims are exact.** With NVIDIA Build endpoints, frames leave the machine. Only say "frames never
-   leave the Mac" for `VISION_BACKEND=apple` or a local `VLM_BASE_URL`.
+   leave the Mac" for `VISION_BACKEND=apple` or a local `VLM_BASE_URL`. Witness on the Spark over Tailscale: say
+   "never leave your network", not "never leave the Mac".
 6. **Secrets.** Keys live in `.env` (template: `.env.example`) and `data/secrets.json`. Never print, log, commit or
    paste them into tool output. Never commit anything under `data/` except `.gitkeep` files.
 7. **Offline first.** Everything must work with no API key (Apple Vision witness + rule fallbacks). NVIDIA models

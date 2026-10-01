@@ -1,5 +1,5 @@
 """Who judges a frame. nvidia = VLM on NVIDIA Build (or a local server); apple = on-device Vision; mock = colour code (tests)."""
-import json, subprocess
+import json, subprocess, tempfile
 from . import config, db, llm
 
 SYSTEM = ("You verify whether a person at a desk is doing what they said. "
@@ -56,6 +56,39 @@ def judge(jpeg: bytes, path: str, habit_key: str, habit_cfg: dict, backend: str 
     out["note"] = str(out.get("note", ""))[:80]
     out["backend"] = backend
     return out
+
+
+CLIP_FPS = 2                                     # timelapse playback rate; one frame per daemon tick when captured
+
+
+def encode_clip(jpegs: list[bytes]) -> bytes:
+    """JPEG frames -> small H.264 mp4 (ffmpeg, same as reels)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        for i, j in enumerate(jpegs):
+            with open(f"{tmp}/{i:05d}.jpg", "wb") as f:
+                f.write(j)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(CLIP_FPS), "-i", f"{tmp}/%05d.jpg",
+                        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                        f"{tmp}/clip.mp4"], check=True, timeout=30)
+        with open(f"{tmp}/clip.mp4", "rb") as f:
+            return f.read()
+
+
+def judge_clip(jpegs: list[bytes], path: str, habit_key: str, habit_cfg: dict, span_s: float) -> dict:
+    """VLM_VIDEO: judge the last minute as a timelapse. Falls back to the newest frame alone if the clip call fails."""
+    try:
+        prompt = (f"This is a timelapse of the last {round(span_s)} seconds at the desk, {len(jpegs)} frames in order. "
+                  "Judge the whole span, not one moment: a brief glance away is still on_task; label phone, idle or "
+                  "absent only if that is what most of the clip shows. " + prompt_for(habit_key, habit_cfg))
+        out = llm.vision_video_json(SYSTEM, prompt, encode_clip(jpegs))
+        if out.get("label") not in db.LABELS:
+            raise ValueError("no label")
+        return {"label": out["label"], "note": str(out.get("note", ""))[:80], "backend": "nvidia-video",
+                "clip_frames": len(jpegs)}
+    except Exception as e:
+        out = judge(jpegs[-1], path, habit_key, habit_cfg)
+        out["clip_error"] = type(e).__name__
+        return out
 
 
 def _nvidia(jpeg, path, habit_key, habit_cfg):
