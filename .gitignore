@@ -1,0 +1,8 @@
+.env
+.venv/
+data/*.db*
+data/frames/*
+data/evidence/*
+demo/clips/*
+!**/.gitkeep
+__pycache__/
