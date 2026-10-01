@@ -1,179 +1,203 @@
-/* sessions.js: sessions list, reels + lightbox playback, correction popover + keyboard. Classic script; load order core, now, week, sessions, setup, onboarding, boot. */
+/* sessions.js: sessions list + detail (contact sheet, reel, Fix a moment), reels + lightbox, correction popover + keyboard.
+   Marks come from week.js (wkDot, wkPill, wkIcon). Classic script; load order core, now, week, sessions, setup, onboarding, boot. */
 /* ---------- sessions ---------- */
 const openSet = new Set(), sessHtml = new Map(), sessVerdict = new Map(), sessById = new Map();
-let pendingPlay = null, maxMin = 60;
-const sampleTip = l => { const n = cleanNote(l.note); return `${clockT(l.ts)} · ${l.label_text || LBL_TXT[l.label] || l.label}${l.corrected_from ? ` — was ${LBL_TXT[l.corrected_from] || l.corrected_from}, corrected by you` : ""}${l.learned_from ? ` — learned from your past corrections` : ""}${n ? ` — ${n}` : ""}`; };
+let pendingPlay = null;
+const sampleTip = l => { const n = cleanNote(l.note); return `${clockT(l.ts)} · ${wkWord(l.label)}${l.corrected_from ? ` · was ${wkWord(l.corrected_from).toLowerCase()}, fixed by you` : ""}${l.learned_from ? " · learned from your past fixes" : ""}${n ? ` · ${n}` : ""}`; };
+const dayKey = s => s.day || localDate(new Date(s.started_at * 1000));
+function whenLabel(s) {
+  const k = dayKey(s), t = clockT(s.started_at);
+  if (k === localDate()) return `Today ${t}`;
+  const d = new Date(s.started_at * 1000);
+  return Date.now() / 1000 - s.started_at < 6 * 86400 ? `${d.toLocaleDateString("en-GB", {weekday: "short"})} ${t}` : d.toLocaleDateString("en-GB", {day: "numeric", month: "short"});
+}
+function dotsAria(labels) {
+  const n = {}; labels.forEach(l => { n[l.label] = (n[l.label] || 0) + 1; });
+  return "One mark per check: " + Object.entries(n).map(([k, c]) => `${c} ${wkWord(k).toLowerCase()}`).join(", ");
+}
 
 function sessionHtml(s) {
-  const labels = s.labels || [];
-  const wpct = Math.max(18, Math.min(100, (s.declared_min || 0) / maxMin * 100)).toFixed(1);
-  let tl;
-  if (labels.length) tl = `<span class="tlw" style="--w:${wpct}%"><span class="tl">${labels.map(l => `<i style="--c:${cvar(l.label)}"></i>`).join("")}</span></span>`;
-  else if (s.windows && s.windows.length) tl = `<span class="tlw" style="--w:${wpct}%"><span class="tl byapp">${s.windows.map(w => `<i style="--c:${cvar(w.label)};flex:${w.share || 0}" title="${esc(w.title)} ${pct(w.share)}"></i>`).join("")}</span><span class="tlk">by app · ${esc(s.windows[0].title)} ${pct(s.windows[0].share)}</span></span>`;
-  else tl = `<span class="tlw" style="--w:${wpct}%"><span class="tl empty"></span></span>`;
-  const v = s.verdict || "—";
-  let media = "";
-  if (s.reel_url) {
-    media = `<div class="media"><video controls playsinline preload="none" src="${esc(s.reel_url)}" ${s.evidence_url ? `poster="${esc(s.evidence_url)}"` : ""} aria-label="Memories reel for session ${s.id}"></video>
-      <div class="reelrow"><span>memories reel · ${labels.length} frames</span>${s.evidence_url ? `<a href="${esc(s.evidence_url)}" target="_blank" rel="noopener">contact sheet ↗</a>` : ""}</div></div>`;
-  } else if (s.evidence_url || labels.length) {
-    media = `<div class="media">${s.evidence_url ? `<div class="shot"><a href="${esc(s.evidence_url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(s.evidence_url)}" alt="Contact sheet for session ${s.id}"></a><div class="veil"><span><span class="spin"></span>&nbsp; cutting the reel…</span></div></div>` : ""}
-      ${labels.length ? `<div class="reelrow"><button class="ghostbtn" type="button" data-reel="${s.id}"><span class="tri">▶</span>Make reel</button><span class="rmsg">a timelapse of Alibi's ${labels.length} photo${labels.length === 1 ? "" : "s"}</span></div>` : ""}</div>`;
-  }
-  const counts = LABELS.map(l => [l, labels.filter(x => x.label === l).length]).filter(x => x[1]);
+  wkUid = (s.id % 100000) * 1000;   // hatch clip ids stay stable per session, so an unchanged row keeps its HTML (and its open popover)
+  const labels = s.labels || [], live = !!s.live || (!s.verdict && !s.ended_at);
+  const title = dispName(s.habit, s.label);
+  const meta = live ? `${s.verified_min ?? 0} of ${s.declared_min ?? "—"} min seen so far`
+    : `${s.verified_min ?? 0} of ${s.declared_min ?? "—"} min seen`;
+  const byApp = !labels.length && s.windows && s.windows.length ? `<span class="sess-app">${wkIcon("laptop", 16)}<span>${esc(s.windows[0].title)} · ${pct(s.windows[0].share)}</span></span>` : "";
+  const dots = labels.length ? `<span class="sess-dots" role="img" aria-label="${esc(dotsAria(labels))}">${labels.map(l => wkDot(l.label, 8, {hidden: true})).join("")}</span>` : byApp;
+  const end = live ? `<span class="sess-live"><span class="sess-pulse" aria-hidden="true"></span>Live</span>` : wkPill(s.verdict);
+
+  // detail: what Alibi says, the contact sheet as proof, the reel, Fix a moment, the facts
+  const say = s.summary ? `<p class="sess-say">${esc(plain(s.summary))}</p>` : "";
+  const why = s.score_line ? `<p class="sess-why">${esc(s.score_line)}</p>` : "";
+  let hero = "";
+  if (s.evidence_url) hero = `<figure class="sheet"><a href="${esc(s.evidence_url)}" target="_blank" rel="noopener" aria-label="Open the contact sheet for ${esc(title)}"><img loading="lazy" src="${esc(s.evidence_url)}" alt="Contact sheet: the photos Alibi took during ${esc(title)}"></a><figcaption class="veil"><span class="spin"></span>Cutting the reel…</figcaption></figure>`;
+  else if (s.reel_url) hero = `<figure class="sheet"><video controls playsinline preload="metadata" src="${esc(s.reel_url)}" aria-label="Reel of ${esc(title)}"></video></figure>`;
+  const reelBtn = labels.length || s.reel_url ? `<button class="al-btn al-btn--secondary al-btn--sm" type="button" data-reel="${s.id}">${wkIcon("film", 16)}${s.reel_url ? "Watch reel" : "Make reel"}</button>` : "";
   const fixedN = labels.filter(l => l.corrected_from).length;
-  const parts = [s.camera_ratio != null ? `camera <b>${pct(s.camera_ratio)}</b>` : "", s.screen_ratio != null ? `screen <b>${pct(s.screen_ratio)}</b>` : "", s.coverage != null && s.coverage < 0.995 ? `happened <b>${pct(s.coverage)}</b>` : ""].filter(Boolean).join(" · ");
-  const meta = `<div class="meta">
-      <div>${clockT(s.started_at)} → ${clockT(s.ended_at || s.ends_at)} · ${esc(CHECK_WORD[s.modality] || "")}</div>
-      <div>on task <b>${pct(s.on_task_ratio)}</b>${parts ? " · " + parts : ""}</div>
-      <div>Alibi saw <b>${s.verified_min ?? "—"}</b> of ${esc(String(s.declared_min ?? "—"))} min</div>
-      ${counts.length ? `<div>${counts.map(([l,n]) => `<span style="color:${cvar(l)}">●</span> ${LBL_TXT[l]} ${n}`).join(" &nbsp;")}</div>` : ""}
-      ${fixedN ? `<div>${fixedN} check${fixedN === 1 ? "" : "s"} fixed by you</div>` : ""}
-      ${s.artefact ? `<div>artefact <a href="${esc(s.artefact)}" target="_blank" rel="noopener"><b>${esc(s.artefact)}</b></a></div>` : ""}
-    </div>`;
-  const why = (s.summary || s.why) ? `<div class="vwhyrow">${s.summary ? `<b>${esc(plain(s.summary))}</b>` : ""}${s.score_line ? esc(s.score_line) : ""}</div>` : "";
-  const wins = s.windows && s.windows.length ? `<div class="wins" style="margin-top:16px">${renderWindows(s.windows)}</div>` : "";
-  const side = `<div>${meta}${wins}</div>`;
-  const samples = labels.length ? `<div class="samples">
-      <div class="eyebrow"><span>what Alibi saw, minute by minute</span><span>got one wrong? tap it to fix it</span></div>
-      <div class="seg" role="toolbar" aria-label="Samples for session ${s.id}">${labels.map((l, i) => `<button type="button" tabindex="${i === 0 ? 0 : -1}" class="sm${l.corrected_from ? " fixed" : ""}" style="--c:${cvar(l.label)}" data-sid="${s.id}" data-i="${i}" title="${esc(sampleTip(l))}" aria-label="Check at ${clockT(l.ts)}: ${esc(LBL_TXT[l.label] || l.label)}. Fix it"></button>`).join("")}</div>
-      <div class="axis"><span>${clockT(labels[0].ts)}</span><span>${clockT(labels[labels.length - 1].ts)}</span></div></div>` : "";
-  const inner = media ? `<div class="in">${why}${samples}${media}${side}</div>` : `<div class="in solo">${why}${samples}${side}</div>`;
-  return `<div class="sess" data-id="${s.id}" id="session-${s.id}">
-    <button type="button" aria-expanded="false">
-      <span class="when"><b>${clockT(s.started_at)}</b>${esc(hm(s.declared_min))}</span>
-      <span class="h">${esc(dispName(s.habit, s.label))}<small>${esc(CHECK_WORD[s.modality] || "")}</small></span>
-      <span class="pill" style="--c:${vvar(s.verdict)}">${esc(VWORD[v] || v)}</span>
-      ${tl}
-      <span class="ratio"><b>${pct(s.on_task_ratio)}</b><small>${s.verified_min ?? "—"} / ${s.declared_min ?? "—"} min</small></span>
-      <span class="chev" aria-hidden="true">▸</span>
+  const fix = labels.length && !live ? `<div class="fixm">
+      <div class="fixm-head"><span class="t-label">Fix a moment</span><span class="fixm-hint">${fixedN ? `${fixedN} fixed by you · ` : ""}Tap a check I got wrong.</span></div>
+      <div class="fixm-strip"><div class="fixm-seg" role="toolbar" aria-label="Checks for ${esc(title)}">${labels.map((l, i) => `<button type="button" tabindex="${i === 0 ? 0 : -1}" class="sm${l.corrected_from ? " fixed" : ""}" data-sid="${s.id}" data-i="${i}" title="${esc(sampleTip(l))}" aria-label="Check at ${clockT(l.ts)}: ${esc(wkWord(l.label))}. Fix it">${wkDot(l.label, 12, {hidden: true})}</button>`).join("")}</div>
+      <div class="axis"><span>${clockT(labels[0].ts)}</span><span>${clockT(labels[labels.length - 1].ts)}</span></div></div></div>` : "";
+  const counts = LABELS.map(l => [l, labels.filter(x => x.label === l).length]).filter(x => x[1]);
+  const parts = [s.camera_ratio != null ? `camera ${pct(s.camera_ratio)}` : "", s.screen_ratio != null ? `screen ${pct(s.screen_ratio)}` : "", s.coverage != null && s.coverage < 0.995 ? `happened ${pct(s.coverage)}` : ""].filter(Boolean).join(" · ");
+  const facts = `<dl class="facts">
+      <div><dt>When</dt><dd>${clockT(s.started_at)} to ${clockT(s.ended_at || s.ends_at)}${CHECK_WORD[s.modality] ? ` · ${esc(CHECK_WORD[s.modality])}` : ""}</dd></div>
+      <div><dt>On task</dt><dd>${pct(s.on_task_ratio)}${parts ? ` · ${parts}` : ""}</dd></div>
+      ${counts.length ? `<div><dt>Checks</dt><dd class="facts-dots">${counts.map(([l, n]) => `<span>${wkDot(l, 12, {hidden: true})}${esc(wkWord(l))} ${n}</span>`).join("")}</dd></div>` : ""}
+      ${s.artefact ? `<div><dt>Artefact</dt><dd><a href="${esc(s.artefact)}" target="_blank" rel="noopener">${esc(s.artefact)}</a></dd></div>` : ""}
+    </dl>`;
+  const wins = s.windows && s.windows.length && typeof renderWindows === "function" ? `<div class="wins">${renderWindows(s.windows)}</div>` : "";
+  const acts = reelBtn || s.evidence_url ? `<div class="sess-acts">${reelBtn}${s.evidence_url ? `<a class="al-btn al-btn--quiet al-btn--sm" href="${esc(s.evidence_url)}" target="_blank" rel="noopener">Open contact sheet</a>` : ""}</div>` : "";
+  return `<li class="sess${live ? " is-live" : ""}" data-id="${s.id}" id="session-${s.id}">
+    <button type="button" aria-expanded="false" aria-controls="sd-${s.id}">
+      <span class="sess-when">${live ? "Now" : esc(whenLabel(s))}</span>
+      <span class="sess-main"><span class="sess-head"><span class="sess-h">${esc(title)}</span><span class="sess-meta">${esc(meta)}</span></span>${dots}</span>
+      <span class="sess-end">${end}<span class="chev" aria-hidden="true">${wkIcon("chevron-down", 16)}</span></span>
     </button>
-    <div class="detail"><div>${inner}</div></div>
-  </div>`;
+    <div class="detail" id="sd-${s.id}" inert><div><div class="in">${say}${why}${hero}${fix}${acts}${facts}${wins}</div></div></div>
+  </li>`;
 }
 
-const dayKey = s => s.day || localDate(new Date(s.started_at * 1000));
-function dayLabel(k) {
-  const today = localDate(), y = new Date(); y.setDate(y.getDate() - 1);
-  if (k === today) return "Today"; if (k === localDate(y)) return "Yesterday";
-  const [Y, M, D] = k.split("-").map(Number);
-  return new Date(Y, M - 1, D).toLocaleDateString(undefined, {weekday: "long", day: "numeric", month: "short"});
+// /api/state rows the list may not have yet: the live session leads (canvas "Now · Live") until its verdict lands,
+// and the just-finished verdict joins at once instead of waiting for the next 15 s refresh.
+let lastSessList = [], stateRowsKey = "", sessAll = false;
+const SESS_FIRST = 8;
+function withStateRows(list) {
+  const st = typeof lastState !== "undefined" ? lastState : null, out = [...list];
+  const rv = st && st.recent_verdict;
+  if (rv && rv.id != null && rv.verdict && !out.some(s => s.id === rv.id)) {
+    const i = out.findIndex(s => (s.started_at || 0) < (rv.started_at || 0));
+    out.splice(i < 0 ? out.length : i, 0, rv);
+  }
+  const ls = st && st.session;
+  if (ls && !out.some(s => s.id === ls.id)) {
+    const now = st.now || Date.now() / 1000, el = Math.max(0, (now - ls.started_at) / 60);
+    const seen = ls.on_task_so_far == null ? 0 : Math.round(el * ls.on_task_so_far);
+    out.unshift({...ls, verdict: null, ended_at: null, verified_min: seen, live: true, day: localDate(new Date(ls.started_at * 1000))});
+  }
+  return out;
+}
+const stateKey = () => { const st = typeof lastState !== "undefined" ? lastState : null; return `${st?.session?.id ?? ""}|${st?.recent_verdict?.id ?? ""}|${st?.recent_verdict?.verdict ?? ""}`; };
+function syncLiveSession() {
+  if (stateKey() === stateRowsKey) return;
+  renderSessions(lastSessList);
+  if (typeof renderPlan === "function") renderPlan();
+  if (typeof renderGrid === "function") renderGrid();
 }
 function renderSessions(list) {
-  list = list || [];
-  const box = $("#sessions");
-  $("#sessCount").textContent = list.length ? `${list.length} so far` : "";
-  sessById.clear(); list.forEach(s => sessById.set(s.id, s));
-  maxMin = Math.max(30, ...list.map(s => s.declared_min || 0));
-  if (!list.length) { box.innerHTML = `<p class="none">No sessions yet. Start one above — it'll show up here with the photos Alibi took.</p>`; sessHtml.clear(); return; }
-  box.querySelector(":scope>.none")?.remove();
-  // group by day; keyed so only changed sessions rebuild and a playing reel / open popover survives the refresh
-  const groups = [];
-  list.forEach(s => { const k = dayKey(s); let g = groups[groups.length - 1]; if (!g || g.k !== k) groups.push(g = {k, items: []}); g.items.push(s); });
-  const keepGroups = [];
-  groups.forEach((g, gi) => {
-    let ge = box.querySelector(`:scope>.daygrp[data-k="${g.k}"]`);
-    if (!ge) { ge = document.createElement("div"); ge.className = "daygrp"; ge.dataset.k = g.k; ge.innerHTML = `<div class="dayhead"><span></span><span></span></div>`; }
-    const seen = g.items.reduce((a, s) => a + (s.verified_min || 0), 0), claimed = g.items.reduce((a, s) => a + (s.declared_min || 0), 0);
-    ge.firstElementChild.firstElementChild.textContent = dayLabel(g.k);
-    ge.firstElementChild.lastElementChild.textContent = `Alibi saw ${hm(seen)} of ${hm(claimed)}`;
-    const nodes = g.items.map(s => {
-      const html = sessionHtml(s);
-      let el = box.querySelector(`.sess[data-id="${s.id}"]`);
-      if (!el || sessHtml.get(s.id) !== html) {
-        const t = document.createElement("div"); t.innerHTML = html.trim();
-        const n = t.firstElementChild, open = openSet.has(s.id);
-        n.classList.toggle("open", open); n.firstElementChild.setAttribute("aria-expanded", open);
-        const oldV = el && el.querySelector("video");
-        const newV = n.querySelector("video");
-        if (oldV && newV && !oldV.paused && oldV.getAttribute("src") === newV.getAttribute("src")) newV.replaceWith(oldV);
-        const was = sessVerdict.get(s.id);
-        if (el && was && was !== s.verdict) n.querySelector(".pill").classList.add("flip");
-        if (el) el.replaceWith(n);
-        el = n; sessHtml.set(s.id, html);
-      }
-      sessVerdict.set(s.id, s.verdict);
-      return el;
-    });
-    [...ge.children].slice(1).forEach(c => { if (!nodes.includes(c)) c.remove(); });
-    nodes.forEach((n, i) => { if (ge.children[i + 1] !== n) ge.insertBefore(n, ge.children[i + 1] || null); });
-    if (box.children[gi] !== ge) box.insertBefore(ge, box.children[gi] || null);
-    keepGroups.push(ge);
+  lastSessList = list = list || [];
+  stateRowsKey = stateKey();
+  list = withStateRows(list);
+  const box = $("#sessions"); if (!box) return;
+  const cnt = $("#sessCount"); if (cnt) cnt.textContent = list.length ? `${list.length} session${list.length === 1 ? "" : "s"}` : "";
+  sessById.clear(); list.forEach(s => { if (!s.live) sessById.set(s.id, s); });
+  if (!list.length) { box.innerHTML = `<p class="sess-empty">No sessions yet. Start one above and it shows up here with the photos Alibi took.</p>`; sessHtml.clear(); return; }
+  box.querySelector(":scope>.sess-empty")?.remove();
+  let ul = box.querySelector(":scope>.sess-list");
+  if (!ul) { box.innerHTML = ""; ul = document.createElement("ul"); ul.className = "sess-list"; box.append(ul); wkEnter(ul); }
+  // keyed: only changed sessions rebuild, so a playing reel or an open popover survives the refresh
+  const nodes = list.map(s => {
+    const html = sessionHtml(s), sig = html.replace(/\baldh\d+/g, "");   // icons.js numbers its hatch clips per call
+    let el = ul.querySelector(`:scope>.sess[data-id="${s.id}"]`);
+    if (!el || sessHtml.get(s.id) !== sig) {
+      const t = document.createElement("ul"); t.innerHTML = html.trim();
+      const n = t.firstElementChild, open = openSet.has(s.id);
+      n.classList.toggle("open", open); n.firstElementChild.setAttribute("aria-expanded", open); n.querySelector(".detail").inert = !open;
+      const oldV = el && el.querySelector("video"), newV = n.querySelector("video");
+      if (oldV && newV && !oldV.paused && oldV.getAttribute("src") === newV.getAttribute("src")) newV.replaceWith(oldV);
+      const was = sessVerdict.get(s.id);
+      if (el && was && was !== s.verdict) n.querySelector(".al-verdict")?.classList.add("flip");
+      if (el && sessVerdict.has(s.id) && !was) n.querySelector(".al-verdict")?.classList.add("flip");
+      if (el) el.replaceWith(n);
+      el = n; sessHtml.set(s.id, sig);
+    }
+    sessVerdict.set(s.id, s.verdict);
+    return el;
   });
-  [...box.children].forEach(c => { if (!keepGroups.includes(c)) c.remove(); });
+  [...ul.children].forEach(c => { if (!nodes.includes(c)) c.remove(); });
+  nodes.forEach((n, i) => { if (ul.children[i] !== n) ul.insertBefore(n, ul.children[i] || null); });
+  // Calm by default: the latest SESS_FIRST sessions, the rest one click away.
+  nodes.forEach((n, i) => { n.hidden = !sessAll && i >= SESS_FIRST && !openSet.has(+n.dataset.id); });
+  let more = box.querySelector(":scope>.sess-more");
+  if (!more) { more = document.createElement("button"); more.type = "button"; more.className = "al-btn al-btn--quiet al-btn--sm sess-more"; more.addEventListener("click", () => { sessAll = !sessAll; renderSessions(lastSessList); }); box.append(more); }
+  const extra = nodes.length - SESS_FIRST;
+  more.hidden = extra <= 0;
+  more.textContent = sessAll ? "Show fewer" : `Show ${extra} more`;
+  more.setAttribute("aria-expanded", sessAll);
   if (pendingPlay != null) {
-    const v = box.querySelector(`.sess[data-id="${pendingPlay}"] video`);
+    const v = ul.querySelector(`.sess[data-id="${pendingPlay}"] video`);
     if (v) { pendingPlay = null; v.play().catch(() => {}); }
   }
   if (pendingGoto != null) gotoSession(pendingGoto);
 }
 let pendingGoto = null;
+function setOpen(el, open) {
+  const id = +el.dataset.id;
+  el.classList.toggle("open", open);
+  open ? openSet.add(id) : openSet.delete(id);
+  el.firstElementChild.setAttribute("aria-expanded", open);
+  el.querySelector(".detail").inert = !open;   // a folded detail is 0 px tall and transparent: keep its links and video out of the tab order
+  if (!open) { el.querySelector("video")?.pause(); closePop(); }
+}
 function gotoSession(id) {
   const el = document.querySelector(`.sess[data-id="${id}"]`);
   if (!el) { pendingGoto = id; refreshSlow(); return; }
   pendingGoto = null;
-  if (!el.classList.contains("open")) { el.classList.add("open"); openSet.add(id); el.firstElementChild.setAttribute("aria-expanded", "true"); }
-  el.scrollIntoView({behavior: "smooth", block: "start"});
+  el.hidden = false;
+  if (!el.classList.contains("open")) setOpen(el, true);
+  el.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start"});
   setTimeout(() => el.querySelector(".sm")?.focus({preventScroll: true}), 450);
 }
 addEventListener("hashchange", () => { const m = /^#session-(\d+)$/.exec(location.hash); if (m) gotoSession(+m[1]); });
-$("#sessions").addEventListener("click", e => {
+$("#sessions")?.addEventListener("click", e => {
   const sm = e.target.closest(".sm"); if (sm) { openPop(sm); return; }
   const rb = e.target.closest("[data-reel]"); if (rb) { makeReel(+rb.dataset.reel, rb); return; }
   const b = e.target.closest(".sess>button"); if (!b) return;
-  const el = b.parentElement, id = +el.dataset.id;
-  el.classList.toggle("open");
-  el.classList.contains("open") ? openSet.add(id) : openSet.delete(id);
-  b.setAttribute("aria-expanded", el.classList.contains("open"));
-  if (!el.classList.contains("open")) { el.querySelector("video")?.pause(); closePop(); }
+  const el = b.parentElement;
+  setOpen(el, !el.classList.contains("open"));
 });
 
 /* ---------- reels ---------- */
 async function makeReel(id, btn) {
-  const sess = btn.closest(".sess"), shot = sess.querySelector(".shot"), msg = sess.querySelector(".rmsg");
+  const s = sessById.get(id), title = s ? dispName(s.habit, s.label) : "Reel";
+  if (s && s.reel_url) return playReel(s.reel_url, title);
+  const sess = btn.closest(".sess"), shot = sess?.querySelector(".sheet");
   btn.disabled = true; btn.innerHTML = `<span class="spin"></span>Cutting…`;
   shot?.classList.add("busy");
-  if (msg) msg.textContent = "stitching frames — a few seconds";
   try {
     const r = await fetch(`/api/reel?session=${id}`);
     if (r.status === 404) throw new Error("none");
     if (!r.ok) throw new Error("fail");
     const { url } = await r.json();
-    pendingPlay = id;
-    await refreshSlow();
-    if (pendingPlay === id) {            // the server didn't report it yet; play what we were given
-      pendingPlay = null;
-      const media = sess.isConnected ? sess.querySelector(".media") : document.querySelector(`.sess[data-id="${id}"] .media`);
-      if (media) { media.innerHTML = `<video controls playsinline autoplay src="${esc(url)}"></video>`; media.querySelector("video").play().catch(() => {}); }
-    }
+    playReel(url, title);
+    refreshSlow();
   } catch (err) {
-    shot?.classList.remove("busy");
-    btn.disabled = false; btn.innerHTML = `<span class="tri">▶</span>Make reel`;
-    if (msg) msg.textContent = err.message === "none" ? "no frames were kept for this session" : "couldn't cut the reel — is ffmpeg installed?";
-  }
+    btn.disabled = false; btn.innerHTML = `${wkIcon("film", 16)}Make reel`;
+    showToast("note", err.message === "none" ? "No frames were kept for this session." : "Couldn't cut the reel. Is ffmpeg installed?");
+  } finally { shot?.classList.remove("busy"); }
 }
-
+const lbWait = t => `<div class="wait"><span class="spin"></span><span>${t}</span></div>`;
 async function todayReel() {
   const day = new Date();
-  $("#lbTitle").innerHTML = `Today's reel <em>— ${esc(day.toLocaleDateString(undefined, {weekday:"long", day:"numeric", month:"long"}))}</em>`;
-  $("#lbBody").innerHTML = `<div class="wait"><span><span class="spin"></span>&nbsp; Cutting today's frames into a reel…</span></div>`;
+  $("#lbTitle").innerHTML = `Today's reel <span class="lbsub">${esc(day.toLocaleDateString("en-GB", {weekday: "long", day: "numeric", month: "long"}))}</span>`;
+  $("#lbBody").innerHTML = lbWait("Cutting today's frames into a reel…");
   openLayer("lightbox");
-  const b = $("#todayReel"); b.disabled = true;
+  const b = $("#todayReel"); if (b) b.disabled = true;
   try {
     const r = await fetch(`/api/reel?date=${localDate(day)}`);
-    if (r.status === 404) { $("#lbBody").innerHTML = `<div class="wait">No photos today yet.<br>Alibi only takes photos during camera-checked habits.</div>`; return; }
+    if (r.status === 404) { $("#lbBody").innerHTML = `<div class="wait wait--empty"><span>No photos today yet. Alibi only takes photos during camera-checked habits.</span></div>`; return; }
     if (!r.ok) throw new Error(r.status);
     const { url } = await r.json();
     if (!$("#lightbox").classList.contains("show")) return;
     $("#lbBody").innerHTML = `<video controls playsinline autoplay src="${esc(url)}?t=${Date.now()}"></video>`;
     $("#lbBody video").play().catch(() => {});
-  } catch { $("#lbBody").innerHTML = `<div class="wait">Couldn't cut today's reel.<br>Is ffmpeg installed?</div>`; }
-  finally { b.disabled = false; }
+  } catch { $("#lbBody").innerHTML = `<div class="wait wait--empty"><span>Couldn't cut today's reel. Is ffmpeg installed?</span></div>`; }
+  finally { if (b) b.disabled = false; }
 }
-$("#todayReel").addEventListener("click", todayReel);
+$("#todayReel")?.addEventListener("click", todayReel);
 async function playReel(path, title) {
-  $("#lbTitle").innerHTML = `${esc(title || "Reel")} <em>— memories</em>`;
-  $("#lbBody").innerHTML = `<div class="wait"><span><span class="spin"></span>&nbsp; Cutting the frames into a reel…</span></div>`;
+  $("#lbTitle").innerHTML = `${esc(title || "Reel")} <span class="lbsub">Reel</span>`;
+  $("#lbBody").innerHTML = lbWait("Cutting the frames into a reel…");
   openLayer("lightbox");
   try {
     let url = path;
@@ -181,7 +205,7 @@ async function playReel(path, title) {
     if (!$("#lightbox").classList.contains("show")) return;
     $("#lbBody").innerHTML = `<video controls playsinline autoplay src="${esc(url)}"></video>`;
     $("#lbBody video").play().catch(() => {});
-  } catch (e) { $("#lbBody").innerHTML = `<div class="wait">${e.message === "none" ? "No frames were kept for this one." : "Couldn't cut the reel.<br>Is ffmpeg installed?"}</div>`; }
+  } catch (e) { $("#lbBody").innerHTML = `<div class="wait wait--empty"><span>${e.message === "none" ? "No frames were kept for this one." : "Couldn't cut the reel. Is ffmpeg installed?"}</span></div>`; }
 }
 
 /* ---------- corrections ---------- */
@@ -196,14 +220,14 @@ function openPop(anchor) {
   const {sid, live, l} = sampleFor(anchor); if (!l) return;
   document.querySelectorAll(".sm.sel,.strip .dot.sel").forEach(x => x.classList.remove("sel"));
   anchor.classList.add("sel"); popFor = anchor;
-  const pop = $("#pop");
-  pop.style.setProperty("--c", cvar(l.label));
-  pop.innerHTML = `<div class="ph">${l.frame_url ? `<img src="${esc(l.frame_url)}" alt="What Alibi saw at ${clockT(l.ts)}">` : "no photo kept for this check"}</div>
-    <div class="pt"><span>${clockT(l.ts)}</span>·<b>${esc(LBL_TXT[l.label] || l.label)}</b>${l.corrected_from ? `<span class="was">was ${esc(LBL_TXT[l.corrected_from] || l.corrected_from)}</span>` : l.reused ? `<span class="was">reused · no motion</span>` : ""}</div>
-    <p class="pn">${esc(cleanNote(l.note))}</p>
-    <div class="eyebrow">${live ? "what were you really doing? · counts at the end" : "what were you really doing?"}</div>
-    <div class="pbtns">${LABELS.map(k => `<button type="button" style="--c:${cvar(k)}" data-label="${k}" aria-pressed="${k === l.label}">${LBL_TXT[k]} <span class="kbd">${LABELS.indexOf(k) + 1}</span></button>`).join("")}</div>
-    <div class="pm"></div>`;
+  const pop = $("#pop"), note = cleanNote(l.note);
+  wkUid = 1e9;
+  pop.innerHTML = `<div class="ph">${l.frame_url ? `<img src="${esc(l.frame_url)}" alt="What Alibi saw at ${clockT(l.ts)}">` : `<span>No photo kept for this check</span>`}<span class="ph-time">${clockT(l.ts)}</span></div>
+    <div class="pt">${wkDot(l.label, 12, {word: true})}${l.corrected_from ? `<span class="was">was ${esc(wkWord(l.corrected_from).toLowerCase())}</span>` : l.reused ? `<span class="was">reused, no motion</span>` : ""}</div>
+    ${note ? `<p class="pn">${esc(note)}</p>` : ""}
+    <div class="pq"><span class="t-label">What were you really doing?</span>${live ? `<span class="pq-hint">Counts when the session ends</span>` : ""}</div>
+    <div class="pbtns">${LABELS.map((k, n) => `<button type="button" data-label="${k}" aria-pressed="${k === l.label}">${wkDot(k, 12, {hidden: true})}<span class="pb-w">${wkWord(k)}</span><span class="al-kbd">${n + 1}</span></button>`).join("")}</div>
+    <div class="pm" role="status" aria-live="polite"></div>`;
   pop.dataset.sid = sid; pop.dataset.ts = l.ts; pop.dataset.live = live ? "1" : ""; pop.dataset.was = l.label;
   placePop(anchor);
   requestAnimationFrame(() => pop.classList.add("show"));
@@ -215,8 +239,10 @@ function placePop(anchor) {
   const w = pop.offsetWidth, h = pop.offsetHeight, vw = document.documentElement.clientWidth;
   let left = r.left + r.width / 2 - w / 2;
   left = Math.max(12, Math.min(left, vw - w - 12));
-  let top = r.top - h - 12;
-  if (top < 12) top = r.bottom + 12;
+  let top = r.top - h - 12, below = false;
+  if (top < 12) { top = r.bottom + 12; below = true; }
+  pop.classList.toggle("below", below);
+  pop.style.setProperty("--ox", `${Math.round(r.left + r.width / 2 - left)}px`);
   pop.style.left = `${left + scrollX}px`; pop.style.top = `${top + scrollY}px`;
 }
 function closePop(refocus) {
@@ -226,11 +252,11 @@ function closePop(refocus) {
   if (refocus && popFor?.isConnected) popFor.focus({preventScroll: true});
   popFor = null;
 }
-$("#pop").addEventListener("click", async e => {
+$("#pop")?.addEventListener("click", async e => {
   const b = e.target.closest("button[data-label]"); if (!b || b.getAttribute("aria-pressed") === "true") return;
   const pop = $("#pop"), sid = +pop.dataset.sid, live = !!pop.dataset.live;
   pop.querySelectorAll(".pbtns button").forEach(x => x.disabled = true);
-  pop.querySelector(".pm").innerHTML = `<span class="spin"></span>&nbsp; updating the score…`;
+  pop.querySelector(".pm").innerHTML = `<span class="spin"></span>Updating the score…`;
   try {
     const j = await postCorrect(sid, +pop.dataset.ts, b.dataset.label);
     closePop();

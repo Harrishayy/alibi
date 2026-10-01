@@ -16,6 +16,7 @@ keys. Stdlib only, no I/O. Frequency caps (one one-shot per 90 s, three side-eye
 from __future__ import annotations
 
 import datetime as dt
+import re
 import time
 
 MOODS = ("idle", "focused", "listening", "thinking", "sleepy", "reading")
@@ -35,9 +36,11 @@ def _mins(seconds: float | None) -> int:
 
 
 def _habit(d: dict | None) -> str:
+    """'Drawing' → 'drawing' mid-sentence, but names like 'C++' or 'YouTube' keep their case (same rule as the web)."""
     if not d:
         return "it"
-    return (d.get("habit_label") or d.get("label") or d.get("habit") or "it").lower()
+    h = d.get("habit_label") or d.get("label") or d.get("habit") or "it"
+    return h.lower() if re.fullmatch(r"[A-Z][a-z]+( [a-z]+)*", h) else h
 
 
 def _seen(v: dict, finished: dict | None = None) -> str | None:
@@ -139,6 +142,9 @@ def _selftest() -> None:
     live = {"now": now, "session": {"habit": "drawing", "label": "Drawing", "started_at": now - 600,
                                     "ends_at": now + 900, "samples": 8}}
     assert pinch_state(live)["mood"] == "focused"
+    assert pinch_state(live)["line"].startswith("Watching drawing until"), pinch_state(live)
+    cpp = {**live, "session": {**live["session"], "habit": "cpp", "label": "C++"}}
+    assert pinch_state(cpp)["line"].startswith("Watching C++ until"), pinch_state(cpp)
     fresh = {**live, "session": {**live["session"], "started_at": now - 5, "samples": 0}}
     r = pinch_state(fresh)
     assert r["mood"] == "listening" and r["event"] == "connected" and r["seq"] == int((now - 5) * 1000), r

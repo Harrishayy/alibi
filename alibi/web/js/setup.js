@@ -2,7 +2,19 @@
 /* ---------- setup: connections ---------- */
 const REQUIRED = new Set(["camera","windows","island"]);
 const checkState = c => c.ok ? "ok" : (c.key === "witness" && /test mode|mock|demo/i.test(c.detail || "")) ? "demo" : REQUIRED.has(c.key) ? "bad" : "opt";
-const ICON = {camera:"📷", windows:"💻", witness:"🔍", text:"💬", strava:"🏃", island:"⬛"};
+const ICON = {camera: "camera", windows: "laptop", witness: "lens", text: "sparkle", strava: "run", island: "laptop"};
+// Icons from window.AlibiIcons (icons.js); a bare dot if it hasn't loaded.
+const ico = (name, size = 20) => (window.AlibiIcons && AlibiIcons.svg(name, size)) || "";
+// Where photos are judged, exact to the witness in use (AGENTS.md hard rule 5; same test as core.js renderPrivacy).
+// Unknown witness: say nothing about where rather than guess.
+function photoWhere(s) {
+  s = s || (typeof lastState !== "undefined" && lastState) || {};
+  const w = s.witness || "";
+  return (w === "apple" || w === "mock" || /local/i.test(s.witness_label || "")) ? "Photos are checked on this Mac."
+    : w ? "Photos go to NVIDIA's model to be checked." : "";
+}
+// Server copy (templates.py, onboarding.py) still says "Photos stay on this Mac." unconditionally; swap in the true line.
+const photoFix = (t, s) => String(t ?? "").replace(/\s*Photos stay on this Mac\.?/g, m => { const w = photoWhere(s); return w ? " " + w : ""; });
 function setTab(name) {
   ["Health", "Habits", "Data"].forEach(n => { $("#tab" + n).setAttribute("aria-selected", n === name); $("#pane" + n).hidden = n !== name; });
   if (name === "Data") loadData();
@@ -29,8 +41,9 @@ async function loadHealth() {
   return h;
 }
 function connCard({icon, title, ok, state, text, acts, msg, id}) {
-  return `<div class="conn ${ok ? "ok" : ""}" ${id ? `id="${id}"` : ""}><div class="ci" aria-hidden="true">${icon}</div><div>
-    <h4><span>${esc(title)}</span>${state ? `<span class="spill" style="--c:${ok ? "var(--on_task)" : "var(--faint)"}">${esc(state)}</span>` : ""}</h4><p>${text}</p></div>
+  const tone = ok ? "ok" : /needs|blocked|reconnect/.test(state || "") ? "need" : /test/.test(state || "") ? "demo" : "";
+  return `<div class="conn ${tone}" ${id ? `id="${id}"` : ""}><div class="ci" aria-hidden="true">${ico(icon)}</div><div>
+    <h4><span>${esc(title)}</span>${state ? `<span class="st-pill ${tone}">${esc(state)}</span>` : ""}</h4><p>${text}</p></div>
     ${acts ? `<div class="cacts">${acts}</div>` : ""}<div class="cmsg">${msg || ""}</div></div>`;
 }
 function renderChecks(h) {
@@ -40,7 +53,7 @@ function renderChecks(h) {
     let acts = "";
     if (c.key === "island" && !c.ok) acts = `<span class="cd">Open <b>Alibi</b> from your Applications folder — the notch appears at the top of your screen.</span>`;
     const fix = !c.ok && c.fix && !/see Details/i.test(c.fix) ? ` ${esc(c.fix)}.` : "";
-    return connCard({icon: ICON[c.key] || "•", title: c.label, ok: c.ok, state: ({ok: "working", bad: "needs you", demo: "test mode", opt: "optional"})[cls], text: esc(c.detail) + fix, acts});
+    return connCard({icon: ICON[c.key] || "eye", title: c.label, ok: c.ok, state: ({ok: "working", bad: "needs you", demo: "test mode", opt: "optional"})[cls], text: esc(c.detail) + fix, acts});
   }).join("");
   const s = lastState || {};
   $("#modelsInfo").innerHTML = `Photo checker: <b>${esc(s.witness_label || s.witness || "—")}</b> · replies: <b>${esc(s.text_model || "—")}</b>${s.daemon?.up_since ? ` · running for ${esc(dur(s.now - s.daemon.up_since))}` : ""}`;
@@ -53,7 +66,7 @@ async function renderConnections() {
     const acts = (c.action ? `<button type="button" class="${c.connected ? "ghostbtn" : "primary"}" data-cpost="${esc(c.action.post)}">${esc(c.action.label)}</button>` : "")
       + (c.connected ? `<label class="toggle"><input type="checkbox" data-calset="log_unplanned" ${c.log_unplanned ? "checked" : ""}>Also add sessions I start without a plan</label><button type="button" class="linkbtn" data-cpost="/api/calendar/disconnect">Disconnect</button>` : "");
     const extra = c.connected && c.last_sync_text ? `Last synced ${esc(c.last_sync_text)}.` : "";
-    $("#connCal").innerHTML = connCard({id: "calCard", icon: "📅", title: "Apple Calendar", ok: c.connected, state: c.connected ? "connected" : c.permission === "denied" ? "blocked" : "off", text: esc(c.message || "") + (extra ? ` ${extra}` : ""), acts});
+    $("#connCal").innerHTML = connCard({id: "calCard", icon: "calendar", title: "Apple Calendar", ok: c.connected, state: c.connected ? "connected" : c.permission === "denied" ? "blocked" : "off", text: esc(c.message || "") + (extra ? ` ${extra}` : ""), acts});
   } else $("#connCal").innerHTML = `<div class="quiet">Calendar status isn't available.</div>`;
   if (integ.status === "fulfilled") {
     const {strava: st, health: he, phone: ph} = integ.value;
@@ -61,8 +74,8 @@ async function renderConnections() {
       : `<a class="primary" style="text-decoration:none" href="${st.state === "needs_reconnect" || st.state === "ready_to_authorize" ? "/strava/connect" : "/strava/setup"}">${esc(st.action || "Connect Strava")}</a>`;
     const hActs = `<a class="${he.connected ? "ghostbtn" : "primary"}" style="text-decoration:none" href="/phone" target="_blank" rel="noopener">${esc(he.action || "Set up iPhone")}</a>`
       + (ph.enabled ? `<button type="button" class="linkbtn" data-phone="disable">Turn off iPhone sync</button>` : "");
-    $("#connApps").innerHTML = connCard({id: "stravaCard", icon: "🏃", title: "Strava" + (st.athlete ? ` · ${st.athlete}` : ""), ok: st.connected, state: st.connected ? "connected" : st.state === "needs_reconnect" ? "reconnect" : "off", text: esc(st.text) + (st.last_error && !st.connected ? ` <span style="color:var(--accent-ink)">${esc(st.last_error)}</span>` : ""), acts: sActs})
-      + connCard({icon: "❤️", title: "Apple Health (iPhone)", ok: he.connected, state: he.connected ? "connected" : "off", text: esc(he.text) + (ph.enabled ? ` iPhone sync is on.` : ""), acts: hActs});
+    $("#connApps").innerHTML = connCard({id: "stravaCard", icon: "run", title: "Strava" + (st.athlete ? ` · ${st.athlete}` : ""), ok: st.connected, state: st.connected ? "connected" : st.state === "needs_reconnect" ? "reconnect" : "off", text: esc(st.text) + (st.last_error && !st.connected ? ` <span style="color:var(--warn-ink)">${esc(st.last_error)}</span>` : ""), acts: sActs})
+      + connCard({icon: "heart", title: "Apple Health (iPhone)", ok: he.connected, state: he.connected ? "connected" : "off", text: esc(he.text) + (ph.enabled ? ` iPhone sync is on.` : ""), acts: hActs});
   }
 }
 $("#paneHealth").addEventListener("click", async e => {
@@ -88,6 +101,41 @@ $("#paneHealth").addEventListener("change", async e => {
   const t = e.target.closest("[data-calset]"); if (!t) return;
   try { await postJSON("/api/calendar/settings", {[t.dataset.calset]: t.checked}); } catch {}
 });
+/* ---------- setup: look and feel (theme via window.AlibiTheme; Quiet lobster is read by pinch-wire.js) ---------- */
+(function prefs() {
+  const pane = $("#paneHealth"), anchor = $("#rerunOnb")?.closest(".dsec");
+  if (!pane || $("#prefs")) return;
+  const quietOn = () => { try { return localStorage.getItem("alibi.quiet") === "1"; } catch { return false; } };
+  const themeNow = () => window.AlibiTheme ? AlibiTheme.get() : (document.documentElement.dataset.theme || "system");
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `<div class="dsec"><h3>Look and feel</h3></div>
+    <div class="prefs" id="prefs">
+      <div class="pref"><div><b id="themeLbl">Theme</b><p>Dark is the stage. System follows your Mac.</p></div>
+        <div class="seg" role="radiogroup" aria-labelledby="themeLbl">${["system", "dark", "light"].map(m => `<button type="button" role="radio" data-theme-set="${m}" aria-checked="false">${m[0].toUpperCase() + m.slice(1)}</button>`).join("")}</div></div>
+      <div class="pref"><div><b id="quietLbl">Quiet lobster</b><p>Pinch keeps its poses and lines, but skips the waves and confetti.</p></div>
+        <label class="toggle"><input type="checkbox" role="switch" id="quietLobster" aria-labelledby="quietLbl"></label></div>
+    </div>`;
+  [...wrap.children].forEach(el => pane.insertBefore(el, anchor || null));
+  const sync = () => {
+    const t = themeNow();
+    pane.querySelectorAll("[data-theme-set]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.themeSet === t)));
+    $("#quietLobster").checked = quietOn();
+  };
+  pane.querySelector(".seg").addEventListener("click", e => {
+    const b = e.target.closest("[data-theme-set]"); if (!b) return;
+    if (window.AlibiTheme) AlibiTheme.set(b.dataset.themeSet);
+    else { const m = b.dataset.themeSet; if (m === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = m; }
+    sync();
+  });
+  pane.querySelector(".seg").addEventListener("keydown", e => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const bs = [...pane.querySelectorAll("[data-theme-set]")], i = bs.findIndex(b => b.getAttribute("aria-checked") === "true");
+    const n = bs[(i + (e.key === "ArrowRight" ? 1 : bs.length - 1)) % bs.length]; n.click(); n.focus(); e.preventDefault();
+  });
+  $("#quietLobster").addEventListener("change", e => { try { e.target.checked ? localStorage.setItem("alibi.quiet", "1") : localStorage.removeItem("alibi.quiet"); } catch {} });
+  document.addEventListener("alibi:theme", sync);
+  sync();
+})();
 $("#rerunOnb").addEventListener("click", async () => { closeLayer("drawer"); await postJSON("/api/onboarding/reset", {}).catch(() => {}); startOnboarding(true); });
 
 /* ---------- setup: habits (plain words) ---------- */
@@ -104,14 +152,14 @@ function habCard(m, i) {
   const label = h.label || h.display || v.label || (m.key ? hname(m.key) : "");
   const num = (f, lab, u, val, step = 1) => `<label><span>${lab}</span><span class="unit" data-u="${u}"><input class="fld" type="number" inputmode="decimal" min="0" step="${step}" data-f="${f}" value="${esc(val ?? "")}"></span></label>`;
   const check = MOD_TO_CHECK[h.modality] || h.check || "camera";
-  const top = `<div class="habtop"><span class="hemoji" aria-hidden="true">${esc(v.emoji || (src === "strava" ? "🏃" : src === "health" ? "❤️" : "⭐"))}</span>
+  const top = `<div class="habtop"><span class="hemoji" aria-hidden="true">${ico(src === "strava" ? "run" : src === "health" ? "heart" : check === "screen" ? "laptop" : "camera")}</span>
       <div class="hn"><input class="fld" data-f="label" placeholder="Name, e.g. Guitar" value="${esc(label)}" aria-label="Habit name"></div>
-      <button class="del" type="button" data-del="${i}" aria-label="Delete ${esc(label || "new habit")}">delete</button></div>`;
+      <button class="del" type="button" data-del="${i}" aria-label="Delete ${esc(label || "new habit")}">Delete</button></div>`;
   let body;
   if (src === "strava") body = `<div class="howtxt">Checked by Strava — runs count on their own.</div><div class="hgrid" style="margin-top:12px">${num("weekly_sessions", "Runs a week", "runs", h.weekly_sessions)}${num("min_km", "Counts from", "km", h.min_km, 0.5)}</div>`;
   else if (src === "health") { const M = METRIC[h.metric] || ["", "", 1]; body = `<div class="howtxt">Checked by Apple Health — your iPhone sends it each night.</div><div class="hgrid" style="margin-top:12px">${num("daily_target", "Daily goal", M[0], h.daily_target, M[2])}</div>`; }
   else body = `<span class="flabel">How should Alibi check it?</span><div class="seg3" role="group">${CHECKS.map(([c, t]) => `<button type="button" data-check="${c}" aria-pressed="${c === check}">${t}</button>`).join("")}</div>
-      <div class="howtxt">${esc(v.how && MOD_TO_CHECK[h.modality] === v.check ? v.how : ({camera: "A photo every minute while you're at it, checked on this Mac.", screen: "Alibi notes which app or website is in front — nothing else.", both: "A minute counts if the camera or your screen shows you at it."})[check])}</div>
+      <div class="howtxt">${esc(v.how && MOD_TO_CHECK[h.modality] === v.check ? photoFix(v.how) : ({camera: `A photo every minute while you're at it. ${photoWhere()}`.trim(), screen: "Alibi notes which app or website is in front — nothing else.", both: "A minute counts if the camera or your screen shows you at it."})[check])}</div>
       <div class="hgrid" style="margin-top:14px">${num("default_min", "Usual length", "min", h.default_min)}${num("weekly_target_min", "Weekly goal", "min", h.weekly_target_min, 5)}</div>`;
   const sched = h.schedule || [];
   const when = src === "health" ? "" : `<span class="flabel">When? <small>— Alibi reminds you, and it shows on your Today list</small></span>

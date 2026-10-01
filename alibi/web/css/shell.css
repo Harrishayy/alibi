@@ -1,101 +1,80 @@
-/* shell.css: header, status pill, setup entry button, page stack + idle/live/verdict ordering, toast, scrim, footer. Loaded in order base, shell, now, week, sessions, setup. */
-/* header */
-header{padding:48px 0 28px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;border-bottom:1px solid var(--rule)}
-.brand{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
-.wordmark{font:400 56px/0.9 var(--serif);letter-spacing:-.025em;margin:0}
-.wordmark i{color:var(--accent);font-style:normal}
-.tagline{font:italic 300 19px/1.2 var(--serif);color:var(--muted)}
-.status{display:flex;gap:18px;font:12px/1 var(--mono);color:var(--muted);white-space:nowrap}
-.status b{font-weight:500;color:var(--ink)}
-.pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--on_task);margin-right:6px;vertical-align:1px;box-shadow:0 0 0 0 color-mix(in srgb,var(--on_task) 50%,transparent);animation:pulse 2.4s infinite}
-.pulse.off{background:var(--faint);animation:none}
+/* shell.css: header (wordmark, state pill, island hint, Setup), hero strip (Pinch, honesty line, streak), section heads,
+   the stable page stack, toast, scrim, footer. One 880px column; the page shape never jumps between states,
+   only the Now card swaps (Surfaces.md "Web dashboard"). Loaded after base.css. */
 
-/* sections */
-section.block{padding:44px 0;border-bottom:1px solid var(--rule)}
-.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:26px}
-.sechead h2{margin:0;font:400 30px/1.1 var(--serif);letter-spacing:-.015em}
-.sechead h2 em{font-style:italic;color:var(--muted);font-weight:300}
+/* ---------- header (64px) ---------- */
+.hdr{min-height:64px;padding:var(--space-3) 0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-4)}
+.hdr-l,.hdr-r{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2) var(--space-4);min-width:0}
+.wordmark{font-size:13px;line-height:1;font-weight:800;letter-spacing:.13em;color:var(--ink)}
+.statepill{display:inline-flex;align-items:center;gap:var(--space-2);height:28px;max-width:min(420px,calc(100vw - 120px));padding:0 var(--space-3);border-radius:var(--radius-pill);
+  background:var(--surface-1);border:1px solid var(--hairline);font-size:13px;line-height:1;font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:color var(--dur-micro) ease}
+.statepill #conn{overflow:hidden;text-overflow:ellipsis}
+.statepill .pulse{position:relative;display:inline-flex;width:8px;height:8px;flex:none}
+.statepill .pulse .al-dot{position:relative}
+.statepill .ping{position:absolute;inset:0;border-radius:50%;background:var(--on-task);animation:pulse 2s var(--ease-out) infinite}
+.statepill.live{color:var(--ink)}
+.statepill.drift{color:var(--warn-ink)}
+.statepill.brk{color:var(--partial-ink)}
+.statepill.off{color:var(--ink-3)}
+.hdr-hint{display:inline-flex;align-items:center;gap:var(--space-2);font-size:13px;color:var(--ink-3);white-space:nowrap}
+.setupbtn{position:relative}
+.setupbtn .sdot{width:6px;height:6px;border-radius:50%;background:transparent;margin-left:-2px}
+.setupbtn .sdot.ok{background:transparent}
+.setupbtn .sdot.bad{background:var(--warn)}
+.setupbtn .n{color:var(--warn-ink);font-variant-numeric:tabular-nums}
+.setupbtn .n:empty{display:none}
 
-/* toast */
-.toast{position:fixed;right:24px;bottom:24px;width:min(400px,calc(100vw - 32px));z-index:50;background:var(--paper);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow),0 30px 60px -30px rgba(0,0,0,.35);padding:16px 18px 16px 20px;transform:translateY(12px);opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s cubic-bezier(.2,.7,.2,1)}
-.toast.show{opacity:1;transform:none;pointer-events:auto}
-.toast .k{font:500 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
-.toast .k button{border:0;background:none;color:var(--muted);font-size:16px;line-height:.6;padding:0}
-.toast .tx{margin-top:8px;font:400 18px/1.4 var(--serif);white-space:pre-wrap}
-.toast img{margin-top:12px;width:100%;border-radius:6px;border:1px solid var(--rule)}
-.toast.nudge{background:var(--warn-ink);border-color:var(--warn-ink);color:#fff}
-.toast.nudge .k,.toast.nudge .k button{color:rgba(255,255,255,.88)}
-.toast.verdict .k span{color:var(--c,var(--accent))}
+/* ---------- hero strip (≤120px): one number, one sentence ---------- */
+.herostrip{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-4) var(--space-6);padding:var(--space-6) 0 var(--space-12)}
+.pinch-hero{width:64px;height:64px;flex:none}
+.pinch-hero:empty{display:none}
+body.live .pinch-hero,body.verdict .pinch-hero{display:none}
+.hero-txt{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:var(--space-2)}
+.hero-txt h1{margin:0;font-variant-numeric:tabular-nums}
+.hero-sub{margin:0;font-size:13px;line-height:1.45;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.hero-sub:empty{display:none}
+.hero-streak{flex:none}
+.hero-streak:empty{display:none}
+.hero-streak .al-streak .al-icon{color:var(--accent-ink)}
 
-/* setup entry */
-.hright{display:flex;align-items:center;gap:22px}
-.setupbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule);background:transparent;border-radius:999px;padding:7px 13px 7px 11px;font:500 12px/1 var(--mono);color:var(--muted);letter-spacing:.02em;transition:border-color .15s,color .15s,background .15s}
-.setupbtn:hover{border-color:var(--ink);color:var(--ink)}
-.sdot{width:7px;height:7px;border-radius:50%;background:var(--faint)}
-.sdot.ok{background:var(--on_task)}
-.sdot.bad{background:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 22%,transparent)}
-.setupbtn .n{color:var(--accent-ink)}
+/* ---------- stack: stable DOM order, sections 48px apart ---------- */
+main.stack{display:flex;flex-direction:column;gap:var(--space-12)}
+section.block{display:flex;flex-direction:column;gap:var(--space-4);padding:0;border:0;min-width:0}
+.sechead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--space-2) var(--space-4);margin:0}
+.sechead h2{margin:0;font-size:22px;line-height:1.25;font-weight:600;letter-spacing:-.015em;text-wrap:balance}
+.sechead h2 em{font-style:normal;font-weight:400;color:var(--ink-2)}
+.secmeta{font-size:13px;line-height:1.45;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sacts{display:flex;align-items:center;gap:var(--space-4)}
 
-.scrim{position:fixed;inset:0;z-index:60;background:color-mix(in srgb,var(--ink) 22%,transparent);opacity:0;pointer-events:none;transition:opacity .3s ease}
-.scrim.show{opacity:1;pointer-events:auto}
-.sacts{display:flex;align-items:center;gap:16px}
-/* header state pill (replaces dev telemetry) */
-.statepill{display:inline-flex;align-items:center;gap:8px;max-width:420px;border:1px solid var(--rule);border-radius:999px;padding:7px 14px 7px 11px;font:500 13px/1.2 var(--sans);color:var(--ink);background:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.statepill .pulse{margin:0;flex:none}
-.statepill.drift{border-color:color-mix(in srgb,var(--phone) 45%,var(--rule));color:var(--phone-ink)}
-.statepill.drift .pulse{background:var(--phone);animation-name:pulsered}
-.statepill.idle .pulse{background:var(--faint);animation:none}
-.statepill.brk .pulse{background:var(--idle);animation:none}
-
-/* stack: order depends on state */
-main.stack{display:flex;flex-direction:column}
-main.stack>#weekHero{order:1}
-main.stack>.prompt{order:2}
-main.stack>#nowBlock{order:3}
-main.stack>#weekBlock{order:4}
-main.stack>#sessBlock{order:5}
-body.live main.stack>#nowBlock,body.verdict main.stack>#nowBlock{order:1}
-body.live main.stack>#weekHero,body.verdict main.stack>#weekHero{order:3}
-body.live main.stack>.prompt{order:2}
-body.live .prompt{padding:16px 0 18px}
-body.live form.say{border-bottom-width:1px;border-color:var(--rule)}
-body.live form.say input,body.live form.say .caret{font-size:19px}
-body.live .chips{margin-top:10px}
-body.live #nowBlock{padding-top:30px}
-
-/* toast actions */
-.tacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+/* ---------- toast: neutral surface-2, top-right, never a red slab ---------- */
+.toast{position:fixed;right:var(--space-6);top:var(--space-6);width:min(380px,calc(100vw - 32px));z-index:50;display:flex;flex-direction:column;gap:var(--space-3);
+  background:var(--surface-2);color:var(--ink);border-radius:var(--radius-md);box-shadow:var(--shadow-float);padding:var(--space-4);
+  transform:translateY(-12px);opacity:0;pointer-events:none;visibility:hidden;
+  transition:opacity 170ms var(--ease-out),transform 170ms var(--ease-out),visibility 0s linear 170ms}
+.toast.show{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition:opacity var(--dur-medium) var(--ease-out),transform var(--spring-bouncy-dur) var(--spring-bouncy),visibility 0s}
+.toast .k{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:20px;font-size:12px;line-height:1.3;font-weight:600;letter-spacing:.01em;color:var(--ink-2)}
+.toast .k .al-iconbtn{margin:-6px -6px -6px 0}
+.toast .tx{margin:0;font-size:16px;line-height:1.5;white-space:pre-wrap;text-wrap:pretty;font-variant-numeric:tabular-nums}
+.toast img{width:100%;border-radius:var(--radius-sm);border:1px solid var(--hairline-strong)}
+.toast.verdict .k span,.toast.correction .k span{color:var(--ink-2)}
+.tacts{display:flex;flex-wrap:wrap;gap:var(--space-2)}
 .tacts:empty{display:none}
-.tacts button{border:1px solid var(--rule);background:transparent;border-radius:999px;padding:7px 13px;font:500 13px/1 var(--sans);color:var(--ink)}
-.tacts button:first-child{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.toast.nudge .tacts button{border-color:rgba(255,255,255,.5);color:#fff}
-.toast.nudge .tacts button:first-child{background:#fff;color:var(--warn-ink);border-color:#fff}
-.tacts button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-body.idle main.stack>#nowBlock{display:none}
-main.stack>#todayBlock{order:0}
-body.live main.stack>#todayBlock,body.verdict main.stack>#todayBlock{order:4}
-body.live .chips{display:none}
+/* ---------- scrim, footer ---------- */
+.scrim{position:fixed;inset:0;z-index:60;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity var(--dur-medium) var(--ease-out)}
+.scrim.show{opacity:1;pointer-events:auto}
+.foot{margin-top:var(--space-18);padding:var(--space-6) 0 var(--space-12);border-top:1px solid var(--hairline);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-6);font-size:13px;line-height:1.45;color:var(--ink-3)}
+.foot-privacy{max-width:72ch;text-wrap:pretty}
+.foot-meta{display:inline-flex;gap:var(--space-4);font-variant-numeric:tabular-nums}
+.parking{position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;visibility:hidden}
 
-footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--muted);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
-
-@media (max-width:900px){
-  header{flex-direction:column;align-items:flex-start;padding-top:32px}
-  .wordmark{font-size:46px}
-  .status{flex-wrap:wrap;gap:8px 14px}
-  .sechead{flex-direction:column;gap:12px}
-  header{position:relative}
-  .hright{width:100%;justify-content:space-between;align-items:flex-start}
-  .setupbtn{flex:none}
-  .toast{right:16px;left:16px;bottom:16px;width:auto}
-  header{padding-top:24px;padding-bottom:18px}
-  .wordmark{font-size:40px}
-  .tagline{font-size:16px}
-  .statepill{max-width:calc(100vw - 150px)}
-  .hright{align-items:center}
-  body.live .prompt{padding:12px 0 14px}
-  body.live #nowBlock{padding-top:18px}
-  body.live .now-habit{font-size:40px}
-  body.live .clock{margin:16px 0}
-  body.live .tagline{display:none}
+@media (max-width:600px){
+  .hdr-hint{display:none}
+  .hdr{flex-wrap:nowrap}
+  .hdr-l{flex-wrap:nowrap;min-width:0;gap:var(--space-3)}
+  .statepill{min-width:0;flex:0 1 auto}
+  .setupbtn .lbl{display:none}
+  .herostrip{padding:var(--space-4) 0 var(--space-8);gap:var(--space-3) var(--space-4)}
+  .toast{right:var(--space-4);left:var(--space-4);top:var(--space-4);width:auto}
 }

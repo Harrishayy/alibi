@@ -13,7 +13,13 @@ check(r.status_code == 200 and "Is Alibi" in r.text and r.headers["content-type"
 check(c.get("/web/signals.html").status_code == 200, "page also served at /web/signals.html")
 for el in ("groups", "stats", "plot", "lanelabels", "sesstabs", "sessbody", "hgrid", "next-card", "meter"):
     check(f'id="{el}"' in html, f"page has #{el}")
-check("prefers-color-scheme:dark" in html and '[data-theme="dark"]' in html and "#76B900" in html, "NVIDIA tokens + dark mode")
+css = ""                                              # tokens may live inline or in the shared linked stylesheet
+if "/web/css/tokens.css" in html:
+    css = (ROOT / "alibi" / "web" / "css" / "tokens.css").read_text()
+    check(c.get("/web/css/tokens.css").status_code == 200, "linked tokens.css is served")
+both = html + css
+check(re.search(r"prefers-color-scheme:\s*dark", both) and '[data-theme="dark"]' in both and "#76B900" in both.upper(),
+      "NVIDIA tokens + dark mode")
 check(not re.search(r"<script[^>]+src=", html), "no external scripts")
 
 urls = sorted(set(re.findall(r'get\(`?"?(/api/[a-z\-/]+)', html)))

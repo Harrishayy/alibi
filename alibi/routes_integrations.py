@@ -17,7 +17,7 @@ POST /api/phone-sync/enable | /disable | /rotate
 GET  /api/phone-sync/qr.svg            QR of the phone setup link
 GET  /phone                            iPhone setup page (QR + exact Shortcut steps)
 """
-import html, secrets as _rand, time
+import html, pathlib, secrets as _rand, time
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from . import config, db, integrations as integ, strava
@@ -374,36 +374,96 @@ Nothing else on this Mac is reachable.</p>
 if(!r.ok){{const j=await r.json().catch(()=>({{}}));alert(j.detail||'Could not do that.');}}location.reload()}}</script>""")
 
 
-# --- tiny page kit (light + dark) ---------------------------------------------------------------------------------
+# --- tiny page kit on the design tokens (dark-first, all-sans) -----------------------------------------------------
 
-CSS = """:root{--bg:#f2f2f2;--card:#fff;--ink:#1a1a1a;--mut:#5e5e5e;--line:#d7d7d7;--acc:#4e7a00;--ok:#4e7a00;--err:#c4161c;--code:#ebebeb}
-@media (prefers-color-scheme:dark){:root{--bg:#000;--card:#1a1a1a;--ink:#eee;--mut:#a6a6a6;--line:#333;--acc:#76b900;--ok:#76b900;--err:#ff7a7e;--code:#262626}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
-main{max-width:640px;margin:0 auto;padding:28px 16px 64px}h1{font-size:28px;letter-spacing:-.02em;margin:8px 0 8px}
-h2{font-size:18px;margin:36px 0 8px}h3{font-size:16px;margin:0 0 4px}.lead{color:var(--mut);font-size:17px}
-.back{color:var(--mut);text-decoration:none;font-size:14px}.small{font-size:14px;color:var(--mut)}.err{color:var(--err)}
-.steps{list-style:none;counter-reset:s;padding:0;margin:20px 0}.steps>li{counter-increment:s;position:relative;padding:16px 16px 16px 56px;
-background:var(--card);border:1px solid var(--line);border-radius:14px;margin:10px 0}
-.steps>li:before{content:counter(s);position:absolute;left:16px;top:16px;width:26px;height:26px;border-radius:50%;background:var(--ink);
-color:var(--bg);font-weight:600;font-size:14px;display:grid;place-items:center}.steps>li.done:before{content:"✓";background:var(--ok)}
-.steps p{margin:6px 0}.opt{font-weight:400;font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:1px 7px;margin-left:4px}
-.kv{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}.kv td{padding:7px 0;border-top:1px solid var(--line);vertical-align:top}
-.kv td:first-child{color:var(--mut);width:38%;padding-right:10px}code{background:var(--code);padding:2px 6px;border-radius:6px;font-size:13px;word-break:break-all}
-.btn{display:inline-block;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;border-radius:10px;
-font:inherit;font-weight:600;text-decoration:none;cursor:pointer;margin-top:8px;min-height:44px}.btn.primary{background:#76b900;border-color:#76b900;color:#000}
-.btn.off{opacity:.45;pointer-events:none}.copy{margin-left:8px;border:1px solid var(--line);background:none;color:var(--acc);border-radius:7px;
-font-size:12px;padding:3px 8px;cursor:pointer}.link{border:0;background:none;color:var(--acc);font:inherit;font-size:14px;padding:0;cursor:pointer}
-label{display:block;font-size:14px;color:var(--mut);margin:10px 0}input{display:block;width:100%;margin-top:4px;padding:11px 12px;font:inherit;
-color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px}input:focus{outline:2px solid var(--acc);outline-offset:1px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;margin-top:12vh;text-align:center}
-.card .mark{font-size:40px;line-height:1}.card.ok .mark{color:var(--ok)}.card p{color:var(--mut)}
-.qr{background:#fff;border-radius:16px;padding:12px;width:max-content;max-width:100%;margin:16px 0}.qr svg{display:block;max-width:100%;height:auto}
-details{margin-top:18px}summary{cursor:pointer;color:var(--mut);font-size:14px}"""
+def _tokens() -> str:
+    """The dashboard's tokens.css, inlined: these pages are also served by the phone listener, which serves no files.
+    The Onest @import is dropped so the pages stay offline (SF Pro on Apple devices, system-ui elsewhere)."""
+    root = pathlib.Path(__file__).resolve().parent
+    for p in (root / "web" / "css" / "tokens.css", root.parent / "docs" / "design" / "tokens" / "tokens.css"):
+        try:
+            return "\n".join(l for l in p.read_text().splitlines() if not l.startswith("@import"))
+        except OSError:
+            continue
+    return ":root{--bg:#000;--surface-1:#1A1A1A;--surface-2:#262626;--ink:#F2F2F2;--ink-2:#A6A6A6;--ink-3:#8F8F8F}"
+
+
+CSS = _tokens() + """
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0}
+main{max-width:640px;margin:0 auto;padding:var(--space-8) clamp(16px,5vw,48px) var(--space-18)}
+h1{font:600 32px/1.15 var(--font-sans);letter-spacing:-.02em;margin:var(--space-4) 0 var(--space-3);text-wrap:balance}
+h2{font:600 22px/1.25 var(--font-sans);letter-spacing:-.015em;margin:var(--space-12) 0 var(--space-3)}
+h3{font:600 17px/28px var(--font-sans);letter-spacing:-.01em;margin:0}
+p{margin:var(--space-2) 0;text-wrap:pretty}b{font-weight:600}i{font-style:normal;color:var(--ink)}
+.lead{color:var(--ink-2);max-width:62ch;margin:0 0 var(--space-4)}
+.back{display:inline-flex;align-items:center;gap:var(--space-2);min-height:28px;color:var(--ink-2);text-decoration:none;
+font:400 13px/1.45 var(--font-sans);border-radius:var(--radius-xs);transition:color var(--dur-micro) var(--ease-out)}
+.back:hover{color:var(--ink)}
+.small{font:400 13px/1.45 var(--font-sans);color:var(--ink-2)}.err{color:var(--warn-ink)}
+.err:empty{display:none}
+.steps{list-style:none;counter-reset:s;padding:0;margin:var(--space-6) 0;display:grid;gap:var(--space-3)}
+.steps>li{counter-increment:s;position:relative;padding:var(--space-6) var(--space-6) var(--space-6) 68px;
+background:var(--surface-1);border:1px solid var(--hairline);border-radius:var(--radius-md)}
+.steps>li:before{content:counter(s);position:absolute;left:var(--space-6);top:var(--space-6);width:28px;height:28px;
+border-radius:var(--radius-pill);background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--hairline);color:var(--ink);
+font:600 13px/28px var(--font-rounded);text-align:center;font-variant-numeric:tabular-nums}
+.steps>li.done:before{content:"\\2713";background:var(--accent-wash);box-shadow:none;color:var(--accent-ink)}
+.steps>li.done h3{color:var(--ink-2)}
+.steps p{margin:var(--space-2) 0 0;color:var(--ink-2)}.steps p b{color:var(--ink)}
+.opt{display:inline-flex;align-items:center;height:20px;padding:0 var(--space-2);margin-left:var(--space-2);vertical-align:2px;
+font:600 12px/1 var(--font-sans);letter-spacing:.01em;color:var(--ink-2);border:1px solid var(--hairline-strong);border-radius:var(--radius-pill)}
+.kv{border-collapse:collapse;width:100%;margin:var(--space-4) 0;font:400 13px/1.45 var(--font-sans)}
+.kv td{padding:var(--space-3) 0;border-top:1px solid var(--hairline);vertical-align:top}
+.kv tr:last-child td{border-bottom:1px solid var(--hairline)}
+.kv td:first-child{color:var(--ink-2);width:38%;padding-right:var(--space-3)}
+code{font:500 12px/1.4 var(--font-mono);font-variant-numeric:tabular-nums;background:var(--surface-2);color:var(--ink);
+box-shadow:inset 0 0 0 1px var(--hairline);padding:2px 6px;border-radius:var(--radius-xs);word-break:break-all}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:44px;padding:0 var(--space-6);
+margin:var(--space-4) var(--space-2) 0 0;border:1px solid var(--hairline);border-radius:var(--radius-sm);background:var(--surface-2);
+color:var(--ink);font:500 16px/1 var(--font-sans);text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
+transition:transform var(--spring-micro-dur) var(--spring-micro),background-color var(--dur-micro) var(--ease-out)}
+.btn:hover{background:var(--surface-3)}.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);border-color:transparent;color:var(--on-accent);font-weight:600}
+.btn.primary:hover{background:var(--accent-hover)}.btn.primary:active{background:var(--accent-press)}
+.btn.off{opacity:.4;pointer-events:none}
+.copy{display:inline-flex;align-items:center;min-height:28px;margin-left:var(--space-2);padding:0 var(--space-3);vertical-align:middle;
+border:1px solid var(--hairline);background:var(--surface-2);color:var(--ink);border-radius:var(--radius-xs);
+font:500 13px/1 var(--font-sans);cursor:pointer;transition:transform var(--spring-micro-dur) var(--spring-micro)}
+.copy:active{transform:scale(.97)}
+.link{border:0;background:none;color:var(--accent-ink);font:500 13px/1.45 var(--font-sans);padding:0;min-height:28px;cursor:pointer;
+text-decoration:underline;text-decoration-color:var(--hairline-strong);text-underline-offset:3px}
+form{margin-top:var(--space-4)}
+label{display:block;font:600 12px/1.3 var(--font-sans);letter-spacing:.01em;color:var(--ink-2);margin:var(--space-4) 0 0}
+input{display:block;width:100%;height:44px;margin-top:var(--space-2);padding:0 var(--space-3);font:400 16px/1 var(--font-sans);
+color:var(--ink);background:var(--surface-2);border:1px solid var(--hairline-strong);border-radius:var(--radius-sm)}
+input::placeholder{color:var(--ink-3)}
+input:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.card{background:var(--surface-1);border:1px solid var(--hairline);border-radius:var(--radius-md);padding:var(--space-8);
+margin-top:12vh;text-align:center;animation:rise var(--dur-medium) var(--ease-out) both}
+.card .mark{display:grid;place-items:center;width:48px;height:48px;margin:0 auto var(--space-4);border-radius:var(--radius-pill);
+background:var(--surface-2);color:var(--ink-2);font:600 22px/1 var(--font-rounded)}
+.card.ok .mark{background:var(--accent-wash);color:var(--accent-ink)}
+.card h1{margin-top:0}.card .btn{margin:var(--space-4) var(--space-1) 0}.card p{color:var(--ink-2);max-width:48ch;margin-left:auto;margin-right:auto}
+.card details{text-align:left}
+.qr{background:#FFFFFF;border-radius:var(--radius-md);padding:var(--space-3);width:max-content;max-width:100%;margin:var(--space-6) 0}
+.qr svg{display:block;max-width:100%;height:auto}
+details{margin-top:var(--space-6);border-top:1px solid var(--hairline);padding-top:var(--space-3)}
+summary{cursor:pointer;color:var(--ink-2);font:500 13px/1.45 var(--font-sans);min-height:28px;display:flex;align-items:center}
+summary::-webkit-details-marker{display:none}summary::marker{content:""}
+summary:before{content:"\\203A";display:inline-block;width:16px;color:var(--ink-3);transition:transform var(--dur-small) var(--ease-out)}
+details[open] summary:before{transform:rotate(90deg)}
+ul.small{padding-left:var(--space-6)}
+.kv + details{border-top:0;margin-top:0;padding-top:var(--space-1)}
+@media (max-width:480px){.steps>li{padding:var(--space-4) var(--space-4) var(--space-4) 56px}
+.steps>li:before{left:var(--space-4);top:var(--space-4)}.card{padding:var(--space-6)}}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.card{animation:fade 150ms ease both}@keyframes fade{from{opacity:0}to{opacity:1}}}"""
 
 
 def _page(title: str, body: str) -> str:
     return (f"<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,"
-            f"initial-scale=1'><title>{html.escape(title)}</title><style>{CSS}</style></head><body>{body}</body></html>")
+            f"initial-scale=1'><meta name='color-scheme' content='dark light'><title>{html.escape(title)}</title>"
+            f"<style>{CSS}</style></head><body>{body}</body></html>")
 
 
 def _card(title, text, buttons, ok=False, detail="", extra="") -> str:

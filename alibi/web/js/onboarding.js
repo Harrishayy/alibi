@@ -1,37 +1,54 @@
 /* onboarding.js: first-run welcome wizard. Classic script; load order core, now, week, sessions, setup, onboarding, boot. */
 /* ---------- first-run welcome ---------- */
-let onb = null;
+let onb = null, onbPinch = null;
+const TPL_ICON = {camera: "camera", screen: "laptop", both: "eye", strava: "run", health: "heart"};
+const tplIcon = t => ico(TPL_ICON[t.check] || "sparkle", 20);
+// The welcome Pinch (160px, plays "hello"); one Pinch per view, so it only lives on the welcome step.
+function onbPinchMount() {
+  if (onbPinch) { try { onbPinch.destroy(); } catch {} onbPinch = null; }
+  const host = $("#onbIn").querySelector(".onb-pinch");
+  if (!host || !window.AlibiPinch) return;
+  try {
+    onbPinch = AlibiPinch.mount(host, {size: 160, mood: "idle", theme: "auto"});
+    let quiet = false; try { quiet = localStorage.getItem("alibi.quiet") === "1"; } catch {}
+    if (!quiet) setTimeout(() => onbPinch && onbPinch.play("hello").catch?.(() => {}), 320);
+  } catch { onbPinch = null; }
+}
+// Finishing: the dashboard's own Pinch says "connected" once the overlay has gone.
+function onbFinishPinch() {
+  setTimeout(() => { try { window.AlibiPinchWire?.ensure?.(); window.AlibiPinchWire?.play?.("connected"); } catch {} }, 420);
+}
 const ONB_STEPS = ["welcome","habits","schedule","connect","practice"];
 async function startOnboarding(force) {
-  let st, tp;
-  try { [st, tp] = await Promise.all([api("/api/onboarding"), api("/api/onboarding/templates")]); } catch { return; }
+  let st, tp, ws;
+  try { [st, tp, ws] = await Promise.all([api("/api/onboarding"), api("/api/onboarding/templates"), lastState || api("/api/state").catch(() => null)]); } catch { return; }
   if (!force && !st.needs_onboarding) return;
   const replay = !!(st.replay || (force && (st.habits || []).length));        // tour again: add to habits, never wipe them
   const haveH = {}; (st.habits || []).forEach(h => { const id = h.template || h.key; if (id !== "custom" && !haveH[id]) haveH[id] = h; });
   const have = new Set(Object.keys(haveH));
-  onb = {st, tpl: tp.templates || [], step: ONB_STEPS.includes(st.step) && st.step !== "connect" && st.step !== "practice" ? st.step : "welcome", picked: new Set(replay ? (tp.templates || []).filter(t => have.has(t.id)).map(t => t.id) : st.picked || []), names: {}, sched: {}, cal: true, busy: false, replay};
+  onb = {st, tpl: tp.templates || [], step: ONB_STEPS.includes(st.step) && st.step !== "connect" && st.step !== "practice" ? st.step : "welcome", picked: new Set(replay ? (tp.templates || []).filter(t => have.has(t.id)).map(t => t.id) : st.picked || []), names: {}, sched: {}, cal: true, busy: false, replay, ws: ws ? {witness: ws.witness, witness_label: ws.witness_label} : null};
   if (replay) for (const id of onb.picked) if ((haveH[id]?.schedule || []).length) onb.sched[id] = haveH[id].schedule.map(x => ({...x}));   // keep their plan
   if (onb.step !== "welcome" && !onb.picked.size) onb.step = "welcome";
   if (onb.step === "schedule") onb.step = "habits";
   $("#onb").classList.add("show"); $("#onb").setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden";
   renderOnb();
 }
-function closeOnb() { $("#onb").classList.remove("show"); $("#onb").setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; onb = null; }
+function closeOnb() { if (onbPinch) { try { onbPinch.destroy(); } catch {} onbPinch = null; } $("#onb").classList.remove("show"); $("#onb").setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; onb = null; }
 const tplById = id => onb.tpl.find(t => t.id === id) || {};
 function renderOnb() {
   const i = ONB_STEPS.indexOf(onb.step), meta = (onb.st.steps || []).find(x => x.id === onb.step) || {};
-  const dots = `<div class="onbdots" aria-label="Step ${i + 1} of 5">${ONB_STEPS.map((_, j) => `<i class="${j <= i ? "on" : ""}"></i>`).join("")}</div>`;
+  const dots = `<div class="onbdots" aria-label="Step ${i + 1} of 5">${ONB_STEPS.map((_, j) => `<i class="${j === i ? "cur" : j < i ? "on" : ""}"></i>`).join("")}</div>`;
   let body = "";
-  if (onb.step === "welcome") body = `<h1>Welcome to Alibi</h1>
+  if (onb.step === "welcome") body = `<div class="onb-pinch" aria-hidden="true"></div><h1>Welcome to Alibi</h1>
     <p class="lead">You say what you're going to do. Alibi quietly checks that it really happened — and keeps an honest streak.</p>
-    <div class="how3"><div><span class="e">📷</span><b>Desk habits</b><span>Drawing, reading, an instrument: a photo every minute while you're at it. Photos stay on this Mac.</span></div>
-    <div><span class="e">💻</span><b>Computer habits</b><span>Coding or studying: Alibi notes which app or website is in front. Nothing is recorded.</span></div>
-    <div><span class="e">🏃</span><b>Runs, steps &amp; sleep</b><span>Strava and Apple Health count on their own — nothing to start.</span></div></div>
-    <p class="lead" style="font-size:17px">This takes about two minutes. Everything can be changed later.</p>`;
+    <div class="how3"><div><span class="e" aria-hidden="true">${ico("camera")}</span><b>Desk habits</b><span>Drawing, reading, an instrument: a photo every minute while you're at it.${onb.ws && photoWhere(onb.ws) ? " " + photoWhere(onb.ws) : ""}</span></div>
+    <div><span class="e" aria-hidden="true">${ico("laptop")}</span><b>Computer habits</b><span>Coding or studying: Alibi notes which app or website is in front. Nothing is recorded.</span></div>
+    <div><span class="e" aria-hidden="true">${ico("run")}</span><b>Runs, steps &amp; sleep</b><span>Strava and Apple Health count on their own — nothing to start.</span></div></div>
+    <p class="lead onb-note">This takes about two minutes. Everything can be changed later.</p>`;
   else if (onb.step === "habits") body = `<h1>${esc(meta.title || "What do you want to do more of?")}</h1><p class="lead">${esc(onb.replay ? "Your current habits are ticked and stay as they are, history included. Tick anything you'd like to add." : meta.text || "Pick a few.")}</p>
     <div class="tgrid">${onb.tpl.map(t => { const on = onb.picked.has(t.id); return `<div class="tcard" role="button" tabindex="0" data-tpl="${esc(t.id)}" aria-pressed="${on}">
-      <span class="e" aria-hidden="true">${esc(t.emoji)}</span><b>${esc(t.title)}</b><span class="tk" aria-hidden="true">${on ? "✓" : ""}</span>
-      <span>${esc(t.blurb)}</span><span class="via">Checked by: ${esc(t.check_text)}</span>
+      <span class="e" aria-hidden="true">${tplIcon(t)}</span><b>${esc(t.title)}</b><span class="tk" aria-hidden="true">${ico("check", 16)}</span>
+      <span>${esc(photoFix(t.blurb, onb.ws))}</span><span class="via">Checked by: ${esc(photoFix(t.check_text, onb.ws))}</span>
       ${on && t.ask_name ? `<input class="fld" data-name="${esc(t.id)}" placeholder="${esc(t.ask_name)}" value="${esc(onb.names[t.id] || "")}" aria-label="${esc(t.ask_name)}">` : ""}</div>`; }).join("")}</div>`;
   else if (onb.step === "schedule") {
     const ps = [...onb.picked].map(tplById);
@@ -39,8 +56,8 @@ function renderOnb() {
     ${ps.map(t => {
       const sc = onb.sched[t.id] ?? (t.schedule || []).map(x => ({...x}));
       const nm = onb.names[t.id] || t.label || t.title;
-      if (t.check === "health") return `<div class="pickrow"><h3><span>${esc(t.emoji)}</span>${esc(t.title)}</h3><div class="howtxt">Checked automatically each night from your iPhone — no set time needed.</div></div>`;
-      return `<div class="pickrow" data-tid="${esc(t.id)}"><h3><span>${esc(t.emoji)}</span>${esc(nm)}</h3><div class="howtxt">${esc(t.how)}</div>
+      if (t.check === "health") return `<div class="pickrow"><h3><span class="e" aria-hidden="true">${tplIcon(t)}</span>${esc(t.title)}</h3><div class="howtxt">Checked automatically each night from your iPhone — no set time needed.</div></div>`;
+      return `<div class="pickrow" data-tid="${esc(t.id)}"><h3><span class="e" aria-hidden="true">${tplIcon(t)}</span>${esc(nm)}</h3><div class="howtxt">${esc(photoFix(t.how, onb.ws))}</div>
         <div class="scheds">${schedRows(sc, "s")}</div>${sc.length ? "" : `<div class="howtxt">No set time — you'll start it whenever you like.</div>`}
         <button type="button" class="ghostbtn" data-oadd="${esc(t.id)}" style="margin-top:8px">+ Add a time</button></div>`;
     }).join("")}
@@ -51,16 +68,17 @@ function renderOnb() {
     const hasSched = Object.values(onb.sched).some(sc => sc.length) || [...onb.picked].some(id => !onb.sched[id] && (tplById(id).schedule || []).length && tplById(id).check !== "health");
     if (onb.cal && hasSched) list.unshift({id: "calendar", title: "Apple Calendar", why: "So your plan shows up on your Mac, iPhone and Watch. Your Mac will ask for permission — choose “Allow Full Access” so Alibi can update events with how each session went.", button: "Add to Apple Calendar", skip: "Not now"});
     if ([...onb.picked].some(id => tplById(id).check === "health") && !list.some(x => x.id === "health")) list.push({id: "health", title: "Apple Health on your iPhone", why: "A small Shortcut on your iPhone sends steps, sleep and mindful minutes to Alibi each night. Setup takes about 5 minutes and opens in a new tab.", button: "Set up iPhone", skip: "Later"});
-    const ICO = {camera: "📷", screen: "💻", strava: "🏃", health: "❤️", calendar: "📅"};
+    const ICO = {camera: "camera", screen: "laptop", strava: "run", health: "heart", calendar: "calendar"};
     body = `<h1>${esc(meta.title || "Let Alibi check")}</h1><p class="lead">${esc(meta.text || "Each one is optional.")}</p>
-      ${list.length ? list.map(c => connCard({id: "oc-" + c.id, icon: ICO[c.id] || "•", title: c.title, ok: false, state: "", text: esc(c.why), acts: `<button type="button" class="primary" data-oconn="${esc(c.id)}">${esc(c.button)}</button>`})).join("") : `<p class="lead">Nothing to connect for these habits. 🎉</p>`}`;
+      ${list.length ? list.map(c => connCard({id: "oc-" + c.id, icon: ICO[c.id] || "eye", title: c.title, ok: false, state: "", text: esc(photoFix(c.why, onb.ws)), acts: `<button type="button" class="primary" data-oconn="${esc(c.id)}">${esc(c.button)}</button>`})).join("") : `<p class="lead">Nothing to connect for these habits.</p>`}`;
   } else if (onb.step === "practice") {
     body = `<h1>${esc(meta.title || "Try it once")}</h1><p class="lead">${esc(meta.text || "")}</p>
-      <div class="how3"><div><span class="e">1</span><b>Start</b><span>A 2-minute session begins. The notch at the top of your screen shows the timer.</span></div>
-      <div><span class="e">2</span><b>Do a bit, then drift</b><span>Do the habit for a minute, then pick up your phone. Alibi will nudge you.</span></div>
-      <div><span class="e">3</span><b>See how it went</b><span>You get a score with the photos Alibi took. Tap any it got wrong to fix it.</span></div></div>`;
+      <div class="how3"><div><span class="e" data-num>1</span><b>Start</b><span>A 2-minute session begins. The notch at the top of your screen shows the timer.</span></div>
+      <div><span class="e" data-num>2</span><b>Do a bit, then drift</b><span>Do the habit for a minute, then pick up your phone. Alibi will nudge you.</span></div>
+      <div><span class="e" data-num>3</span><b>See how it went</b><span>You get a score with the photos Alibi took. Tap any it got wrong to fix it.</span></div></div>`;
   }
-  $("#onbIn").innerHTML = `<div class="onbtop"><span class="wordmark" style="font-size:30px">Alibi<i>.</i></span>${dots}</div>${body}`;
+  $("#onbIn").innerHTML = `<div class="onbtop"><span class="wordmark" aria-label="Alibi">ALIBI</span>${dots}</div><div class="onbstep">${body}</div>`;
+  onbPinchMount();
   $("#onbBack").style.visibility = i ? "visible" : "hidden";
   $("#onbNext").textContent = onb.step === "welcome" ? (meta.button || "Get started") : onb.step === "practice" ? (meta.button || "Start 2-minute practice") : onb.step === "connect" ? "Next" : "Next";
   $("#onbSkip").textContent = onb.step === "practice" ? (meta.skip || "Skip — go to my dashboard") : onb.step === "connect" ? "Skip for now" : "";
@@ -107,7 +125,7 @@ $("#onbBack").addEventListener("click", () => { if (!onb) return; if (onb.step =
 $("#onbSkip").addEventListener("click", async () => {
   if (!onb) return;
   if (onb.step === "connect") { onb.step = "practice"; renderOnb(); return; }
-  await postJSON("/api/onboarding/done", {}).catch(() => {}); closeOnb(); refreshAll();
+  await postJSON("/api/onboarding/done", {}).catch(() => {}); closeOnb(); await refreshAll(); onbFinishPinch();
 });
 $("#onbNext").addEventListener("click", async () => {
   if (!onb || onb.busy) return;
@@ -131,7 +149,7 @@ $("#onbNext").addEventListener("click", async () => {
     onb.busy = true; btn.disabled = true; onbMsg("Starting…");
     let j = null; try { j = await postJSON("/api/onboarding/practice", {}); } catch {}
     await postJSON("/api/onboarding/done", {}).catch(() => {});
-    closeOnb(); await refreshAll();
+    closeOnb(); await refreshAll(); onbFinishPinch();
     if (j?.reply) $("#convo").innerHTML = `<div class="line alibi"><span class="who">Alibi</span><span class="txt">${esc(j.reply)}</span></div>`;
     return;
   }
