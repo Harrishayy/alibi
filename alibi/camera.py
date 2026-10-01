@@ -19,6 +19,14 @@ def _open():
     return _cap
 
 
+def release() -> None:
+    """Let go of the webcam (light off) whenever no physical/hybrid session needs it."""
+    global _cap
+    if _cap is not None:
+        _cap.release()
+        _cap = None
+
+
 def grab(session) -> np.ndarray | None:
     cap = _open()
     if config.CAMERA_SOURCE:

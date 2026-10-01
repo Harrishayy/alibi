@@ -18,6 +18,8 @@ def tick(con) -> None:
     s = db.active_session(con)
     if s and s["modality"] in ("physical", "hybrid"):
         camera.maybe_sample(con, s, force=time.time() >= s["ends_at"])   # always one last look at the bell
+    if not s or s["modality"] == "digital" or time.time() >= s["ends_at"]:
+        camera.release()
     if s and time.time() < s["ends_at"]:
         nudges.check(con, s)
     if s and time.time() >= s["ends_at"]:
