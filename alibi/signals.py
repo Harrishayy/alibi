@@ -714,6 +714,12 @@ def egress(now: float | None = None) -> dict:
         rows.append({"what": "Search questions", "where": "search_provider", "active": up, "host": None,
                      "why": "Search questions go to the search provider."})
 
+    from . import strava                # late: strava imports report, which reads signals
+    if strava.has_app() or strava.refresh_token():
+        rows.append({"what": "Strava runs", "where": "strava", "active": bool(strava.status().get("connected")),
+                     "host": "www.strava.com",
+                     "why": "Alibi sends your Strava token to strava.com and reads your runs back."})
+
     rows.append({"what": "Window titles, app names, coordinates, notification text", "where": "mac", "active": True,
                  "host": None, "why": "Never sent. They are read on this Mac and stay here."})
 
@@ -721,7 +727,7 @@ def egress(now: float | None = None) -> dict:
     where = summ["where"] if summ["active"] else "mac"
     text = {"mac": "Summaries stay on this Mac.", "tailnet:spark": "Summaries go to your Spark over Tailscale.",
             "nvidia_build": "Summaries go to NVIDIA Build."}[where]
-    leaves = any(r["active"] and r["where"] in ("nvidia_build", "search_provider") for r in rows)
+    leaves = any(r["active"] and r["where"] in ("nvidia_build", "search_provider", "strava") for r in rows)
     return {"now": now, "rows": rows,
             "summary": {"where": where, "active": summ["active"] and where != "mac", "text": text,
                         "leaves_tailnet": leaves}}

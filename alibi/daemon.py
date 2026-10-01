@@ -34,6 +34,10 @@ def tick(con) -> None:
     if _ticks % 12 == 1:
         _reel_sweep(con)
     _nightly(con, now)
+    try:                                                 # a digest bug must never starve the plugins below
+        _digest(con, now)
+    except Exception as e:
+        print(f"[alibi] digest error: {e!r}", flush=True)
     hooks.tick(con, now)
 
 
@@ -165,17 +169,59 @@ def _reel_sweep(con) -> None:
 
 # --- nightly report + day recap (R8: once per day even across restarts; F10) --------------------------------------
 
-def _nightly(con, now: float) -> None:
+_night_busy: set = set()
+
+
+def _nightly(con, now: float, late: bool = False) -> None:
+    """At REPORT_HOUR (or, `late`, on waking after it the same day): the night digest IS the nightly report. One
+    notification (kind="report", same once-a-day dedupe as before), its text from digest.text, with the replan
+    proposal attached. With a model ready the replan loop can take up to 45 s, so it runs off the tick thread."""
     d = dt.datetime.fromtimestamp(now)
-    if d.hour != config.REPORT_HOUR:
+    if d.hour != config.REPORT_HOUR and not (late and d.hour > config.REPORT_HOUR):
         return
     today = f"{d:%Y-%m-%d}"
-    if any(a.get("kind") == "report" and dt.datetime.fromtimestamp(a["ts"]).strftime("%Y-%m-%d") == today
-           for a in recent_alerts(300)):
+    if today in _night_busy or any(a.get("kind") == "report" and
+                                   dt.datetime.fromtimestamp(a["ts"]).strftime("%Y-%m-%d") == today
+                                   for a in recent_alerts(300)):
         return
-    from . import report
-    notify(report.build_json(now, prose=True)["summary"], kind="report", day=today)
-    _recap_later(today, now)
+    _night_busy.add(today)
+
+    def go():
+        from . import digest
+        try:
+            slot = f"{today}-night"
+            row = digest.get(slot) or digest.run("night", now, send=False, slot=slot)
+            notify(row["text"], kind="report", day=today, slot=row["slot"], proposal=row.get("proposal"),
+                   via=row.get("via"), actions=digest.actions(row))
+        except Exception as e:                       # the report must still go out: fall back to the old summary
+            print(f"[alibi] night digest failed: {e!r}", flush=True)
+            from . import report
+            notify(report.build_json(now)["summary"], kind="report", day=today)
+        finally:
+            _night_busy.discard(today)
+        _recap_later(today, now)
+    if config.TEXT_READY:
+        t = threading.Thread(target=go, daemon=True, name="night-digest")
+        t.start()
+        _reel_threads.append(t)
+    else:
+        go()
+
+
+def _digest(con, now: float) -> None:
+    """Morning brief and checkpoints (NEXT_PHASE F5). Each slot runs once (slot_id in digests.jsonl); after a sleep
+    only the most recent missed slot of today runs. The night slot belongs to _nightly (one notification)."""
+    if not config.DIGESTS:
+        return
+    from . import digest
+    s = digest.due(now)
+    if not s:
+        return
+    kind, slot, _ = s
+    if kind == "night":
+        _nightly(con, now, late=True)
+    elif not digest.has(slot):
+        digest.run(kind, now, slot=slot, con=con)
 
 
 def recap(con, day: str, now: float | None = None) -> str | None:

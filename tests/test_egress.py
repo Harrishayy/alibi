@@ -1,5 +1,6 @@
 """F6 DoD: the egress view says exactly where data goes (AGENTS.md rule 5), flips when the Spark stops answering,
-hourly() gives 24 ints per key, the git row waits instead of nagging, and no secret ever appears in the JSON."""
+hourly() gives 24 ints per key, the git row waits instead of nagging, Strava gets a row only when set up, and no secret
+ever appears in the JSON."""
 import json, os, subprocess, sys, time
 from harness import check, ROOT
 from fastapi.testclient import TestClient
@@ -82,6 +83,29 @@ check(signals.egress(now=time.time() + 62)["summary"]["where"] == "tailnet:spark
 
 blob = c.get("/api/signals/egress").text
 check(SECRET not in blob and "nemo-PLANTED" not in blob and "PLANTED" not in blob, "no planted secret appears in the JSON")
+
+# --- Strava: a row only when it's set up; the token never appears ------------------------------------------------------
+from alibi import secrets as store
+for k in ("STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET", "STRAVA_REFRESH_TOKEN"):
+    os.environ.pop(k, None)                                     # .env may hold real ones; this test plants its own
+check("Strava runs" not in rows(get()), "Strava not set up: no Strava row")
+up["v"] = False                                                 # the Spark is down: only Strava can leave the tailnet
+signals._probe_cache.clear()
+os.environ.pop("NEMOCLAW_URL", None)
+check(get()["summary"]["leaves_tailnet"] is False, "nothing active leaves the tailnet before Strava")
+STRAVA_TOKEN = "strava-PLANTED-refresh-987"
+store.update(strava_client_id="PLANTEDcid42", strava_client_secret="strava-PLANTED-secret-654", strava_refresh_token=STRAVA_TOKEN)
+d = get()
+sv = rows(d).get("Strava runs")
+check(sv == {"what": "Strava runs", "where": "strava", "active": True, "host": "www.strava.com",
+             "why": "Alibi sends your Strava token to strava.com and reads your runs back."},
+      f"Strava connected: row present, active ({sv})")
+check(d["summary"]["leaves_tailnet"] is True, "an active Strava row counts as leaving the tailnet")
+blob = c.get("/api/signals/egress").text
+check(STRAVA_TOKEN not in blob and "PLANTED" not in blob, "no Strava token or secret in the JSON")
+store.update(strava_refresh_token=None)
+sv = rows(get()).get("Strava runs")
+check(sv and sv["active"] is False, "Strava app saved but not authorized: row stays, inactive")
 
 # --- hourly -----------------------------------------------------------------------------------------------------------
 con = db.connect()

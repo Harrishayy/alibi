@@ -11,7 +11,8 @@ A plugin that raises never takes the daemon down.
 import importlib, traceback
 
 PLUGINS = ("calendar_sync", "integrations", "onboarding", "mac_signals", "signals")
-ROUTES = ("routes_calendar", "routes_integrations", "routes_onboarding", "routes_signals", "routes_plan")
+ROUTES = ("routes_calendar", "routes_integrations", "routes_onboarding", "routes_signals", "routes_plan",
+          "routes_digest")
 
 
 def _mods(names):

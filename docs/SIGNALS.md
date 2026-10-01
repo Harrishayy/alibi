@@ -66,7 +66,7 @@ it never raises a score from phone/mac signals alone.
 
 Derived at call time from config plus a reachability probe of each self-hosted server (`GET {base}/models`, 2 s
 timeout, any HTTP answer = up, no token sent, cached 60 s). `{now, rows: [{what, where, active, host, why}], summary:
-{where, active, text, leaves_tailnet}}`. `where` is `mac` | `tailnet:spark` | `nvidia_build` | `search_provider`;
+{where, active, text, leaves_tailnet}}`. `where` is `mac` | `tailnet:spark` | `nvidia_build` | `search_provider` | `strava`;
 `host` is a bare host name or null, never a URL, key or value.
 
 | what | where | why (exact) |
@@ -75,9 +75,11 @@ timeout, any HTTP answer = up, no token sent, cached 60 s). `{now, rows: [{what,
 | Habit names and minutes | `mac` with no model; else by `LLM_BASE_URL` host | "Habit names and minutes go to your Spark over Tailscale." |
 | Ask questions | by `NEMOCLAW_URL` host (row only when set) | "Your questions go to NemoClaw on your Spark over Tailscale." |
 | Search questions | `search_provider` (row only when `NEMOCLAW_URL` is set) | "Search questions go to the search provider." |
+| Strava runs | `strava`, host `www.strava.com` (row only when a Strava app or token is set up; `active` = connected) | "Alibi sends your Strava token to strava.com and reads your runs back." |
 | Window titles, app names, coordinates, notification text | `mac` | "Never sent." |
 
 A row whose server isn't answering stays (UI dims it) with `active: false`; the summary then reads `mac`.
+`leaves_tailnet` is true when any active row goes to `nvidia_build`, `search_provider` or `strava`.
 
 `GET /api/signals/hourly?keys=phone.pickup,mac.git&hours=24` → `{hours, series: {key: [int × hours]}}`: rows per
 hour, oldest first, current hour last (a reporting read, like `live()`).

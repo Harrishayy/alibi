@@ -85,7 +85,7 @@ def load() -> dict:
             st = json.loads(_path().read_text())
         except (FileNotFoundError, ValueError):
             st = {}
-    for k in ("events", "outcomes", "prompted", "snoozed", "skipped", "moved"):
+    for k in ("events", "outcomes", "prompted", "snoozed", "skipped", "moved", "once"):
         st.setdefault(k, {})
     st.setdefault("enabled", False)
     st.setdefault("log_unplanned", True)
@@ -165,6 +165,23 @@ def blocks(day0: dt.date, days: int = 1, cfg: dict | None = None, st: dict | Non
                             "at": f"{mh[0]:02d}:{mh[1]:02d}", "planned_at": planned_at, "min": mins,
                             "start": start, "end": start + mins * 60, "moved": k in st["moved"],
                             "check": kind_of(h), "calendar": h.get("calendar", True) is not False})
+    # one-off blocks (add_once: an accepted night replan), keyed like scheduled ones so move/skip/prompt/sync just work
+    for k, o in st["once"].items():
+        h = (cfg.get("habits") or {}).get(o.get("habit"))
+        hm = _hm(o.get("at"))
+        try:
+            d = dt.date.fromisoformat(str(o.get("date")))
+        except ValueError:
+            continue
+        if not isinstance(h, dict) or not hm or not (day0 <= d < day0 + dt.timedelta(days=days)):
+            continue
+        mh = _hm(st["moved"].get(k, o["at"])) or hm
+        mins = int(o.get("min") or h.get("default_min") or 25)
+        start = dt.datetime.combine(d, dt.time(*mh)).timestamp()
+        out.append({"key": k, "habit": o["habit"], "label": config.display_name(o["habit"], cfg), "date": d.isoformat(),
+                    "at": f"{mh[0]:02d}:{mh[1]:02d}", "planned_at": f"{hm[0]:02d}:{hm[1]:02d}", "min": mins,
+                    "start": start, "end": start + mins * 60, "moved": k in st["moved"], "once": True,
+                    "check": kind_of(h), "calendar": h.get("calendar", True) is not False})
     # two entries producing the same key (duplicate schedule rows) collapse to one
     seen, uniq = set(), []
     for b in sorted(out, key=lambda b: (b["start"], b["habit"])):
@@ -626,6 +643,42 @@ def move(key: str, at: str) -> dict:
     if load().get("enabled"):
         _bg(sync, True)
     return _find(key)
+
+
+def add_once(habit: str, date: str, at: str, minutes: int) -> dict:
+    """One extra planned block on one day (an accepted night replan; `move` only works within a day). Stored next to
+    the moved/skipped overrides; the calendar event follows on the next sync when Calendar is connected."""
+    cfg = config.habits()
+    if habit not in (cfg.get("habits") or {}):
+        raise LookupError(f"No habit called {habit}.")
+    hm = _hm(at)
+    if not hm:
+        raise ValueError("Use a time like 07:30.")
+    d = dt.date.fromisoformat(str(date)[:10])
+    at = f"{hm[0]:02d}:{hm[1]:02d}"
+    key = f"{habit}@{d.isoformat()}T{at}"
+    m = max(1, int(minutes))
+    update(lambda st: (st["once"].__setitem__(key, {"habit": habit, "date": d.isoformat(), "at": at, "min": m,
+                                                     "added_at": time.time()}),
+                       st["skipped"].pop(key, None)))
+    if load().get("enabled"):
+        _bg(sync, True)
+    return _find(key)
+
+
+def remove_once(key: str) -> dict | None:
+    """Undo add_once: forget the one-off block and its overrides. The calendar event goes on the next sync (it deletes
+    future /#plan events nothing wants), best effort like move/unskip. -> the removed entry, or None if there wasn't one."""
+    gone = {}
+
+    def go(st):
+        gone["o"] = st["once"].pop(key, None)
+        for k in ("moved", "prompted", "snoozed", "skipped"):
+            st[k].pop(key, None)
+    update(go)
+    if gone["o"] is not None and load().get("enabled"):
+        _bg(sync, True)
+    return gone["o"]
 
 
 def _find(key: str) -> dict | None:

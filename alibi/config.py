@@ -136,3 +136,9 @@ def habit_created_ts(h: dict) -> float | None:
         return float(v) if isinstance(v, (int, float)) else _dt.datetime.fromisoformat(str(v)).timestamp()
     except ValueError:
         return None
+
+# --- F5 digests: 07:30 brief, checkpoints, the night review (alibi/digest.py) ------------------------------------------
+MORNING_AT = os.getenv("MORNING_AT", "07:30")                     # HH:MM, minute-aware
+CHECK_HOURS = tuple(int(h) for h in os.getenv("CHECK_HOURS", "12,16,20").split(",") if h.strip())
+DIGESTS = os.getenv("DIGESTS", "1") == "1"                        # morning + checkpoint slots (the night one always runs)
+DIGEST_GAP_FROM, DIGEST_GAP_TO = os.getenv("DIGEST_DAY", "07:00-22:00").split("-")   # where replans may land

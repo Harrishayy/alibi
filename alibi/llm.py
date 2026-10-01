@@ -77,3 +77,18 @@ def vision_json(system: str, prompt: str, jpeg: bytes, max_tokens: int = 200) ->
         **_extra(config.VLM_BASE_URL),
     )
     return _parse_json(r.choices[0].message.content)
+
+
+def chat_tools(messages: list, tools: list, timeout: float, base_url: str | None = None, model: str | None = None):
+    """One tool-calling turn (OpenAI `tools=`), for the night replan loop. Returns the assistant message. The caller
+    owns the budget: `timeout` is what is left of it. Raises on anything; the caller falls back to rules."""
+    base = base_url or config.LLM_BASE_URL
+    r = _client(base, max(0.5, timeout)).chat.completions.create(
+        model=model or config.LLM_MODEL, temperature=0, max_tokens=400, messages=messages, tools=tools,
+        tool_choice="auto", **_extra(base))
+    return r.choices[0].message
+
+
+def via_for(base_url: str | None = None) -> str:
+    """Exact provenance (NEXT_PHASE §6): a self-hosted server (the Spark) is llm:spark, NVIDIA Build is llm:build."""
+    return "llm:build" if _is_nvidia(base_url or config.LLM_BASE_URL) else "llm:spark"
