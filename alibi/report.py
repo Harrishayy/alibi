@@ -70,7 +70,9 @@ def _today(con, key: str, h: dict, now: float) -> tuple[int, int]:
     return planned, round(seen)
 
 
-def build_json(now: float | None = None) -> dict:
+def build_json(now: float | None = None, prose: bool = False) -> dict:
+    """prose=False (every request path): the summary is the rules text, no model call, so a slow or dead LLM can
+    never stall a page, the phone mirror or the CLI. Only the nightly report (daemon tick) asks for prose=True."""
     now = now or time.time()
     t0 = week_start(now)
     frac = min(1.0, (now - t0) / (7 * 86400))       # how far through the week we are
@@ -121,7 +123,7 @@ def build_json(now: float | None = None) -> dict:
                       "honesty": round(tv / td, 3) if td else None}}
     out["headline"] = _headline(out)
     out["table"] = table_text(out)
-    out["summary"] = summarise(out)
+    out["summary"] = summarise(out) if prose else _dry(out)
     out["text"] = out["table"] + "\n\n" + out["summary"]
     return out
 

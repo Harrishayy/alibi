@@ -174,7 +174,7 @@ def _nightly(con, now: float) -> None:
            for a in recent_alerts(300)):
         return
     from . import report
-    notify(report.build_json(now)["summary"], kind="report", day=today)
+    notify(report.build_json(now, prose=True)["summary"], kind="report", day=today)
     _recap_later(today, now)
 
 

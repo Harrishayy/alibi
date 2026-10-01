@@ -36,9 +36,31 @@ INGEST_SECRET = os.getenv("INGEST_SECRET", "")
 ALERTS_PATH = DATA_DIR / "alerts.jsonl"
 
 # No key yet? Everything still runs: text falls back to rules, vision to Apple's on-device Vision framework.
-TEXT_READY = bool(NVIDIA_API_KEY.startswith("nvapi-") and len(NVIDIA_API_KEY) > 12 and LLM_MODEL and "<" not in LLM_MODEL)
-VISION_BACKEND = os.getenv("VISION_BACKEND") or (
-    "nvidia" if TEXT_READY and VLM_MODEL and "<" not in VLM_MODEL else "apple")   # nvidia | apple | mock
+def _local_llm(base_url: str) -> bool:
+    """A self-hosted OpenAI-compatible server (e.g. the Spark over Tailscale) needs no nvapi key."""
+    from urllib.parse import urlparse
+    host = (urlparse(base_url).hostname or "").lower()
+    return bool(host) and host != "nvidia.com" and not host.endswith(".nvidia.com")
+
+
+_MODEL_OK = bool(LLM_MODEL and "<" not in LLM_MODEL)
+TEXT_READY = _MODEL_OK and (
+    (NVIDIA_API_KEY.startswith("nvapi-") and len(NVIDIA_API_KEY) > 12) or _local_llm(LLM_BASE_URL))
+# Vision stays on the Mac unless asked otherwise: a text model being ready must never silently ship camera frames
+# to Build or the Spark (AGENTS.md rule 5). Set VISION_BACKEND=nvidia explicitly to use VLM_MODEL.
+VISION_BACKEND = os.getenv("VISION_BACKEND") or "apple"   # nvidia | apple | mock
+
+
+def photo_where() -> str:
+    """Where camera photos go, worded exactly (AGENTS.md rule 5): only apple/mock may say they stay on the Mac."""
+    if VISION_BACKEND != "nvidia":
+        return "Photos stay on this Mac."
+    return ("Photos go to your own model server to be checked." if _local_llm(VLM_BASE_URL)
+            else "Photos go to NVIDIA's model to be checked.")
+
+
+def photo_text(text: str) -> str:
+    return text.replace("Photos stay on this Mac.", photo_where())
 
 # --- added: limits, pace reminders, drift consequences --------------------------------------------------------
 MAX_SESSION_MIN = int(os.getenv("MAX_SESSION_MIN", "240"))       # longer claims must be said in chunks

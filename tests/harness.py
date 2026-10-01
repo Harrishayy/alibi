@@ -7,6 +7,11 @@ os.environ["ALIBI_DATA_DIR"] = tempfile.mkdtemp(prefix="alibi-test-")
 import shutil
 os.environ["ALIBI_HABITS"] = shutil.copy(ROOT / "habits.yaml", os.environ["ALIBI_DATA_DIR"] + "/habits.yaml")
 os.environ.setdefault("NOTIFY", "print")
+# Never the network, whatever .env says (load_dotenv doesn't override what's already set). Port 9 = discard: refused.
+os.environ["NVIDIA_API_KEY"] = ""
+os.environ["LLM_MODEL"] = ""
+os.environ["LLM_BASE_URL"] = "http://127.0.0.1:9/v1"
+os.environ["VLM_MODEL"] = ""
 os.environ.setdefault("VISION_BACKEND", "mock")
 os.environ.setdefault("ALIBI_FOCUS_SHORTCUTS", "0")  # never run the user's real Shortcuts from a test
 os.environ.setdefault("MAC_SIGNALS", "0")          # the real Mac (idle, notifications, git) only where a test asks

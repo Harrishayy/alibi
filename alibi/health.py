@@ -238,6 +238,12 @@ def _common(key: str, h: dict, out: dict, prev: dict | None) -> dict:
     for f in EXTRA_KEYS:
         if isinstance(h.get(f), (str, int, float)) and str(h[f]).strip():
             out[f] = h[f] if not isinstance(h[f], str) else h[f][:40]
+    repos = h.get("repos") or h.get("repo") or []
+    repos = [repos] if isinstance(repos, str) else repos
+    if isinstance(repos, list) and any(str(r).strip() for r in repos):
+        out["repos"] = [str(r).strip()[:300] for r in repos if str(r).strip()][:10]   # git evidence (mac_signals)
+    if h.get("phone_shield") is not None:
+        out["phone_shield"] = _bool(h["phone_shield"], True)
     if "created_at" not in out:
         out["created_at"] = (prev or {}).get("created_at") or (
             None if prev is not None else time.strftime("%Y-%m-%d %H:%M"))

@@ -20,7 +20,8 @@ def parse(text: str) -> dict:
     if config.TEXT_READY:
         try:
             menu = "\n".join(f"- {k}: {', '.join(map(str, h.get('aliases', [])))}" for k, h in habits.items())
-            out = llm.chat_json(SYSTEM, f"Habits:\n{menu}\n\nSentence: {text}\nDefault minutes if none given: 0.")
+            out = llm.chat_json(SYSTEM, f"Habits:\n{menu}\n\nSentence: {text}\nDefault minutes if none given: 0.",
+                                interactive=True)
             if out.get("habit") in habits:
                 key = out["habit"]
                 return {"habit": key, "minutes": said or int(habits[key].get("default_min", 25)),

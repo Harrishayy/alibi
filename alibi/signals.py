@@ -91,7 +91,10 @@ def screentime_deltas(con, t0: float, t1: float) -> list[dict]:
         step = _f(p.get("threshold_min"), 5.0) or 5.0
         key = (dt.date.fromtimestamp(ts).isoformat(), app)
         prev = last.get(key)
-        delta = min(mins, step) if prev is None else (mins - prev if mins >= prev else mins)
+        # Cumulative within a day (the key includes the date), so a smaller number is a duplicate or out-of-order
+        # replay, never new use. The first row of a day may be a backfill burst: count at most one step.
+        delta = min(mins, step) if prev is None else max(0.0, mins - prev)
+        mins = mins if prev is None else max(mins, prev)
         last[key] = mins
         if ts >= t0 and delta > 0:
             out.append({"id": eid, "ts": ts, "app": app, "category": p.get("category"), "minutes": mins,
@@ -486,8 +489,20 @@ STATUS = [  # (key, label, fix when missing)
     ("mac.media", "What's playing", "Start Alibi's Mac sensor (bin/alibi-sense)."),
     ("mac.focus", "Mac Focus", "Start Alibi's Mac sensor (bin/alibi-sense)."),
     ("mac.switches", "App-switch rate", "Comes from the window log; it fills in once a session runs."),
-    ("mac.git", "Git commits", "Add your repos to Alibi's Mac sensor (ALIBI_GIT_REPOS) so commits count as work."),
+    ("mac.git", "Git commits", "Add a repos: list to a coding habit in habits.yaml (e.g. repos: [~/Documents/c++]) so commits count as work."),
 ]
+
+
+def _no_watch() -> bool:
+    """User said they have no Apple Watch (integrations state apple_watch=false, or ALIBI_APPLE_WATCH=0)."""
+    import os
+    if os.getenv("ALIBI_APPLE_WATCH") == "0":
+        return True
+    try:
+        from . import integrations
+        return integrations.state().get("apple_watch") is False
+    except Exception:
+        return False
 
 
 def status(con, now: float | None = None) -> dict:
@@ -515,6 +530,11 @@ def status(con, now: float | None = None) -> dict:
         x = lv.get(key)
         ms = str(mac_st.get(kind) or "") if src == "mac" and isinstance(mac_st, dict) else ""
         sense = str(mac_st.get("sense") or "") if isinstance(mac_st, dict) else ""
+        if key == "health.heart" and x is None and _no_watch():
+            out.append({"key": key, "source": src, "kind": kind, "label": label, "state": "not_applicable",
+                        "flowing": False, "last_seen": None, "age_s": None,
+                        "text": "No Apple Watch, so live heart rate isn't used.", "fix": None})
+            continue
         if x is None and key == "phone.app":                   # any phone row proves the app is talking to us
             x = max((v for k, v in lv.items() if k.startswith(("phone.", "health."))), key=lambda v: v["ts"], default=None)
         if "full disk access" in ms.lower() and not (x and x["fresh"]):
@@ -557,9 +577,9 @@ def status(con, now: float | None = None) -> dict:
                        "Focus named Alibi.")
     out.append(row)
     flowing = [x["key"] for x in out if x["flowing"]]
-    missing = [x for x in out if not x["flowing"] and x["state"] != "waiting"]
+    missing = [x for x in out if not x["flowing"] and x["state"] not in ("waiting", "not_applicable")]
     return {"now": now, "sources": out, "flowing": flowing, "missing": [x["key"] for x in missing],
-            "text": (f"{len(flowing)} of {len(out)} signals flowing." +
+            "text": (f"{len(flowing)} of {len([x for x in out if x['state'] != 'not_applicable'])} signals flowing." +
                      (f" Next: {missing[0]['label']} — {missing[0]['fix']}" if missing else ""))}
 
 

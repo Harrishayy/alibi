@@ -169,6 +169,8 @@ git("init", "-q")
 (repo / "a.cpp").write_text("int main(){}\n")
 git("add", "."); git("commit", "-qm", "old", when=clock.t - 86400 * 3)
 cfg = config.habits()
+for h in cfg["habits"].values():                   # the user's real habits.yaml may list real repos; isolate the test
+    h.pop("repos", None); h.pop("repo", None)
 cfg["repos"] = [str(repo), str(TMP / "not-a-repo")]
 yaml.safe_dump(cfg, open(config.HABITS_PATH, "w"), sort_keys=False)
 check([p.name for p in ms.repos(con, clock.t)] == ["learncpp"], "repos from habits.yaml (non-repos skipped)")

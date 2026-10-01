@@ -61,7 +61,9 @@ def state(con=None) -> dict:
     checks_needed = sorted({config.habit_check(h) for h in habits.values()})
     return {"onboarded": onboarded, "needs_onboarding": not onboarded, "onboarded_at": info.get("at"),
             "step": progress.get("step", "welcome"), "picked": progress.get("picked", []), "replay": replay,
-            "steps": STEPS, "connect": [c for c in CONNECT if set(c["needed_for"]) & set(checks_needed)] or CONNECT[:2],
+            "steps": [dict(x, text=config.photo_text(x["text"])) for x in STEPS],
+            "connect": [dict(c, why=config.photo_text(c["why"])) for c in
+                        ([c for c in CONNECT if set(c["needed_for"]) & set(checks_needed)] or CONNECT[:2])],
             "templates": templates.public(), "habits": view_habits()}
 
 
@@ -144,10 +146,10 @@ def how_text(h: dict) -> str:
                 "sleep_h": "Your iPhone sends last night's sleep from Apple Health.",
                 "mindful_min": "Your iPhone sends your Mindful Minutes from Apple Health.",
                 "workout_min": "Your iPhone sends your workout minutes from Apple Health."}.get(h.get("metric"),
-                                                                                                 templates.CHECK_HOW[c])
+                                                                                                 config.photo_text(templates.CHECK_HOW[c]))
     if c == "strava":
         return f"Alibi reads your runs from Strava every hour. Runs of {h.get('min_km', 5):g} km or more count."
-    return templates.CHECK_HOW[c]
+    return config.photo_text(templates.CHECK_HOW[c])
 
 
 def view_habits() -> list[dict]:
@@ -231,7 +233,7 @@ def suggest(text: str) -> dict:
     m = minutes or 25
     chk = guess_check(name)
     draft = {"name": name, "key": templates.slug(name), "minutes": m, "check": chk,
-             "check_text": config.CHECK_TEXT[chk], "how": templates.CHECK_HOW[chk], "schedule": [], "calendar": True,
+             "check_text": config.CHECK_TEXT[chk], "how": config.photo_text(templates.CHECK_HOW[chk]), "schedule": [], "calendar": True,
              "start_after_add": True}
     return {"known": None, "draft": draft, "card_label": f"Add “{name}” · {m} min",
             "reply": f"{name} isn't one of your habits yet. Add it?"}
