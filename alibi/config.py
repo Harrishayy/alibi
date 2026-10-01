@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
 
-DATA_DIR = ROOT / "data"
+DATA_DIR = pathlib.Path(os.getenv("ALIBI_DATA_DIR", ROOT / "data"))   # tests point this at a temp dir
 FRAMES_DIR = DATA_DIR / "frames"
 EVIDENCE_DIR = DATA_DIR / "evidence"
 
@@ -26,3 +26,15 @@ def habits() -> dict:
     """Re-read every call so you can edit habits.yaml without restarting the daemon."""
     with open(ROOT / "habits.yaml") as f:
         return yaml.safe_load(f)
+
+CAMERA_SOURCE = os.getenv("CAMERA_SOURCE", "")          # "" = live webcam, or a path to a video file
+LAPTOP_EVERY_S = int(os.getenv("LAPTOP_EVERY_S", "30"))
+API_HOST = os.getenv("API_HOST", "127.0.0.1")
+API_PORT = int(os.getenv("API_PORT", "8765"))
+INGEST_SECRET = os.getenv("INGEST_SECRET", "")
+ALERTS_PATH = DATA_DIR / "alerts.jsonl"
+
+# No key yet? Everything still runs: text falls back to rules, vision to Apple's on-device Vision framework.
+TEXT_READY = bool(NVIDIA_API_KEY.startswith("nvapi-") and len(NVIDIA_API_KEY) > 12 and LLM_MODEL and "<" not in LLM_MODEL)
+VISION_BACKEND = os.getenv("VISION_BACKEND") or (
+    "nvidia" if TEXT_READY and VLM_MODEL and "<" not in VLM_MODEL else "apple")   # nvidia | apple | mock
