@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
 
 HABITS_PATH = pathlib.Path(os.getenv("ALIBI_HABITS", ROOT / "habits.yaml"))
-DATA_DIR = pathlib.Path(os.getenv("ALIBI_DATA_DIR", ROOT / "data"))   # tests point this at a temp dir
+DATA_DIR = pathlib.Path(os.getenv("ALIBI_DATA_DIR", ROOT / "data")).resolve()   # tests point this at a temp dir
 FRAMES_DIR = DATA_DIR / "frames"
 EVIDENCE_DIR = DATA_DIR / "evidence"
 
