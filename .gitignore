@@ -13,3 +13,8 @@ tests/fixtures/
 Alibi.app/
 data/logs/
 data/alibi.pid
+# secrets and per-machine state (Strava tokens, phone key, calendar event map)
+data/secrets.json
+data/.secrets.*.tmp
+data/*.json
+data/strava_state.json

@@ -1,7 +1,8 @@
-"""P6 (stretch) — POST /ingest from iOS Shortcuts (Focus on/off, nightly Health samples).
+"""Phone / Apple Health uploads now live in alibi.integrations (the opt-in phone listener, Setup → iPhone).
 
-  uvicorn alibi.webhook:app --host 0.0.0.0 --port 8787   # run on the Spark, reach it over Tailscale
+The daemon runs it for you once you turn on iPhone sync. Standalone (e.g. on another box behind Tailscale):
+  uvicorn alibi.webhook:app --host 0.0.0.0 --port 8766
 """
-# TODO (P6):
-#   FastAPI app; POST /ingest {source: phone|health, kind, payload} -> db.add_event(...)
-#   check a shared secret header so only your phone can post
+from .integrations import phone_app
+
+app = phone_app()

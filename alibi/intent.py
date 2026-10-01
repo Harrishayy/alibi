@@ -73,12 +73,20 @@ def said_minutes(text: str) -> int | None:
     return m
 
 
+HEALTH_WORDS = {"steps": ["walk", "walking", "steps", "a walk"], "sleep_h": ["sleep", "sleeping", "bed", "bedtime"],
+                "mindful_min": ["meditate", "meditating", "meditation", "mindful", "mindfulness"],
+                "workout_min": ["workout", "work out", "gym", "exercise", "training"]}
+
+
 def match_habit(text: str, include_sources: bool = False) -> str | None:
     t = text.lower()
     for key, h in config.habits()["habits"].items():
         if not h.get("modality") and not include_sources:
             continue
-        extra = ["run", "running", "jog", "jogging"] if h.get("source") == "strava" else []
+        extra = ["run", "running", "jog", "jogging"] if h.get("source") == "strava" else \
+            HEALTH_WORDS.get(h.get("metric"), []) if h.get("source") == "health" else []
+        if h.get("display") or h.get("label"):
+            extra = [*extra, str(h.get("display") or h.get("label")).lower()]
         if re.search(rf"\b{re.escape(key)}\b", t) or any(re.search(rf"(?<!\w){re.escape(str(a).lower())}(?!\w)", t)
                                                           for a in [*h.get("aliases", []), *extra]):
             return key

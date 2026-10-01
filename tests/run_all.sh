@@ -3,6 +3,6 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 source ../.venv/bin/activate
-for t in test_p0 test_p1 test_p2 test_p3 test_p4 test_p5 test_p6 test_p9 test_p10_p11 test_robust test_features test_backend_fixes; do
+for t in test_p0 test_p1 test_p2 test_p3 test_p4 test_p5 test_p6 test_p9 test_p10_p11 test_robust test_features test_backend_fixes test_integrations test_calendar test_habits_onboarding test_nodata test_journey; do
   printf "%-8s " "$t"; python $t.py > /tmp/alibi_$t.log 2>&1 && tail -1 /tmp/alibi_$t.log || { echo FAILED; cat /tmp/alibi_$t.log; exit 1; }
 done

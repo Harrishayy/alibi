@@ -160,7 +160,7 @@ section.block{padding:44px 0;border-bottom:1px solid var(--rule)}
 .when b{display:block;color:var(--ink);font-weight:500}
 .sess .h{font:400 20px/1.1 var(--serif);text-transform:none}
 .sess .h small{display:block;font:12px/1 var(--mono);color:var(--muted);margin-top:5px;text-transform:none}
-.pill{justify-self:start;display:inline-flex;align-items:center;gap:6px;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border-radius:999px;color:color-mix(in srgb,var(--c) 62%,var(--ink));background:color-mix(in srgb,var(--c) 13%,transparent)}
+.pill{white-space:nowrap;justify-self:start;display:inline-flex;align-items:center;gap:6px;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border-radius:999px;color:color-mix(in srgb,var(--c) 62%,var(--ink));background:color-mix(in srgb,var(--c) 13%,transparent)}
 .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c)}
 .tl{display:flex;height:10px;border-radius:3px;overflow:hidden;gap:1px;background:var(--rule-2)}
 .tl i{flex:1;background:var(--c)}
@@ -434,7 +434,7 @@ body.live #nowBlock{padding-top:30px}
 .daygrp+.daygrp{margin-top:14px}
 .sess{scroll-margin-top:52px}
 .daygrp .sess:last-child{border-bottom:0}
-.sess>button{grid-template-columns:64px 150px 96px minmax(0,1fr) 120px 18px!important}
+.sess>button{grid-template-columns:64px 150px 124px minmax(0,1fr) 120px 18px!important}
 .sess>button:hover{background:var(--paper)!important}
 .tlw{display:grid;gap:5px}
 .tlw .tl{width:var(--w,100%)}
@@ -466,6 +466,166 @@ body.live #nowBlock{padding-top:30px}
 .copybtn:hover{color:var(--ink);border-color:var(--ink)}
 .chk.demo .mk{background:transparent;border:1.5px solid var(--idle);color:var(--idle-ink)}
 .chk.demo .st{color:var(--idle-ink)}
+
+/* ===== round 2: today strip, week grid, onboarding, connections, data ===== */
+.hidden{display:none!important}
+body.idle main.stack>#nowBlock{display:none}
+main.stack>#todayBlock{order:0}
+body.live main.stack>#todayBlock,body.verdict main.stack>#todayBlock{order:4}
+body.live .chips{display:none}
+.today{padding:34px 0 30px;border-bottom:1px solid var(--rule)}
+.todayhead{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.todayhead h2{margin:0;font:400 34px/1.05 var(--serif);letter-spacing:-.02em}
+.todayhead h2 em{font-style:italic;font-weight:300;color:var(--muted)}
+.nextup{font:400 19px/1.35 var(--serif);color:var(--muted);margin:-6px 0 14px}
+.nextup b{color:var(--ink);font-weight:400}
+.blocks{display:grid;gap:8px}
+.blk{display:grid;grid-template-columns:62px 34px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--rule);border-radius:12px;background:var(--paper);transition:border-color .2s,opacity .2s,transform .2s}
+.blk .tm{font:500 15px/1 var(--mono);font-variant-numeric:tabular-nums}
+.blk .tm small{display:block;font:11px/1.2 var(--mono);color:var(--muted);margin-top:4px}
+.blk .em{font-size:22px;line-height:1;text-align:center}
+.blk .bt{min-width:0}
+.blk .bt b{display:block;font:400 20px/1.15 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk .bt span{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+.blk .ba{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.blk .ba .primary{padding:9px 15px}
+.blk .ba .ghostbtn{padding:8px 12px}
+.blk.st-now,.blk.st-live{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash)}
+.blk.st-done .em,.blk.st-partial .em,.blk.st-slacked .em,.blk.st-missed .em,.blk.st-skipped .em{filter:grayscale(.6)}
+.blk.st-skipped,.blk.st-missed{opacity:.62}
+.blk.st-skipped .bt b{text-decoration:line-through;text-decoration-color:var(--faint)}
+.spill{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 var(--sans);padding:6px 10px;border-radius:999px;white-space:nowrap;color:color-mix(in srgb,var(--c,var(--faint)) 70%,var(--ink));background:color-mix(in srgb,var(--c,var(--faint)) 14%,transparent)}
+.movebox{display:inline-flex;gap:6px;align-items:center}
+.movebox input{width:96px;padding:6px 8px;font:13px/1 var(--mono)}
+.todayempty{border:1px dashed var(--rule);border-radius:12px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.todayempty p{margin:0;font:400 18px/1.4 var(--serif);color:var(--muted);max-width:640px}
+.todayempty p b{color:var(--ink);font-weight:400}
+.hlines{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.hline{font:13px/1.2 var(--sans);padding:7px 12px;border-radius:999px;border:1px solid var(--rule);color:var(--muted);background:transparent}
+.hline b{font-weight:500;color:var(--ink)}
+.hline.met{border-color:color-mix(in srgb,var(--on_task) 45%,var(--rule));color:var(--on_task-ink)}
+.addcard{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;padding-left:78px}
+/* week grid */
+.wgrid{display:grid;grid-template-columns:minmax(140px,240px) repeat(7,minmax(34px,76px)) minmax(80px,1fr);gap:6px 6px;align-items:center;margin:4px 0 30px}
+.wgrid .gh{font:500 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:6px}
+.wgrid .gh.today{color:var(--accent-ink)}
+.wgrid .gh:first-child{text-align:left}
+.wgrid .gn{font:400 18px/1.2 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wgrid .gn small{display:block;font:12px/1.3 var(--sans);color:var(--muted)}
+.cell{height:34px;border-radius:9px;display:grid;place-items:center;font:600 14px/1 var(--sans);background:var(--rule-2);color:var(--faint);position:relative}
+.cell.done{background:var(--on_task);color:#fff}
+.cell.partial{background:color-mix(in srgb,var(--idle) 30%,transparent);color:var(--idle-ink);box-shadow:inset 0 0 0 1.5px var(--idle)}
+.cell.slacked,.cell.missed{background:color-mix(in srgb,var(--phone) 12%,transparent);color:var(--phone-ink)}
+.cell.planned{background:transparent;box-shadow:inset 0 0 0 1.5px var(--rule);color:var(--muted);font:500 11px/1 var(--mono)}
+.cell.skipped{background:transparent;color:var(--faint)}
+.cell.future{background:transparent}
+.cell.todaycol{outline:1.5px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
+.gs{text-align:right;font:12px/1.3 var(--sans);color:var(--muted)}
+.gs b{display:block;font:400 22px/1 var(--serif);color:var(--ink)}
+.gs b.hot{color:var(--accent-ink)}
+.gkey{display:flex;gap:16px;flex-wrap:wrap;font:12px/1 var(--sans);color:var(--muted);margin:-14px 0 26px}
+.gkey i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-3px;margin-right:6px}
+details.more{margin-top:8px}
+details.more>summary{cursor:pointer;list-style:none;font:500 13px/1 var(--sans);color:var(--muted);padding:10px 0;display:inline-flex;gap:8px;align-items:center}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary::before{content:"›";display:inline-block;transition:transform .2s;font-size:16px}
+details.more[open]>summary::before{transform:rotate(90deg)}
+details.more>summary:hover{color:var(--ink)}
+/* verdict meter */
+.vmeter{position:relative;height:12px;border-radius:6px;background:var(--rule-2);margin:18px 0 26px;max-width:460px}
+.vmeter .f{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--c);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+.vmeter .tk{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.55}
+.vmeter .tk span{position:absolute;top:20px;left:50%;transform:translateX(-50%);font:12px/1 var(--sans);color:var(--muted);white-space:nowrap}
+.streakline{display:inline-flex;margin-left:12px;font:500 14px/1 var(--sans);color:var(--on_task-ink);vertical-align:2px}
+.celebrate{animation:cele 1.1s cubic-bezier(.2,.7,.2,1) both}
+@keyframes cele{0%{transform:scale(.7);opacity:0}50%{transform:scale(1.08);opacity:1}100%{transform:none}}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:fall 1.6s cubic-bezier(.3,.6,.4,1) forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.2}}
+/* connections */
+.conn{border:1px solid var(--rule);border-radius:12px;background:var(--bg);padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:34px minmax(0,1fr);gap:4px 12px}
+.conn .ci{font-size:22px;line-height:1.2}
+.conn h4{margin:0;font:500 15px/1.3 var(--sans);display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.conn h4 .spill{font-size:11px;padding:4px 8px}
+.conn p{margin:2px 0 0;font-size:14px;color:var(--muted);line-height:1.45}
+.conn .cacts{grid-column:2;display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.conn .cacts .primary{padding:9px 15px}
+.conn .cmsg{grid-column:2;font-size:13px;color:var(--muted);margin-top:6px}
+.conn .cmsg:empty{display:none}
+.conn.ok{border-color:color-mix(in srgb,var(--on_task) 35%,var(--rule))}
+.toggle{display:inline-flex;align-items:center;gap:10px;font:14px/1.3 var(--sans);color:var(--ink);cursor:pointer}
+.toggle input{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:11px;background:var(--rule);position:relative;flex:none;cursor:pointer;transition:background .2s}
+.toggle input::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .2s}
+.toggle input:checked{background:var(--on_task)}
+.toggle input:checked::after{transform:translateX(16px)}
+.toggle input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.techd{margin-top:14px;font:12px/1.6 var(--mono);color:var(--muted)}
+.techd summary{cursor:pointer;font:500 13px/1 var(--sans);color:var(--muted);padding:6px 0}
+.techd pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0;font:12px/1.55 var(--mono)}
+/* habit editor (plain) */
+.seg3{display:flex;flex-wrap:wrap;gap:6px}
+.seg3 button{border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:8px 12px;font:13px/1 var(--sans);color:var(--ink)}
+.seg3 button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.flabel{display:block;font:500 13px/1.2 var(--sans);color:var(--ink);margin:14px 0 7px}
+.flabel small{font-weight:400;color:var(--muted)}
+.days{display:inline-flex;gap:4px;flex-wrap:wrap}
+.days button{width:34px;height:34px;border-radius:50%;border:1px solid var(--rule);background:var(--paper);font:500 12px/1 var(--sans);color:var(--muted);padding:0}
+.days button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.srow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px dashed var(--rule-2)}
+.srow:first-of-type{border-top:0}
+.srow input[type=time]{width:auto;font:14px/1 var(--mono);padding:7px 8px}
+.srow .minbox{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.srow .minbox input{width:70px;font:14px/1 var(--mono);padding:7px 8px}
+.howtxt{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.45}
+.hab .hn input.fld{font:400 20px/1.1 var(--serif)}
+.hemoji{font-size:24px;line-height:1}
+/* data tables */
+.dtable{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:8px}
+.dtable th{font:500 12px/1.2 var(--sans);color:var(--muted);text-align:left;padding:8px 6px;border-bottom:1px solid var(--rule)}
+.dtable td{padding:9px 6px;border-bottom:1px solid var(--rule-2);vertical-align:top}
+.dtable td.n,.dtable th.n{text-align:right;font-variant-numeric:tabular-nums}
+.dtable .ok{color:var(--on_task-ink);font-weight:500}
+.dtable .no{color:var(--muted)}
+.dtable small{display:block;color:var(--muted);font-size:12px}
+/* onboarding */
+.onb{position:fixed;inset:0;z-index:90;background:var(--bg);overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .35s ease}
+.onb.show{opacity:1;pointer-events:auto}
+.onbin{max-width:760px;margin:0 auto;padding:48px 24px 120px}
+.onbtop{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:40px}
+.onbdots{display:flex;gap:6px}
+.onbdots i{width:28px;height:4px;border-radius:2px;background:var(--rule)}
+.onbdots i.on{background:var(--accent)}
+.onb h1{font:400 46px/1.05 var(--serif);letter-spacing:-.025em;margin:0 0 14px}
+.onb .lead{font:300 21px/1.45 var(--serif);color:var(--muted);margin:0 0 30px;max-width:620px}
+.how3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 34px}
+.how3 div{border:1px solid var(--rule);border-radius:12px;padding:16px;background:var(--paper)}
+.how3 b{display:block;font:400 19px/1.2 var(--serif);margin:8px 0 4px}
+.how3 span{font-size:13px;color:var(--muted);line-height:1.45;display:block}
+.how3 .e{font-size:24px}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tcard{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:36px minmax(0,1fr) 22px;gap:4px 12px;align-items:start;padding:14px 16px;border:1.5px solid var(--rule);border-radius:12px;background:var(--paper);transition:border-color .15s,box-shadow .15s}
+.tcard:hover{border-color:var(--faint)}
+.tcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tcard[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash)}
+.tcard .e{grid-column:1;grid-row:1/span 3;font-size:26px;line-height:1.1}
+.tcard b{grid-column:2;grid-row:1;font:400 19px/1.2 var(--serif)}
+.tcard span{grid-column:2;font-size:13px;color:var(--muted);line-height:1.4}
+.tcard .tk{grid-column:3;grid-row:1;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--rule);display:grid;place-items:center;font:600 11px/1 var(--sans);color:#fff}
+.tcard[aria-pressed=true] .tk{background:var(--accent);border-color:var(--accent)}
+.tcard .via{grid-column:2;font:12px/1 var(--sans);color:var(--accent-ink);margin-top:4px}
+.tcard input{grid-column:2;margin-top:8px}
+#onbSkip{font:500 13px/1 var(--sans);text-decoration:underline}
+.pickrow{border:1px solid var(--rule);border-radius:12px;padding:14px 16px;background:var(--paper);margin-bottom:10px}
+.pickrow h3{margin:0 0 4px;font:400 22px/1.2 var(--serif);display:flex;gap:10px;align-items:center}
+.pickrow .howtxt{margin:0 0 6px}
+.onbfoot{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--rule);z-index:91}
+.onbfoot .in{max-width:760px;margin:0 auto;padding:14px 24px calc(14px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:center}
+.onbfoot .msg{flex:1;font-size:13px;color:var(--muted)}
+.onbfoot .msg.bad{color:var(--accent-ink)}
+.onbfoot .primary{padding:12px 22px;font-size:14px}
+.calask{border:1px solid var(--rule);border-radius:12px;padding:16px;background:var(--paper);margin-top:18px;display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+.calask p{margin:4px 0 0;font-size:13px;color:var(--muted);max-width:480px}
+.sugcard{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;padding-left:78px}
 
 footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--muted);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 
@@ -531,6 +691,26 @@ footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--muted);display:
   body.live .clock{margin:16px 0}
   body.live .tagline{display:none}
   .row.sev-worst{margin:0 -8px;padding-left:8px;padding-right:8px}
+  .todayhead h2{font-size:28px}
+  .blk{grid-template-columns:52px 28px minmax(0,1fr);gap:10px 12px;padding:12px}
+  .blk .ba{grid-column:1/-1;justify-content:flex-start}
+  .addcard,.sugcard{padding-left:0}
+  .wgrid{grid-template-columns:minmax(84px,1.4fr) repeat(7,minmax(0,1fr));gap:5px 4px}
+  .wgrid .gs{display:none}
+  .wgrid .gn{font-size:15px}
+  .cell{height:30px;border-radius:8px;font-size:13px}
+  .hero{grid-template-columns:1fr 1fr}
+  .tgrid{grid-template-columns:1fr}
+  .how3{grid-template-columns:1fr}
+  .onb h1{font-size:36px}
+  .onbin{padding:28px 16px 120px}
+  .onbfoot .in{padding-left:16px;padding-right:16px}
+  .tabs button{margin-right:12px}
+}
+@media (max-width:480px){
+  .hero{grid-template-columns:1fr}
+  .hero>div:last-child{display:none}
+  .hsub{font-size:12px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -546,27 +726,38 @@ footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--muted);display:
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
   <div class="dhead">
-    <div><div class="eyebrow">setup</div><h2 id="drawerTitle">Before the witness <em>takes the stand</em></h2></div>
+    <div><div class="eyebrow">setup</div><h2 id="drawerTitle">Setup <em>— what Alibi can see</em></h2></div>
     <button class="xbtn" type="button" data-close="drawer" aria-label="Close setup">×</button>
   </div>
   <div class="tabs" role="tablist" aria-label="Setup sections">
-    <button type="button" role="tab" id="tabHealth" aria-selected="true" aria-controls="paneHealth" data-tab="Health">Health <span id="tabHealthN"></span></button>
+    <button type="button" role="tab" id="tabHealth" aria-selected="true" aria-controls="paneHealth" data-tab="Health">Connections <span id="tabHealthN"></span></button>
     <button type="button" role="tab" id="tabHabits" aria-selected="false" aria-controls="paneHabits" data-tab="Habits">Habits</button>
+    <button type="button" role="tab" id="tabData" aria-selected="false" aria-controls="paneData" data-tab="Data">Your data</button>
   </div>
   <div class="dbody">
     <div class="tabpane" id="paneHealth" role="tabpanel" aria-labelledby="tabHealth">
-      <div class="dsec"><h3>Checklist</h3><button class="linkbtn" id="recheck" type="button">check again</button></div>
+      <div class="dsec"><h3>Your plan</h3></div>
+      <div id="connCal"></div>
+      <div class="dsec"><h3>Apps</h3></div>
+      <div id="connApps"></div>
+      <div class="dsec"><h3>This Mac</h3><button class="linkbtn" id="recheck" type="button">check again</button></div>
       <div id="checks"><div class="quiet">Checking…</div></div>
-      <div class="dsec"><h3>Models</h3></div>
-      <div class="cd" id="modelsInfo"></div>
+      <details class="techd"><summary>Details for the technically curious</summary><div id="modelsInfo"></div><pre id="techPre"></pre></details>
+      <div class="dsec"><span></span><button class="linkbtn" id="rerunOnb" type="button">Run the welcome tour again</button></div>
     </div>
     <div class="tabpane" id="paneHabits" role="tabpanel" aria-labelledby="tabHabits" hidden>
-      <div class="dsec"><h3>Habits</h3><span class="eyebrow">what you can declare</span></div>
+      <div class="dsec"><h3>Your habits</h3><span class="eyebrow">times, length, how it's checked</span></div>
       <div id="habitsEd"><div class="quiet">Loading habits…</div></div>
       <button class="addbtn" id="addHabit" type="button">+ Add a habit</button>
     </div>
+    <div class="tabpane" id="paneData" role="tabpanel" aria-labelledby="tabData" hidden>
+      <div class="dsec"><h3>Runs from Strava</h3><span class="eyebrow">last 30 days</span></div>
+      <div id="dataRuns"><div class="quiet">Loading…</div></div>
+      <div class="dsec"><h3>Apple Health</h3><span class="eyebrow">last 14 days</span></div>
+      <div id="dataHealth"><div class="quiet">Loading…</div></div>
+    </div>
   </div>
-  <div class="dfoot" id="dfoot" hidden><span class="msg" id="saveMsg"></span><button class="ghostbtn" id="revertHabits" type="button">Revert</button><button class="primary" id="saveHabits" type="button">Save habits</button></div>
+  <div class="dfoot" id="dfoot" hidden><span class="msg" id="saveMsg"></span><button class="ghostbtn" id="revertHabits" type="button">Revert</button><button class="primary" id="saveHabits" type="button">Save changes</button></div>
 </aside>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lbTitle" aria-hidden="true">
@@ -576,7 +767,12 @@ footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--muted);display:
   </div>
 </div>
 
-<div class="pop" id="pop" role="dialog" aria-label="Correct this sample"></div>
+<div class="pop" id="pop" role="dialog" aria-label="Fix this moment"></div>
+
+<div class="onb" id="onb" role="dialog" aria-modal="true" aria-label="Welcome to Alibi" aria-hidden="true">
+  <div class="onbin" id="onbIn"></div>
+  <div class="onbfoot"><div class="in"><button class="ghostbtn" id="onbBack" type="button">Back</button><span class="msg" id="onbMsg"></span><button class="linkbtn" id="onbSkip" type="button"></button><button class="primary" id="onbNext" type="button">Next</button></div></div>
+</div>
 
 <div class="wrap">
   <header>
@@ -590,13 +786,19 @@ footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--muted);display:
     </div>
   </header>
 <main class="stack" id="main">
+  <section id="todayBlock" class="today" aria-label="Today's plan">
+    <div class="todayhead"><h2 id="todayTitle">Today</h2><div class="sacts"><button class="ghostbtn" id="planWeek" type="button">Plan my week</button></div></div>
+    <div class="nextup" id="nextUp"></div>
+    <div class="blocks" id="blocks"><div class="quiet">Loading today's plan…</div></div>
+    <div class="hlines" id="hlines"></div>
+  </section>
   <section id="weekHero" class="hero" aria-label="This week at a glance"><div><span class="eyebrow">this week</span><div class="big"><span class="none">Weighing the week…</span></div></div></section>
 
-  <section class="prompt" aria-label="Declare">
+  <section class="prompt" aria-label="Start a habit">
     <form class="say" id="sayForm" autocomplete="off">
       <span class="caret" aria-hidden="true">›</span>
-      <input id="sayInput" placeholder="What are you about to do?" aria-label="What are you about to do?">
-      <button type="submit" id="sayBtn">Declare</button>
+      <input id="sayInput" placeholder="What are you about to do? e.g. “draw for 25 minutes”" aria-label="What are you about to do?">
+      <button type="submit" id="sayBtn">Start</button>
     </form>
     <div class="chips" id="chips"></div>
     <div class="convo" id="convo"></div>
@@ -610,31 +812,39 @@ footer{padding:28px 0 56px;font:12px/1.6 var(--mono);color:var(--muted);display:
   <section class="block" id="weekBlock">
     <div class="sechead"><h2>This week <em id="weekRange"></em></h2>
       <div class="keys">
-        <span><i style="background:var(--on_task)"></i>verified</span>
-        <span><i style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--muted) 40%,transparent) 0 2px,transparent 2px 5px);border:1px solid color-mix(in srgb,var(--muted) 45%,transparent)"></i>declared</span>
-        <span><i style="width:2px;background:var(--ink)"></i>pace today</span>
-      </div>
+        </div>
     </div>
-    <blockquote class="quote short" id="quote"><span class="none">Waiting for the evidence…</span></blockquote>
+    <blockquote class="quote short" id="quote"><span class="none">Loading your week…</span></blockquote>
     <div class="readmore"><button class="linkbtn" id="readRep" type="button" aria-expanded="false" aria-controls="fullRep">read the full report</button></div>
     <div class="fullrep" id="fullRep" hidden></div>
-    <div class="rows" id="rows"></div>
+    <div id="wgrid"></div>
+    <details class="more" id="paceMore"><summary>Minutes, targets and pace</summary>
+      <div class="keys" style="margin:14px 0 22px">
+        <span><i style="background:var(--on_task)"></i>checked by Alibi</span>
+        <span><i style="background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--muted) 40%,transparent) 0 2px,transparent 2px 5px);border:1px solid color-mix(in srgb,var(--muted) 45%,transparent)"></i>what you said</span>
+        <span><i style="width:2px;background:var(--ink)"></i>where you'd be on an even pace</span>
+      </div>
+      <div class="rows" id="rows"></div>
+    </details>
   </section>
 
   <section class="block" id="sessBlock">
-    <div class="sechead"><h2>Sessions <em>— the record</em></h2>
+    <div class="sechead"><h2>Sessions <em>— what happened</em></h2>
       <div class="sacts"><button class="ghostbtn" id="todayReel" type="button"><span class="tri">▶</span>Today's reel</button><span class="eyebrow" id="sessCount"></span></div></div>
     <div id="sessions"></div>
   </section>
 
 </main>
-  <footer><span>Alibi — evidence over intentions.</span><span id="foot"></span></footer>
+  <footer><span>Alibi — photos and data stay on this Mac.</span><span id="foot"></span></footer>
 </div>
 
 <script>
 const $ = s => document.querySelector(s);
 const LABELS = ["on_task","phone","off_task","idle","absent"];
-const LBL_TXT = {on_task:"on task",phone:"phone",off_task:"off task",idle:"idle",absent:"absent"};
+const LBL_TXT = {on_task:"on task",phone:"on phone",off_task:"something else",idle:"idle",absent:"away"};
+const VWORD = {done:"Done", partial:"Partly done", slacked:"Didn't count"};
+const CHECK_WORD = {physical:"checked by camera", digital:"checked by screen", hybrid:"camera + screen", strava:"Strava", health:"Apple Health"};
+const plain = t => String(t || "").replace(/\bthe witness\b/gi, "Alibi").replace(/\bwitness\b/gi, "Alibi").replace(/(\d+) looks\b/g, "$1 checks").replace(/\bdeclared\b/g, "planned").replace(/\bdeclare\b/g, "start").replace(/: slacked\./g, ": didn't count.").replace(/: partial\b/g, ": partly done").replace(/ — a claim isn't evidence;/g, ";").replace(/\bmin seen\b/g, "min seen by Alibi").replace(/you're (.+?) behind pace/g, "$1 to go to stay on pace");
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const cvar = l => `var(--${LABELS.includes(l) ? l : "absent"})`;
 const vvar = v => `var(--${["done","partial","slacked"].includes(v) ? v : "absent"})`;
@@ -655,13 +865,13 @@ async function api(path, opts) {
 }
 
 /* ---------- prompt ---------- */
-const TAIL_CHIPS = [["How am I doing?","how am I doing"],["Report","report"]];
+const TAIL_CHIPS = [["How am I doing?","how am I doing"]];
 const LIVE_CHIPS = [["Break 5 min","break 5"],["Add 10 min","add 10"],["How am I doing?","how am I doing"],["End","end"]];
 function renderChips(habits, live) {
   if (live) { $("#chips").innerHTML = LIVE_CHIPS.map(([l, t]) => `<button class="chip" type="button" data-say="${esc(t)}">${esc(l)}</button>`).join(""); return; }
   const hs = Object.entries(habits || {}).filter(([, h]) => h && !h.source && h.default_min);
   const chips = (hs.length ? hs.map(([k, h]) => [`${h.label || hname(k)} · ${h.default_min} min`, `${k} for ${h.default_min} minutes`])
-                           : [["Draw · 25 min","draw for 25 minutes"],["C++ · 30 min","learn C++ for 30 min"]]).concat(TAIL_CHIPS);
+                           : []).concat(TAIL_CHIPS);
   $("#chips").innerHTML = chips.map(([l, t]) => `<button class="chip" type="button" data-say="${esc(t)}">${esc(l)}</button>`).join("");
 }
 renderChips();
@@ -676,13 +886,14 @@ async function say(text) {
   try {
     const r = await api("/api/say", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({text})});
     reply(r.reply);
-  } catch (err) { reply("The daemon didn't answer. Is it running?"); }
+    if (/isn.t one of your habits yet|not a habit yet/i.test(r.reply || "")) suggestCard(text);
+  } catch (err) { reply("Alibi isn't running right now. Open the Alibi app, then try again."); }
   $("#sayBtn").disabled = false;
   pollState(); refreshSlow();
 }
 function reply(t) {
   const el = $("#convo .line.alibi .txt");
-  if (el) { el.classList.remove("pending"); el.textContent = t || "(no reply)"; }
+  if (el) { el.classList.remove("pending"); el.textContent = plain(t) || "(no reply)"; }
 }
 
 /* ---------- state / now ---------- */
@@ -696,7 +907,7 @@ const dispName = (key, label) => label || hname(key);
 async function pollState() {
   let s;
   try { s = await api("/api/state?client=dashboard"); } catch {
-    const st = $("#status"); st.className = "statepill idle"; $("#conn").textContent = "Witness offline — daemon unreachable"; document.title = "Alibi — offline"; return;
+    const st = $("#status"); st.className = "statepill idle"; $("#conn").textContent = "Alibi isn't running"; document.title = "Alibi — not running"; return;
   }
   lastState = s;
   if (Array.isArray(s.habits)) s.habits.forEach(h => { if (h.label) NAMES[h.key] = h.label; });
@@ -704,29 +915,32 @@ async function pollState() {
   renderNow(s.session, s.now, s.recent_verdict);
   renderToday(s.today);
   handleAlert(s.alert, s.now, s);
+  if (s.session && $("#toast").classList.contains("planned")) hideToast();
   firstState = false;
 }
 
 function renderStatus(s) {
   const sess = s.session, st = $("#status");
   const rv = !sess && s.recent_verdict && s.recent_verdict.id !== dismissedVerdict ? s.recent_verdict : null;
-  const text = rv ? `Verdict · ${dispName(rv.habit, rv.label)} ${rv.verdict || ""}` : s.status_text || (sess ? `Watching · ${dispName(sess.habit, sess.label)}` : "Idle — nothing declared");
+  let text = rv ? `Just finished · ${dispName(rv.habit, rv.label)} — ${VWORD[rv.verdict] || rv.verdict || ""}` : s.status_text || (sess ? `In progress · ${dispName(sess.habit, sess.label)}` : "Ready");
+  text = text.replace(/^Idle\b.*$/i, nextPlanText() || "Ready when you are").replace(/^Watching\b/, "In progress").replace(/\bWitness\b/g, "Alibi").replace(/\bdeclared\b/gi, "planned");
   st.className = "statepill " + (!sess ? "idle" : sess.on_break ? "brk" : sess.drifting ? "drift" : "");
   st.innerHTML = `<span class="pulse" id="pulse"></span><span id="conn">${esc(text)}</span>`;
-  st.title = `Witness: ${s.witness_label || s.witness || "—"} · text: ${s.text_model || "—"}`;
+  st.title = "";
   if (sess) {
     const left = sess.left_s ?? Math.max(0, sess.ends_at - s.now);
     const p = sess.warming_up || sess.on_task_so_far == null ? "" : ` · ${Math.round(sess.on_task_so_far * 100)}%`;
     document.title = `${sess.on_break ? "Break" : sess.drifting ? "Drifting" : mmss(left)} · ${dispName(sess.habit, sess.label)}${p} — Alibi`;
   } else if (s.recent_verdict && s.recent_verdict.id !== dismissedVerdict) {
-    document.title = `${(s.recent_verdict.verdict || "").toUpperCase()} · ${dispName(s.recent_verdict.habit, s.recent_verdict.label)} — Alibi`;
+    document.title = `${VWORD[s.recent_verdict.verdict] || ""} · ${dispName(s.recent_verdict.habit, s.recent_verdict.label)} — Alibi`;
   } else document.title = "Alibi";
 }
 
 function setMode(mode) {
   document.body.classList.toggle("live", mode === "live");
   document.body.classList.toggle("verdict", mode === "verdict");
-  $("#sayInput").placeholder = mode === "live" ? "Say “break 5”, “add 10”, “end” — or declare something else" : "What are you about to do?";
+  document.body.classList.toggle("idle", mode === "idle");
+  $("#sayInput").placeholder = mode === "live" ? "Type “break 5”, “add 10” or “end”" : "What are you about to do? e.g. “draw for 25 minutes”";
   renderChips(habitsCfg?.habits, mode === "live");
 }
 
@@ -748,8 +962,7 @@ function renderNow(sess, now, rv) {
       nowSig = "empty"; seenLabels = 0; lastFrame = null; liveSess = null; setMode("idle");
       if (popFor?.dataset.live) closePop();
       $("#nowEyebrow").textContent = "no session";
-      box.innerHTML = `<div class="empty"><p>Nothing declared. The witness is watching an empty chair — <b>say what you're about to do</b>, and it will check.</p>
-        <div class="hint">try “draw for 25 minutes”<br>or “learn C++ for 30 min”</div></div>`;
+      box.innerHTML = "";
     }
     return;
   }
@@ -760,7 +973,7 @@ function renderNow(sess, now, rv) {
     const hasCam = sess.modality !== "digital";
     box.innerHTML = `<div class="now" id="nowGrid">
       <div>
-        <div class="eyebrow">declared · ${esc(sess.modality || "")}</div>
+        <div class="eyebrow">in progress · ${esc(CHECK_WORD[sess.modality] || "checked by Alibi")}</div>
         <div class="now-habit">${esc(dispName(sess.habit, sess.label))}</div>
         <div class="now-sub" id="nowSub"></div>
         <div class="clock">
@@ -774,14 +987,14 @@ function renderNow(sess, now, rv) {
         <div class="seenline" id="seenLine"></div>
       </div>
       <div>
-        ${hasCam ? `<div class="frame" id="frame"><div class="nofeed">No frame yet.<br>The witness hasn't looked up.</div></div>` : ""}
-        ${hasCam ? `<div class="strip" id="strip" role="toolbar" aria-label="Samples so far — arrow keys to move, 1 to 5 to relabel"></div>
+        ${hasCam ? `<div class="frame" id="frame"><div class="nofeed">The first photo arrives in a moment.<br>Photos stay on this Mac.</div></div>` : ""}
+        ${hasCam ? `<div class="eyebrow" style="margin-top:16px">each square is one check — tap one if Alibi got it wrong</div><div class="strip" id="strip" role="toolbar" aria-label="Checks so far — arrow keys to move, 1 to 5 to fix"></div>
         <div class="legend">${LABELS.map(l => `<span style="--c:${cvar(l)}">${LBL_TXT[l]}</span>`).join("")}</div>` : ""}
         <div class="wins" id="wins"></div>
       </div></div>`;
   }
-  $("#nowEyebrow").textContent = `session #${sess.id} · live`;
-  $("#nowSub").textContent = `${hm(sess.declared_min)} · started ${clockT(sess.started_at)} · ends ${clockT(sess.ends_at)}${sess.nudges ? ` · ${sess.nudges} nudge${sess.nudges === 1 ? "" : "s"}` : ""}`;
+  $("#nowEyebrow").textContent = `live`;
+  $("#nowSub").textContent = `${hm(sess.declared_min)} · started ${clockT(sess.started_at)} · ends ${clockT(sess.ends_at)}${sess.nudges ? ` · ${sess.nudges} reminder${sess.nudges === 1 ? "" : "s"}` : ""}`;
   const left = sess.left_s ?? Math.max(0, sess.ends_at - now);
   const brk = sess.on_break;
   $("#left").textContent = brk ? mmss(brk.left_s) : mmss(left);
@@ -792,22 +1005,24 @@ function renderNow(sess, now, rv) {
   const grid = $("#nowGrid");
   grid.className = "now " + (brk ? "st-break" : sess.drifting ? "st-" + (sess.drifting.label || "phone") : cur === "on_task" ? "st-on" : cur ? "st-" + cur : "") + (sess.warming_up ? " warm" : "");
   if (sess.warming_up || sess.on_task_so_far == null) {
-    $("#otk").innerHTML = "—"; $("#otkLbl").textContent = `warming up · ${sess.samples || 0} of 6 looks`;
+    const more = Math.max(1, 6 - (sess.samples || 0));
+    $("#otk").innerHTML = "—"; $("#otkLbl").textContent = `Getting started… ${more} more check${more === 1 ? "" : "s"} until a score`;
   } else {
-    $("#otk").innerHTML = `${Math.round(sess.on_task_so_far*100)}<sup>%</sup>`; $("#otkLbl").textContent = `on task so far · ${sess.samples} looks`;
+    $("#otk").innerHTML = `${Math.round(sess.on_task_so_far*100)}<sup>%</sup>`; $("#otkLbl").textContent = `on task so far · ${sess.samples} checks`;
   }
   const dr = $("#drift");
   if (brk) { dr.className = "driftline brk"; dr.textContent = `On a break · resumes in ${mmss(brk.left_s)}`; }
-  else if (sess.drifting) { dr.className = "driftline"; dr.textContent = `Drifting · ${sess.drifting.label_text || LBL_UP[sess.drifting.label] || "off task"} · ${mmss(sess.drifting.since_s)}`; }
+  else if (sess.drifting) { dr.className = "driftline"; dr.textContent = `Looks like you drifted · ${sess.drifting.label_text || LBL_UP[sess.drifting.label] || "off task"} · ${mmss(sess.drifting.since_s)}`; }
   else { dr.className = "driftline"; dr.textContent = ""; }
-  const actsSig = brk ? "b" : sess.drifting ? "d" : "n";
+  const canCancel = (now - sess.started_at) < 90 && (sess.samples || 0) < 2;   // matches cli.cancellable
+  const actsSig = (brk ? "b" : sess.drifting ? "d" : "n") + (canCancel ? "c" : "");
   const la = $("#liveActs");
   if (la.dataset.sig !== actsSig) {
     la.dataset.sig = actsSig;
     const acts = brk ? [["I'm back", "back", "primary"]] : sess.drifting ? [["I'm back", "back", "primary"], ["It's on task", "it's on task"], ["Break 5 min", "break 5"]] : [["Break 5 min", "break 5"], ["Add 10 min", "add 10"]];
-    la.innerHTML = acts.map(([l, t, c]) => `<button type="button" class="${c || "ghostbtn"}" data-say="${esc(t)}">${esc(l)}</button>`).join("") + `<button class="endbtn" id="endBtn" type="button">End now</button>`;
+    la.innerHTML = acts.map(([l, t, c]) => `<button type="button" class="${c || "ghostbtn"}" data-say="${esc(t)}">${esc(l)}</button>`).join("") + (canCancel ? `<button class="endbtn" id="cancelBtn" type="button" title="Started by mistake? Cancel it — nothing gets logged.">Cancel</button>` : `<button class="endbtn" id="endBtn" type="button">End now</button>`);
   }
-  $("#seenLine").textContent = sess.last_seen ? sess.last_seen.text || "" : "";
+  $("#seenLine").textContent = sess.last_seen ? (sess.last_seen.text || "").replace(/^Witness\b/, "Last check").replace(/\blooks?\b/g, m => m === "look" ? "check" : "checks") : "";
 
   const labels = sess.labels || [];
   const strip = $("#strip");
@@ -828,9 +1043,9 @@ function renderNow(sess, now, rv) {
       d.style.setProperty("--c", cvar(l.label));
       d.classList.toggle("fixed", !!l.corrected_from);
       d.title = sampleTip(l);
-      d.setAttribute("aria-label", `Sample at ${clockT(l.ts)}: ${LBL_TXT[l.label] || l.label}. Correct it`);
+      d.setAttribute("aria-label", `Check at ${clockT(l.ts)}: ${LBL_TXT[l.label] || l.label}. Correct it`);
     });
-    if (!labels.length && !strip.childElementCount) strip.innerHTML = `<span class="now-sub">No observations yet.</span>`;
+    if (!labels.length && !strip.childElementCount) strip.innerHTML = `<span class="now-sub">No checks yet.</span>`;
     else strip.querySelector(".now-sub")?.remove();
   }
   const frame = $("#frame");
@@ -854,30 +1069,38 @@ function countUp(el, to, ms = 900) {
 function renderVerdict(rv, anim) {
   const v = rv.verdict || "—", r = Math.round((rv.on_task_ratio || 0) * 100);
   const name = dispName(rv.habit, rv.label);
-  const sheet = rv.evidence_url ? `<div class="vsheet"><a href="${esc(rv.evidence_url)}" target="_blank" rel="noopener"><img src="${esc(rv.evidence_url)}" alt="Contact sheet for session ${rv.id}"></a>
-      <div class="cap"><span>contact sheet · ${(rv.labels || []).length} looks</span><span>${clockT(rv.started_at)} → ${clockT(rv.ended_at || rv.ends_at)}</span></div></div>`
+  const doneAt = rv.done_at ?? 0.7, partAt = rv.partial_at ?? 0.4;
+  const short = Math.round(doneAt * 100) - r;
+  const meterTxt = v === "done" ? `You were on task ${r}% of the time — that's a full tick.` : v === "partial" ? `You were on task ${r}% of the time — ${short}% short of a full tick.` : v === "slacked" ? `You were on task ${r}% of the time. It needs ${Math.round(partAt * 100)}% to count at all.` : "";
+  const streak = (lastReport?.rows || []).find(x => x.habit === rv.habit)?.streak_days || 0;
+  const sheet = rv.evidence_url ? `<div class="vsheet"><a href="${esc(rv.evidence_url)}" target="_blank" rel="noopener"><img src="${esc(rv.evidence_url)}" alt="Photos from session ${rv.id}"></a>
+      <div class="cap"><span>the photos Alibi took · ${(rv.labels || []).length}</span><span>${clockT(rv.started_at)} → ${clockT(rv.ended_at || rv.ends_at)}</span></div></div>`
     : `<div class="vsheet">${renderWindows(rv.windows) || `<div class="none">No frames kept for this one.</div>`}</div>`;
   $("#now").innerHTML = `<div class="vpanel">
     <div>
-      <div class="eyebrow">verdict · ${esc(name)} · ${esc(hm(rv.declared_min))} declared</div>
-      <div style="margin-top:18px"><span class="vpill" style="--c:${vvar(v)}">${esc(v)}</span></div>
+      <div class="eyebrow">${esc(name)} · ${esc(hm(rv.declared_min))} planned</div>
+      <div style="margin-top:18px"><span class="vpill${v === "done" && anim ? " celebrate" : ""}" style="--c:${vvar(v)}">${v === "done" ? "✓ " : ""}${esc(VWORD[v] || v)}</span>${v === "done" && streak > 1 ? `<span class="streakline">${streak} days in a row</span>` : ""}</div>
       <div class="vratio"><span id="vnum">${anim ? 0 : r}</span><sup>%</sup></div>
-      <div class="stat-lbl">on task · ${esc(String(rv.verified_min ?? "—"))} of ${esc(String(rv.declared_min ?? "—"))} min seen</div>
-      <p class="vsum">${esc(rv.summary || "")}</p>
-      <div class="vwhy">${esc(rv.why || "")}</div>
+      <div class="stat-lbl">on task · Alibi saw ${esc(String(rv.verified_min ?? "—"))} of ${esc(String(rv.declared_min ?? "—"))} min</div>
+      <div class="vmeter" style="--c:${vvar(v)}" role="img" aria-label="${r}% on task. ${Math.round(partAt*100)}% counts as partly done, ${Math.round(doneAt*100)}% as done."><div class="f" style="width:${Math.min(100, r)}%"></div>
+        <div class="tk" style="left:${partAt*100}%"><span>partly ${Math.round(partAt*100)}%</span></div><div class="tk" style="left:${doneAt*100}%"><span>done ${Math.round(doneAt*100)}%</span></div></div>
+      <p class="vsum">${esc(meterTxt)}</p>
+      <div class="vwhy">${esc(plain(rv.summary || ""))}</div>
       <div class="vacts">
         ${rv.reel_url || (rv.labels || []).length ? `<button type="button" class="primary" data-act="reel" data-id="${rv.id}">▶&nbsp; Watch reel</button>` : ""}
-        ${(rv.labels || []).length ? `<button type="button" class="ghostbtn" data-act="fix" data-id="${rv.id}">Overrule a sample</button>` : ""}
-        <button type="button" class="ghostbtn" data-say="${esc(`${rv.habit} for ${rv.declared_min || 25} minutes`)}">Again · ${esc(hm(rv.declared_min))}</button>
+        ${(rv.labels || []).length ? `<button type="button" class="ghostbtn" data-act="fix" data-id="${rv.id}">Fix a mistake</button>` : ""}
+        <button type="button" class="ghostbtn" data-say="${esc(`${rv.habit} for ${rv.declared_min || 25} minutes`)}">Go again · ${esc(hm(rv.declared_min))}</button>
         <button type="button" class="ghostbtn" data-act="dismiss" data-id="${rv.id}">Done</button>
       </div>
     </div>
     ${sheet}</div>`;
   if (anim) countUp($("#vnum"), r);
+  if (anim && v === "done") confetti();
 }
 $("#now").addEventListener("click", e => {
   const d = e.target.closest(".strip .dot"); if (d) return openPop(d);
   if (e.target.closest("#endBtn")) return endNow();
+  if (e.target.closest("#cancelBtn")) return cancelNow();
   const sy = e.target.closest("[data-say]"); if (sy) return say(sy.dataset.say);
   const a = e.target.closest("[data-act]"); if (!a) return;
   const id = +a.dataset.id;
@@ -904,6 +1127,16 @@ async function endNow() {
   pollState(); refreshSlow();
 }
 
+async function cancelNow(undo, removeHabit) {
+  const b = $("#cancelBtn"); if (b) { b.disabled = true; b.textContent = "Cancelling…"; }
+  try {
+    const j = await postJSON("/api/session/cancel", {undo: !!undo, remove_habit: removeHabit || null});
+    reply([j.reply, j.reply_extra].filter(Boolean).join(" "));
+    if (j.removed) await Promise.all([loadHabits(), loadView()]);
+  } catch { reply("Couldn't cancel it — is Alibi running?"); }
+  pollState(); refreshSlow();
+}
+
 /* ---------- alerts ---------- */
 let toastTimer;
 function handleAlert(a, now, s) {
@@ -915,18 +1148,20 @@ function handleAlert(a, now, s) {
   if (!fresh) return;
   if (kind === "verdict" || kind === "report" || kind === "recap") refreshSlow();
   if (kind === "info" && /daemon up|dashboard:|witness:/i.test(a.text || "")) return;   // developer chatter, not for users
+  if (!(a.text || "").trim()) return;                                                       // never show an empty toast
+  if (kind === "planned") { plannedKey = a.block_key; loadPlan(); }
   if (kind === "verdict" && s && !s.session && s.recent_verdict) return;                   // the Now panel holds the verdict
   const t = $("#toast");
   t.className = "toast " + kind;
   if (kind === "verdict") t.style.setProperty("--c", vvar(a.verdict || (/\b(done|partial|slacked)\b/i.exec(a.text || "") || [])[1]?.toLowerCase()));
-  $("#toastKind").textContent = ({nudge:"nudge — the witness noticed", verdict:"verdict", report:"weekly report", info:"note", pace:"pace check", recap:"today's reel"})[kind] || kind;
-  $("#toastText").textContent = a.text || "";
+  $("#toastKind").textContent = ({nudge:"still with it?", verdict:"how it went", report:"your week", info:"note", pace:"this week", recap:"today's reel", planned:"planned now"})[kind] || kind;
+  $("#toastText").textContent = plain(a.text || "");
   const img = $("#toastImg");
   if (a.image_url && kind !== "nudge") { img.src = a.image_url; img.hidden = false; } else { img.hidden = true; img.removeAttribute("src"); }
   renderToastActs(a.actions || []);
   requestAnimationFrame(() => t.classList.add("show"));
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(hideToast, kind === "info" ? 4000 : kind === "nudge" ? 30000 : a.image_url ? 16000 : 11000);
+  toastTimer = setTimeout(hideToast, kind === "info" ? 5000 : kind === "nudge" || kind === "planned" ? 60000 : a.image_url ? 16000 : 11000);
 }
 let toastActs = [];
 function renderToastActs(acts) {
@@ -938,6 +1173,7 @@ $("#toastActs").addEventListener("click", e => {
   const x = toastActs[+b.dataset.ti]; if (!x) return;
   hideToast();
   if (x.undo) return x.undo();
+  if (x.post) return postJSON(x.post, x.body || {}).then(j => { loadPlan(); if (j && j.reply) showToast("note", j.reply); }).catch(() => showToast("note", "That didn't work — is Alibi running?"));
   if (x.say) return say(x.say);
   if (x.url) {
     if (x.url.startsWith("/api/reel")) return playReel(x.url, x.label);
@@ -954,21 +1190,25 @@ function renderHero() {
   if (!r || !r.totals) return;
   const T = r.totals, tgt = Math.max(1, T.target_min || 0);
   const w = v => Math.min(100, (v || 0) / tgt * 100).toFixed(2);
-  const pctT = Math.round((T.pct_of_target || 0) * 100), paceP = Math.round((T.week_frac || 0) * 100);
-  const behind = (T.verified_min || 0) < (T.pace_min || 0);
+  const fresh = !(T.declared_min || T.verified_min);
+  const gap = Math.max(0, (T.pace_min || 0) - (T.verified_min || 0));
   const hon = T.honesty, honP = hon == null ? null : Math.round(hon * 100);
   const honC = hon == null ? "var(--absent)" : hon >= .85 ? "var(--on_task)" : hon >= .6 ? "var(--idle)" : "var(--phone)";
   const C = 2 * Math.PI * 26;
   const dots = t ? Array.from({length: t.habits_total || 0}, (_, i) => `<i class="${i < (t.habits_done || 0) ? "on" : ""}"></i>`).join("") : "";
+  const allNew = (r.rows || []).length && (r.rows || []).every(x => x.is_new);
+  const sub = fresh ? `A fresh start — your first session sets the pace.`
+    : allNew && gap <= 0 ? `Your first week — goals count from the day you added each habit.`
+    : gap <= 0 ? `<b>On pace</b> for the week. Nice.` : `<b>${esc(hm(gap))}</b> to catch up to an even pace.`;
   box.innerHTML = `
-    <div><span class="eyebrow">this week · verified against target</span>
-      <div class="big"><b>${fmtN(T.verified_min)}</b><small>of ${fmtN(T.target_min)} min · claimed ${fmtN(T.declared_min)}</small></div>
-      <div class="hbar" role="img" aria-label="${pctT}% of the weekly target verified; pace says ${paceP}%"><div class="c" style="width:${w(T.declared_min)}%"></div><div class="v" style="width:${w(T.verified_min)}%"></div><div class="p" data-l="pace ${paceP}%" style="left:${w(T.pace_min)}%"></div></div>
-      <div class="hsub"><b>${pctT}%</b> of the way · pace says ${paceP}% · <span class="${behind ? "bad" : ""}">${behind ? fmtN(T.pace_min - T.verified_min) + " min behind" : "on pace"}</span></div></div>
-    <div class="gauge" style="--c:${honC}"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="gt" cx="32" cy="32" r="26" fill="none" stroke-width="6"/><circle class="ga" cx="32" cy="32" r="26" fill="none" stroke-width="6" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - (hon || 0))).toFixed(2)}"/></svg>
-      <div><div class="gv">${honP == null ? "—" : honP + "%"}</div><div class="gl">of your claims held up<br>claimed vs seen</div></div></div>
-    <div><span class="eyebrow">today</span><div class="big"><b>${t ? esc(t.tally || "—") : "—"}</b><small>habits</small></div><div class="tally">${dots}</div>
-      <div class="hsub">${t ? `${fmtN(t.verified_min)} of ${fmtN(t.declared_min)} min seen` : ""}</div></div>`;
+    <div><span class="eyebrow">this week</span>
+      <div class="big"><b>${fmtN(T.verified_min)}</b><small>of ${fmtN(T.target_min)} min done</small></div>
+      <div class="hbar" role="img" aria-label="${fmtN(T.verified_min)} of ${fmtN(T.target_min)} minutes done this week"><div class="c" style="width:${w(T.declared_min)}%"></div><div class="v" style="width:${w(T.verified_min)}%"></div></div>
+      <div class="hsub">${sub}</div></div>
+    <div class="gauge" style="--c:${honC}" title="Of the minutes you said you'd do, how many Alibi actually saw."><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="gt" cx="32" cy="32" r="26" fill="none" stroke-width="6"/><circle class="ga" cx="32" cy="32" r="26" fill="none" stroke-width="6" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - (hon || 0))).toFixed(2)}"/></svg>
+      <div><div class="gv">${honP == null ? "—" : honP + "%"}</div><div class="gl">${honP == null ? "Honesty score<br>appears after your first session" : `Honesty: ${fmtN(T.verified_min)} of ${fmtN(T.declared_min)} min<br>you said checked out`}</div></div></div>
+    <div><span class="eyebrow">today</span><div class="big"><b>${t ? esc(t.tally || "—") : "—"}</b><small>habits done</small></div><div class="tally">${dots}</div>
+      <div class="hsub">${t && t.declared_min ? `Alibi saw ${fmtN(t.verified_min)} of ${fmtN(t.declared_min)} min` : ""}</div></div>`;
 }
 function renderReport(r) {
   if (!r) return;
@@ -979,25 +1219,29 @@ function renderReport(r) {
   }
   const sents = (r.summary || "").match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [];
   const pull = sents.filter(x => /^\s*(Today|Tomorrow):/.test(x)).join(" ").trim() || sents.slice(-1).join("").trim();
-  $("#quote").innerHTML = r.summary ? `<span class="hl">${esc(pull)}</span><cite>— Alibi, ${r.generated_at ? "as of " + clockT(r.generated_at) : "this week"}</cite>` : `<span class="none">No verdicts yet this week.</span>`;
-  $("#fullRep").textContent = r.summary || "";
-  $(".readmore").hidden = !r.summary || sents.length < 2;
+  const fresh = !(r.totals?.declared_min || r.totals?.verified_min);
+  $("#quote").innerHTML = fresh ? `<span class="none">Nothing logged yet this week. Your first session starts the story.</span>` : r.summary ? `<span class="hl">${esc(plain(pull))}</span><cite>— Alibi, ${r.generated_at ? "as of " + clockT(r.generated_at) : "this week"}</cite>` : `<span class="none">Nothing to report yet this week.</span>`;
+  $("#fullRep").textContent = plain(r.summary || "");
+  if (fresh) $(".readmore").hidden = true;
+  if (!fresh) $(".readmore").hidden = !r.summary || sents.length < 2;
+  renderGrid();
   const sorted = [...(r.rows || [])].sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99));
   const rows = sorted.map(x => {
     const scale = Math.max(x.target_min || 0, 1);
     const w = v => Math.min(100, (v || 0) / scale * 100).toFixed(2);
     const sev = x.severity || (x.status === "aligned" ? "on_pace" : "behind");
     const gap = x.gap_to_pace_min ?? x.behind_by_min ?? 0;
-    const st = sev === "on_pace" ? `<div class="statusline aligned">on pace</div>`
-      : `<div class="statusline ${sev === "worst" ? "worst" : ""}">${esc(hm(gap))} behind pace</div>`;
-    const tip = `verified ${x.verified_min} min · claimed ${x.declared_min} min · target ${x.target_min} min · pace ${x.pace_target_min} min`;
-    const meta = [x.modality, `${x.sessions ?? 0} session${x.sessions === 1 ? "" : "s"}`, x.streak_days ? `${x.streak_days}-day streak` : "", x.honesty != null && x.declared_min ? `${Math.round(x.honesty * 100)}% held up` : "", x.strikes ? `${x.strikes} strike${x.strikes === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ");
-    return `<div class="row sev-${sev}">
-      <div><span class="name">${esc(dispName(x.habit, x.label))}</span>${sev === "worst" ? `<span class="wtag">furthest behind</span>` : ""}<span class="rowmeta">${esc(meta)}</span></div>
+    const st = x.is_new && !(x.verified_min >= (x.target_min || 1)) ? `<div class="statusline">new · ${x.target_min ? esc(hm(x.target_min)) + " planned this week" : "starts next week"}</div>`
+      : sev === "on_pace" ? `<div class="statusline aligned">on pace</div>`
+      : fresh || !x.sessions ? `<div class="statusline">${x.target_min ? esc(hm(x.target_min)) + " this week" : ""}</div>` : `<div class="statusline">${esc(hm(gap))} to catch up</div>`;
+    const tip = `Alibi saw ${x.verified_min} min · you said ${x.declared_min} min · target ${x.target_min} min`;
+    const meta = [CHECK_WORD[x.modality], `${x.sessions ?? 0} session${x.sessions === 1 ? "" : "s"}`, x.streak_days ? `${x.streak_days}-day streak` : "", x.honesty != null && x.declared_min ? `${Math.round(x.honesty * 100)}% checked out` : ""].filter(Boolean).join(" · ");
+    return `<div class="row sev-${sev === "worst" && !fresh ? "behind" : sev}">
+      <div><span class="name">${esc(dispName(x.habit, x.label))}</span>${sev === "worst" && !fresh && x.sessions ? `<span class="wtag">needs the most love</span>` : ""}<span class="rowmeta">${esc(meta)}</span></div>
       <div class="track" title="${esc(tip)}"><div class="bg" style="width:100%"></div>
         <div class="decl" style="width:${w(x.declared_min)}%"></div><div class="ver" style="width:${w(x.verified_min)}%"></div>
-        ${x.pace_target_min != null ? `<div class="pace" data-l="pace today" style="left:${w(x.pace_target_min)}%"></div>` : ""}</div>
-      <div><div class="nums"><div><small>seen</small><span class="v">${x.verified_min ?? 0}</span></div><div><small>claimed</small>${x.declared_min ?? 0}</div><div><small>target</small>${x.target_min ?? "—"}</div></div>${st}</div>
+        ${x.pace_target_min != null && !fresh && !x.is_new ? `<div class="pace" data-l="even pace" style="left:${w(x.pace_target_min)}%"></div>` : ""}</div>
+      <div><div class="nums"><div><small>done</small><span class="v">${x.verified_min ?? 0}</span></div><div><small>you said</small>${x.declared_min ?? 0}</div><div><small>goal</small>${x.target_min ?? "—"}</div></div>${st}</div>
     </div>`;
   });
   const run = r.running;
@@ -1008,17 +1252,27 @@ function renderReport(r) {
       const rr = sorted[i];
       if (!rr) return `<span class="pip" title="not yet">—</span>`;
       const ok = rr.distance_km >= (run.min_km || 0);
-      return `<span class="pip ${ok ? "ok" : "short"}" title="${esc(rr.name)} · ${rr.distance_km} km · ${rr.moving_min} min · ${dayT(rr.start_date)}${ok ? "" : " — under " + run.min_km + " km, doesn't count"}">${rr.distance_km}</span>`;
+      return `<span class="pip ${ok ? "ok" : "short"}" title="${esc(rr.name)} · ${rr.distance_km} km · ${rr.moving_min} min · ${dayT(rr.start_date)}${ok ? "" : " — too short to count (needs " + run.min_km + " km)"}">${rr.distance_km}</span>`;
     }).join("");
     const behind = (run.qualifying ?? 0) < n;
     rows.push(`<div class="row ${behind ? "sev-behind" : "sev-on_pace"}">
-      <div><span class="name">${esc(dispName(run.habit || "running", run.label))}</span><span class="rowmeta">strava · runs ≥ ${run.min_km} km</span></div>
-      <div><div class="pips">${pips}</div><div class="runlist">${runs.length ? runs.map(x => `${dayT(x.start_date)} ${x.distance_km} km`).join(" · ") : "no runs on Strava yet"}</div></div>
-      <div><div class="nums"><div><small>counted</small><span class="v">${run.qualifying ?? 0}</span></div><div><small>logged</small>${runs.length}</div><div><small>target</small>${n}</div></div>
-      <div class="statusline ${behind ? "" : "aligned"}">${behind ? `${n - (run.qualifying ?? 0)} more to go` : "target met"}</div></div>
+      <div><span class="name">${esc(dispName(run.habit || "running", run.label))}</span><span class="rowmeta">from Strava · runs of ${run.min_km} km or more count</span></div>
+      <div><div class="pips">${pips}</div><div class="runlist">${runs.length ? runs.map(x => `${dayT(x.start_date)} ${x.distance_km} km${x.distance_km >= run.min_km ? "" : " — too short to count"}`).join(" · ") : esc(run.strava && !run.strava.connected ? run.strava.text : "No runs this week yet.")}</div></div>
+      <div><div class="nums"><div><small>runs</small><span class="v">${run.qualifying ?? 0} of ${n}</span></div><div><small>this week</small>${run.week_km ?? 0} km</div></div>
+      <div class="statusline ${behind ? "" : "aligned"}">${behind ? `${n - (run.qualifying ?? 0)} more to go` : "goal met ✓"}</div></div>
     </div>`);
   }
-  $("#rows").innerHTML = rows.join("") || `<p class="none">No habits configured.</p>`;
+  (r.health || []).forEach(x => {
+    const days = (x.days || []).slice(-7);
+    const pips = days.map(d => `<span class="pip ${d.met ? "ok" : d.met === false ? "short" : ""}" title="${esc(d.date)} · ${esc(d.text || "no data")}">${d.met ? "✓" : d.met === false ? "·" : "—"}</span>`).join("");
+    rows.push(`<div class="row ${x.status === "aligned" ? "sev-on_pace" : "sev-behind"}">
+      <div><span class="name">${esc(x.label || hname(x.habit))}</span><span class="rowmeta">from Apple Health · ${esc(x.target_text || "")}</span></div>
+      <div><div class="pips">${pips || `<span class="runlist">No data from your iPhone yet.</span>`}</div><div class="runlist">${esc(x.today_text || x.text || "")}</div></div>
+      <div><div class="nums"><div><small>days met</small><span class="v">${x.days_met ?? 0} of ${x.days_checked ?? 0}</span></div><div><small>streak</small>${x.streak_days ?? 0}</div></div>
+      <div class="statusline ${x.status === "aligned" ? "aligned" : ""}">${x.status === "no_data" ? "waiting for iPhone" : x.status === "aligned" ? "on track" : esc(x.text || "")}</div></div>
+    </div>`);
+  });
+  $("#rows").innerHTML = rows.join("") || `<p class="none">No habits yet.</p>`;
 }
 $("#readRep").addEventListener("click", e => {
   const f = $("#fullRep"), open = f.hidden; f.hidden = !open;
@@ -1044,32 +1298,32 @@ function sessionHtml(s) {
       <div class="reelrow"><span>memories reel · ${labels.length} frames</span>${s.evidence_url ? `<a href="${esc(s.evidence_url)}" target="_blank" rel="noopener">contact sheet ↗</a>` : ""}</div></div>`;
   } else if (s.evidence_url || labels.length) {
     media = `<div class="media">${s.evidence_url ? `<div class="shot"><a href="${esc(s.evidence_url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(s.evidence_url)}" alt="Contact sheet for session ${s.id}"></a><div class="veil"><span><span class="spin"></span>&nbsp; cutting the reel…</span></div></div>` : ""}
-      ${labels.length ? `<div class="reelrow"><button class="ghostbtn" type="button" data-reel="${s.id}"><span class="tri">▶</span>Make reel</button><span class="rmsg">a timelapse of the witness's ${labels.length} frame${labels.length === 1 ? "" : "s"}</span></div>` : ""}</div>`;
+      ${labels.length ? `<div class="reelrow"><button class="ghostbtn" type="button" data-reel="${s.id}"><span class="tri">▶</span>Make reel</button><span class="rmsg">a timelapse of Alibi's ${labels.length} photo${labels.length === 1 ? "" : "s"}</span></div>` : ""}</div>`;
   }
   const counts = LABELS.map(l => [l, labels.filter(x => x.label === l).length]).filter(x => x[1]);
   const fixedN = labels.filter(l => l.corrected_from).length;
   const parts = [s.camera_ratio != null ? `camera <b>${pct(s.camera_ratio)}</b>` : "", s.screen_ratio != null ? `screen <b>${pct(s.screen_ratio)}</b>` : "", s.coverage != null && s.coverage < 0.995 ? `happened <b>${pct(s.coverage)}</b>` : ""].filter(Boolean).join(" · ");
   const meta = `<div class="meta">
-      <div><b>#${s.id}</b> · ${esc(s.modality || "")} · ${clockT(s.started_at)} → ${clockT(s.ended_at || s.ends_at)}</div>
-      <div>score <b>${pct(s.on_task_ratio)}</b>${parts ? " · " + parts : ""}</div>
-      <div>seen <b>${s.verified_min ?? "—"}</b> of ${esc(String(s.declared_min ?? "—"))} min claimed</div>
+      <div>${clockT(s.started_at)} → ${clockT(s.ended_at || s.ends_at)} · ${esc(CHECK_WORD[s.modality] || "")}</div>
+      <div>on task <b>${pct(s.on_task_ratio)}</b>${parts ? " · " + parts : ""}</div>
+      <div>Alibi saw <b>${s.verified_min ?? "—"}</b> of ${esc(String(s.declared_min ?? "—"))} min</div>
       ${counts.length ? `<div>${counts.map(([l,n]) => `<span style="color:${cvar(l)}">●</span> ${LBL_TXT[l]} ${n}`).join(" &nbsp;")}</div>` : ""}
-      ${fixedN ? `<div>${fixedN} sample${fixedN === 1 ? "" : "s"} corrected by you</div>` : ""}
+      ${fixedN ? `<div>${fixedN} check${fixedN === 1 ? "" : "s"} fixed by you</div>` : ""}
       ${s.artefact ? `<div>artefact <a href="${esc(s.artefact)}" target="_blank" rel="noopener"><b>${esc(s.artefact)}</b></a></div>` : ""}
     </div>`;
-  const why = (s.summary || s.why) ? `<div class="vwhyrow">${s.summary ? `<b>${esc(s.summary)}</b>` : ""}${esc(s.why || "")}</div>` : "";
+  const why = (s.summary || s.why) ? `<div class="vwhyrow">${s.summary ? `<b>${esc(plain(s.summary))}</b>` : ""}${s.score_line ? esc(s.score_line) : ""}</div>` : "";
   const wins = s.windows && s.windows.length ? `<div class="wins" style="margin-top:16px">${renderWindows(s.windows)}</div>` : "";
   const side = `<div>${meta}${wins}</div>`;
   const samples = labels.length ? `<div class="samples">
-      <div class="eyebrow"><span>the witness's samples</span><span>click one, or use <span class="kbd">←</span><span class="kbd">→</span> and <span class="kbd">1</span>–<span class="kbd">5</span>, to overrule it</span></div>
-      <div class="seg" role="toolbar" aria-label="Samples for session ${s.id}">${labels.map((l, i) => `<button type="button" tabindex="${i === 0 ? 0 : -1}" class="sm${l.corrected_from ? " fixed" : ""}" style="--c:${cvar(l.label)}" data-sid="${s.id}" data-i="${i}" title="${esc(sampleTip(l))}" aria-label="Sample at ${clockT(l.ts)}: ${esc(LBL_TXT[l.label] || l.label)}. Correct it"></button>`).join("")}</div>
+      <div class="eyebrow"><span>what Alibi saw, minute by minute</span><span>got one wrong? tap it to fix it</span></div>
+      <div class="seg" role="toolbar" aria-label="Samples for session ${s.id}">${labels.map((l, i) => `<button type="button" tabindex="${i === 0 ? 0 : -1}" class="sm${l.corrected_from ? " fixed" : ""}" style="--c:${cvar(l.label)}" data-sid="${s.id}" data-i="${i}" title="${esc(sampleTip(l))}" aria-label="Check at ${clockT(l.ts)}: ${esc(LBL_TXT[l.label] || l.label)}. Fix it"></button>`).join("")}</div>
       <div class="axis"><span>${clockT(labels[0].ts)}</span><span>${clockT(labels[labels.length - 1].ts)}</span></div></div>` : "";
   const inner = media ? `<div class="in">${why}${samples}${media}${side}</div>` : `<div class="in solo">${why}${samples}${side}</div>`;
   return `<div class="sess" data-id="${s.id}" id="session-${s.id}">
     <button type="button" aria-expanded="false">
       <span class="when"><b>${clockT(s.started_at)}</b>${esc(hm(s.declared_min))}</span>
-      <span class="h">${esc(dispName(s.habit, s.label))}<small>#${s.id} · ${esc(s.modality || "")}</small></span>
-      <span class="pill" style="--c:${vvar(s.verdict)}">${esc(v)}</span>
+      <span class="h">${esc(dispName(s.habit, s.label))}<small>${esc(CHECK_WORD[s.modality] || "")}</small></span>
+      <span class="pill" style="--c:${vvar(s.verdict)}">${esc(VWORD[v] || v)}</span>
       ${tl}
       <span class="ratio"><b>${pct(s.on_task_ratio)}</b><small>${s.verified_min ?? "—"} / ${s.declared_min ?? "—"} min</small></span>
       <span class="chev" aria-hidden="true">▸</span>
@@ -1088,10 +1342,10 @@ function dayLabel(k) {
 function renderSessions(list) {
   list = list || [];
   const box = $("#sessions");
-  $("#sessCount").textContent = `${list.length} closed`;
+  $("#sessCount").textContent = list.length ? `${list.length} so far` : "";
   sessById.clear(); list.forEach(s => sessById.set(s.id, s));
   maxMin = Math.max(30, ...list.map(s => s.declared_min || 0));
-  if (!list.length) { box.innerHTML = `<p class="none">No closed sessions yet. The record starts with the first declaration.</p>`; sessHtml.clear(); return; }
+  if (!list.length) { box.innerHTML = `<p class="none">No sessions yet. Start one above — it'll show up here with the photos Alibi took.</p>`; sessHtml.clear(); return; }
   box.querySelector(":scope>.none")?.remove();
   // group by day; keyed so only changed sessions rebuild and a playing reel / open popover survives the refresh
   const groups = [];
@@ -1102,7 +1356,7 @@ function renderSessions(list) {
     if (!ge) { ge = document.createElement("div"); ge.className = "daygrp"; ge.dataset.k = g.k; ge.innerHTML = `<div class="dayhead"><span></span><span></span></div>`; }
     const seen = g.items.reduce((a, s) => a + (s.verified_min || 0), 0), claimed = g.items.reduce((a, s) => a + (s.declared_min || 0), 0);
     ge.firstElementChild.firstElementChild.textContent = dayLabel(g.k);
-    ge.firstElementChild.lastElementChild.textContent = `seen ${hm(seen)} of ${hm(claimed)} claimed`;
+    ge.firstElementChild.lastElementChild.textContent = `Alibi saw ${hm(seen)} of ${hm(claimed)}`;
     const nodes = g.items.map(s => {
       const html = sessionHtml(s);
       let el = box.querySelector(`.sess[data-id="${s.id}"]`);
@@ -1188,7 +1442,7 @@ async function todayReel() {
   const b = $("#todayReel"); b.disabled = true;
   try {
     const r = await fetch(`/api/reel?date=${localDate(day)}`);
-    if (r.status === 404) { $("#lbBody").innerHTML = `<div class="wait">No frames today.<br>The witness only keeps frames from physical sessions.</div>`; return; }
+    if (r.status === 404) { $("#lbBody").innerHTML = `<div class="wait">No photos today yet.<br>Alibi only takes photos during camera-checked habits.</div>`; return; }
     if (!r.ok) throw new Error(r.status);
     const { url } = await r.json();
     if (!$("#lightbox").classList.contains("show")) return;
@@ -1257,10 +1511,10 @@ function openPop(anchor) {
   anchor.classList.add("sel"); popFor = anchor;
   const pop = $("#pop");
   pop.style.setProperty("--c", cvar(l.label));
-  pop.innerHTML = `<div class="ph">${l.frame_url ? `<img src="${esc(l.frame_url)}" alt="What the witness saw at ${clockT(l.ts)}">` : "no frame kept for this sample"}</div>
+  pop.innerHTML = `<div class="ph">${l.frame_url ? `<img src="${esc(l.frame_url)}" alt="What Alibi saw at ${clockT(l.ts)}">` : "no photo kept for this check"}</div>
     <div class="pt"><span>${clockT(l.ts)}</span>·<b>${esc(LBL_TXT[l.label] || l.label)}</b>${l.corrected_from ? `<span class="was">was ${esc(LBL_TXT[l.corrected_from] || l.corrected_from)}</span>` : l.reused ? `<span class="was">reused · no motion</span>` : ""}</div>
     <p class="pn">${esc(cleanNote(l.note))}</p>
-    <div class="eyebrow">${live ? "overrule · counts when it ends" : "overrule the witness"} · keys 1–5</div>
+    <div class="eyebrow">${live ? "what were you really doing? · counts at the end" : "what were you really doing?"}</div>
     <div class="pbtns">${LABELS.map(k => `<button type="button" style="--c:${cvar(k)}" data-label="${k}" aria-pressed="${k === l.label}">${LBL_TXT[k]} <span class="kbd">${LABELS.indexOf(k) + 1}</span></button>`).join("")}</div>
     <div class="pm"></div>`;
   pop.dataset.sid = sid; pop.dataset.ts = l.ts; pop.dataset.live = live ? "1" : ""; pop.dataset.was = l.label;
@@ -1289,7 +1543,7 @@ $("#pop").addEventListener("click", async e => {
   const b = e.target.closest("button[data-label]"); if (!b || b.getAttribute("aria-pressed") === "true") return;
   const pop = $("#pop"), sid = +pop.dataset.sid, live = !!pop.dataset.live;
   pop.querySelectorAll(".pbtns button").forEach(x => x.disabled = true);
-  pop.querySelector(".pm").innerHTML = `<span class="spin"></span>&nbsp; re-weighing the evidence…`;
+  pop.querySelector(".pm").innerHTML = `<span class="spin"></span>&nbsp; updating the score…`;
   try {
     const j = await postCorrect(sid, +pop.dataset.ts, b.dataset.label);
     closePop();
@@ -1340,105 +1594,374 @@ document.addEventListener("keydown", e => {
     }).catch(err => showToast("correction", `Couldn't record that: ${err.message}`));
   }
 });
-function showToast(kind, text, c, acts) {
+function showToast(kind, text, c, acts, ms) {
   const t = $("#toast");
   t.className = "toast verdict"; t.style.setProperty("--c", c || "var(--accent)");
-  $("#toastKind").innerHTML = `<span>${esc(kind === "correction" ? "correction — you have the last word" : kind)}</span>`;
+  $("#toastKind").innerHTML = `<span>${esc(kind === "correction" ? "fixed — you have the last word" : kind)}</span>`;
   $("#toastText").textContent = text;
   const img = $("#toastImg"); img.hidden = true; img.removeAttribute("src");
   renderToastActs(acts || []);
   requestAnimationFrame(() => t.classList.add("show"));
-  clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, acts && acts.length ? 10000 : 7000);
+  clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, ms || (acts && acts.length ? 10000 : 7000));
 }
 
-/* ---------- setup: health + habits ---------- */
-const REQUIRED = new Set(["camera","windows","witness","island"]);
-const checkState = c => c.ok ? "ok" : (c.key === "witness" && /mock|demo/i.test(c.detail || "")) ? "demo" : REQUIRED.has(c.key) ? "bad" : "opt";
-$("#checks").addEventListener("click", async e => {
-  const b = e.target.closest("[data-copy]"); if (!b) return;
-  try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "copied"; } catch { b.textContent = "select it"; }
-  setTimeout(() => b.textContent = "copy", 1600);
+/* ---------- helpers ---------- */
+async function postJSON(path, body) {
+  const r = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body || {})});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof j.detail === "string" ? j.detail : (j.reason || r.status));
+  return j;
+}
+const DAYS = ["mon","tue","wed","thu","fri","sat","sun"], DAY1 = {mon:"M",tue:"T",wed:"W",thu:"T",fri:"F",sat:"S",sun:"S"}, DAYNAME = {mon:"Monday",tue:"Tuesday",wed:"Wednesday",thu:"Thursday",fri:"Friday",sat:"Saturday",sun:"Sunday"};
+const CHECKS = [["camera","Camera on my desk"],["screen","What's on my screen"],["both","Both"]];
+const CHECK_TO_MOD = {camera:"physical", screen:"digital", both:"hybrid"}, MOD_TO_CHECK = {physical:"camera", digital:"screen", hybrid:"both"};
+const METRIC = {steps:["steps","steps a day",1], sleep_h:["hours","hours of sleep",0.5], mindful_min:["min","mindful minutes a day",1], workout_min:["min","workout minutes a day",5]};
+const slugify = t => (String(t || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").replace(/^(\d)/, "h$1") || "habit").slice(0, 24);
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const box = document.createElement("div"); box.className = "confetti";
+  const cols = ["var(--on_task)","var(--accent)","var(--idle)","#7FA7D9"];
+  box.innerHTML = Array.from({length: 46}, (_, i) => `<i style="left:${Math.random()*100}%;background:${cols[i%4]};animation-delay:${Math.random()*.35}s;animation-duration:${1.2+Math.random()*.9}s"></i>`).join("");
+  document.body.appendChild(box); setTimeout(() => box.remove(), 2600);
+}
+let habView = {};
+async function loadView() {
+  try { const j = await api("/api/habits/view"); habView = Object.fromEntries((j.habits || []).map(h => [h.key, h])); } catch {}
+}
+function schedRows(sched, attr) {
+  return (sched || []).map((r, i) => `<div class="srow" data-${attr}="${i}">
+    <span class="days" role="group" aria-label="Days">${DAYS.map(d => `<button type="button" data-day="${d}" aria-pressed="${(r.days || []).includes(d)}" aria-label="${DAYNAME[d]}">${DAY1[d]}</button>`).join("")}</span>
+    <input class="fld" type="time" data-sf="at" value="${esc(r.at || "19:00")}" aria-label="Time">
+    <span class="minbox"><input class="fld" type="number" min="1" max="240" data-sf="min" value="${esc(r.min ?? 25)}" aria-label="Minutes">min</span>
+    <button type="button" class="del" data-sdel="${i}" aria-label="Remove this time">remove</button></div>`).join("");
+}
+function readSched(container, attr) {
+  return [...container.querySelectorAll(`.srow[data-${attr}]`)].map(r => ({
+    days: [...r.querySelectorAll("[data-day][aria-pressed=true]")].map(b => b.dataset.day),
+    at: r.querySelector('[data-sf="at"]').value, min: Math.round(+r.querySelector('[data-sf="min"]').value || 0)}));
+}
+const schedOk = sc => sc.every(r => r.days.length && /^\d\d:\d\d$/.test(r.at) && r.min >= 1);
+
+/* ---------- today: the plan ---------- */
+let planData = null, weekPlan = [], plannedKey = null;
+const createdTs = k => { const c = habView[k]?.created_at; if (!c) return 0; const [d, t] = c.split(" "); const [Y, M, D] = d.split("-").map(Number); const [h, m] = (t || "0:0").split(":").map(Number); return new Date(Y, M - 1, D, h, m).getTime() / 1000; };
+const createdDay = k => (habView[k]?.created_at || "").slice(0, 10);
+const beforeCreated = b => b.end && createdTs(b.habit) && b.end < createdTs(b.habit) && !b.session_id;
+const STATE_C = {planned:"var(--faint)", now:"var(--accent)", live:"var(--accent)", done:"var(--done)", partial:"var(--partial)", slacked:"var(--slacked)", missed:"var(--slacked)", skipped:"var(--faint)", waiting:"var(--idle)"};
+const inWords = sec => { sec = Math.max(0, sec|0); const h = Math.floor(sec/3600), m = Math.round(sec%3600/60); return h ? `${h} h${m ? " " + m + " min" : ""}` : `${Math.max(1, m)} min`; };
+function nextPlanText() {
+  const n = planData?.next; if (!n) return "";
+  return n.state === "now" ? `${n.label} is planned now` : `Next: ${n.label} at ${n.at}`;
+}
+async function loadPlan() {
+  try { planData = await api("/api/calendar/plan?days=1"); } catch { planData = null; }
+  renderPlan();
+}
+function renderPlan() {
+  const d = new Date();
+  $("#todayTitle").innerHTML = `Today <em>— ${esc(d.toLocaleDateString(undefined, {weekday: "long", day: "numeric", month: "long"}))}</em>`;
+  const box = $("#blocks"), nx = $("#nextUp");
+  if (!planData) { box.innerHTML = `<div class="quiet">Couldn't load today's plan.</div>`; nx.textContent = ""; return; }
+  const blocks = (planData.blocks || []).filter(b => !beforeCreated(b));
+  const pk = plannedKey && blocks.find(b => b.key === plannedKey);
+  if (pk && !["planned","now"].includes(pk.state) && $("#toast").classList.contains("planned")) hideToast();
+  const anySched = Object.values(habView).some(h => (h.schedule || []).length);
+  $("#planWeek").textContent = anySched ? "Change times" : "Plan my week";
+  const n = planData.next;
+  nx.innerHTML = n && !document.body.classList.contains("live") ? (n.state === "now" ? `<b>${esc(n.label)}</b> is planned right now.` : `Next up: <b>${esc(n.label)}</b> at ${esc(n.at)} · ${esc(hm(n.min))}${n.starts_in_s > 0 ? ` — in ${esc(inWords(n.starts_in_s))}` : ""}`) : "";
+  if (!blocks.length) {
+    box.innerHTML = anySched
+      ? `<div class="todayempty"><p>Nothing planned for today. <b>Start something below</b> whenever you like.</p></div>`
+      : `<div class="todayempty"><p><b>Give your habits a time.</b> Alibi reminds you when it's time — and can put them in Apple Calendar.</p><button class="primary" type="button" data-plan="1">Plan my week</button></div>`;
+    renderHealthLines(); return;
+  }
+  box.innerHTML = blocks.map(b => {
+    const v = habView[b.habit] || {}, auto = b.check === "strava" || b.check === "health";
+    const st = b.state, done = ["done","partial","slacked"].includes(st);
+    const pill = `<span class="spill" style="--c:${STATE_C[st] || "var(--faint)"}">${done ? (st === "done" ? "✓ " : "") : ""}${esc(b.state_text || st)}${done && b.ratio != null && !auto ? ` · ${Math.round(b.ratio * 100)}%` : ""}</span>`;
+    let acts = "";
+    const k = esc(b.key);
+    if (st === "planned" || st === "now" || st === "missed") {
+      acts = (auto ? "" : `<button type="button" class="${st === "now" ? "primary" : "ghostbtn"}" data-pa="start" data-key="${k}">${st === "now" ? "Start" : "Start now"}</button>`)
+        + (st !== "missed" ? `<button type="button" class="ghostbtn" data-pa="move" data-key="${k}" data-at="${esc(b.at)}">Move</button><button type="button" class="ghostbtn" data-pa="skip" data-key="${k}">Skip</button>` : "");
+    } else if (st === "skipped") acts = `<button type="button" class="ghostbtn" data-pa="unskip" data-key="${k}">Undo skip</button>`;
+    else if (done && b.session_id) acts = `<button type="button" class="ghostbtn" data-pa="see" data-sid="${b.session_id}">See how it went</button>`;
+    const sub = [`${hm(b.min)}`, CHECK_WORD[CHECK_TO_MOD[b.check]] || CHECK_WORD[b.check] || "", b.detail || "", b.in_calendar ? "in your calendar" : ""].filter(Boolean).join(" · ");
+    return `<div class="blk st-${esc(st)}" id="blk-${k}">
+      <div class="tm">${esc(b.at)}${b.moved ? `<small>was ${esc(b.planned_at)}</small>` : ""}</div><div class="em" aria-hidden="true">${esc(v.emoji || "•")}</div>
+      <div class="bt"><b>${esc(b.label || dispName(b.habit))}</b><span>${esc(sub)}</span></div>
+      <div class="ba">${pill}${acts}</div></div>`;
+  }).join("");
+  renderHealthLines();
+}
+function renderHealthLines() {
+  const hs = lastReport?.health || [];
+  $("#hlines").innerHTML = hs.map(x => `<span class="hline ${x.today_met ? "met" : ""}" title="${esc(x.text || "")}">${x.today_met ? "✓ " : ""}<b>${esc(x.label || x.habit)}</b> · ${esc(x.today_text || (x.status === "no_data" ? "waiting for your iPhone" : "no data yet"))}</span>`).join("");
+}
+$("#todayBlock").addEventListener("click", async e => {
+  if (e.target.closest("[data-plan]") || e.target.closest("#planWeek")) return openSetup("Habits");
+  const b = e.target.closest("[data-pa]"); if (!b) return;
+  const key = b.dataset.key, act = b.dataset.pa;
+  if (act === "see") return gotoSession(+b.dataset.sid);
+  if (act === "move") {
+    const ba = b.closest(".ba");
+    ba.innerHTML = `<span class="movebox"><input class="fld" type="time" value="${esc(b.dataset.at)}" aria-label="New time"><button type="button" class="primary" data-pa="moveok" data-key="${esc(key)}">Move</button><button type="button" class="ghostbtn" data-pa="cancel">Cancel</button></span>`;
+    ba.querySelector("input").focus(); return;
+  }
+  if (act === "cancel") return renderPlan();
+  b.disabled = true;
+  try {
+    let j;
+    if (act === "start") { j = await postJSON("/api/calendar/plan/start", {key}); if (j.reply) { $("#convo").innerHTML = `<div class="line alibi"><span class="who">Alibi</span><span class="txt">${esc(j.reply)}</span></div>`; } pollState(); }
+    else if (act === "skip") j = await postJSON("/api/calendar/plan/skip", {key});
+    else if (act === "unskip") j = await postJSON("/api/calendar/plan/unskip", {key});
+    else if (act === "moveok") j = await postJSON("/api/calendar/plan/move", {key, at: b.closest(".movebox").querySelector("input").value});
+    if (j && j.reply && act !== "start") showToast("note", j.reply);
+  } catch (err) { showToast("note", `That didn't work: ${err.message}`); }
+  loadPlan();
 });
+
+/* ---------- this week: habit × day grid ---------- */
+async function loadWeekPlan() {
+  if (!lastReport?.week_start) return;
+  try { weekPlan = (await api(`/api/calendar/plan?days=7&date=${localDate(new Date(lastReport.week_start * 1000))}`)).blocks || []; } catch { weekPlan = []; }
+  renderGrid();
+}
+function renderGrid() {
+  const r = lastReport; if (!r || !r.week_start) return;
+  const ws = new Date(r.week_start * 1000), today = localDate();
+  const dates = Array.from({length: 7}, (_, i) => { const d = new Date(ws); d.setDate(ws.getDate() + i); return localDate(d); });
+  const rank = {done: 3, partial: 2, slacked: 1};
+  const rows = [];
+  const timeHabits = (r.rows || []).map(x => x.habit);
+  const keys = [...new Set([...Object.keys(habView).filter(k => !["strava","health"].includes(habView[k].check)), ...timeHabits])];
+  keys.forEach(k => {
+    const v = habView[k] || {}, rr = (r.rows || []).find(x => x.habit === k) || {};
+    const cells = dates.map(ds => {
+      if (createdDay(k) && ds < createdDay(k)) return {c: "future", t: "", tip: "Before you added this habit"};
+      let best = null;
+      sessById.forEach(s => { if (s.habit === k && dayKey(s) === ds && s.verdict && (!best || rank[s.verdict] > rank[best.verdict])) best = s; });
+      if (best) return {c: best.verdict, t: best.verdict === "done" ? "✓" : best.verdict === "partial" ? "◐" : "✗", tip: `${VWORD[best.verdict]} · ${pct(best.on_task_ratio)}`};
+      const pb = weekPlan.find(b => b.habit === k && b.date === ds && !beforeCreated(b));
+      if (pb) {
+        if (pb.state === "missed") return {c: "missed", t: "✗", tip: "Didn't happen"};
+        if (pb.state === "skipped") return {c: "skipped", t: "–", tip: "Skipped"};
+        if (["planned","now","live","waiting"].includes(pb.state)) return {c: "planned", t: pb.at, tip: `Planned ${pb.at}`};
+      }
+      return {c: ds > today ? "future" : "", t: "", tip: ""};
+    });
+    const streak = rr.streak_days || 0;
+    rows.push({name: dispName(k, v.label || rr.label), sub: v.schedule_text || v.target_text || "", cells, stat: streak ? `<b class="${streak >= 3 ? "hot" : ""}">${streak}</b>day streak` : `<b>${rr.sessions || 0}</b>this week`});
+  });
+  const run = r.running;
+  if (run) {
+    const ck = run.habit || "running";
+    const cells = dates.map(ds => {
+      const rs = (run.runs || []).filter(x => localDate(new Date(x.start_date * 1000)) === ds);
+      if (!rs.length) { if (createdDay(ck) && ds < createdDay(ck)) return {c: "future", t: ""}; const pb = weekPlan.find(b => b.habit === ck && b.date === ds && ["planned","now"].includes(b.state) && !beforeCreated(b)); return pb ? {c: "planned", t: pb.at, tip: "Planned run"} : {c: ds > today ? "future" : "", t: ""}; }
+      const best = Math.max(...rs.map(x => x.distance_km || 0));
+      return best >= run.min_km ? {c: "done", t: "✓", tip: `${best} km`} : {c: "partial", t: "◐", tip: `${best} km — too short to count (needs ${run.min_km} km)`};
+    });
+    rows.push({name: dispName(run.habit || "running", run.label), sub: `${run.target_sessions}× a week · ${run.min_km} km+`, cells, stat: `<b>${run.qualifying ?? 0}/${run.target_sessions}</b>runs`});
+  }
+  (r.health || []).forEach(x => {
+    const byDate = Object.fromEntries((x.days || []).map(d => [d.date, d]));
+    const cells = dates.map(ds => { const d = byDate[ds]; if (!d || d.met == null) return {c: ds > today || (createdDay(x.habit) && ds < createdDay(x.habit)) ? "future" : "", t: "", tip: d?.text || ""}; return d.met ? {c: "done", t: "✓", tip: d.text} : {c: "slacked", t: "·", tip: d.text}; });
+    rows.push({name: x.label || hname(x.habit), sub: x.target_text || "", cells, stat: `<b>${x.days_met ?? 0}</b>days met`});
+  });
+  if (!rows.length) { $("#wgrid").innerHTML = ""; return; }
+  const ti = dates.indexOf(today);
+  const head = `<div class="gh"></div>${dates.map((ds, i) => { const d = new Date(ws); d.setDate(ws.getDate() + i); return `<div class="gh${i === ti ? " today" : ""}">${d.toLocaleDateString(undefined, {weekday: "narrow"})}<br>${d.getDate()}</div>`; }).join("")}<div class="gh gs"></div>`;
+  $("#wgrid").innerHTML = `<div class="wgrid" role="table" aria-label="This week, habit by day">${head}${rows.map(x => `<div class="gn">${esc(x.name)}<small>${esc(x.sub)}</small></div>${x.cells.map((c, i) => `<div class="cell ${c.c}${i === ti ? " todaycol" : ""}" title="${esc(c.tip || "")}">${esc(c.t)}</div>`).join("")}<div class="gs">${x.stat}</div>`).join("")}</div>
+    <div class="gkey"><span><i style="background:var(--on_task)"></i>done</span><span><i style="background:color-mix(in srgb,var(--idle) 30%,transparent);box-shadow:inset 0 0 0 1.5px var(--idle)"></i>partly</span><span><i style="background:color-mix(in srgb,var(--phone) 12%,transparent)"></i>didn't count / didn't happen</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--rule)"></i>planned</span></div>`;
+}
+
+/* ---------- "isn't one of your habits yet" → one-tap add ---------- */
+async function suggestCard(text) {
+  let j; try { j = await api(`/api/habits/suggest?text=${encodeURIComponent(text)}`); } catch { return; }
+  const d = j.draft; if (!d) return;
+  const el = document.createElement("div"); el.className = "sugcard";
+  el.innerHTML = `<button type="button" class="primary">${esc(j.card_label || `Add “${d.name}”`)} and start</button><button type="button" class="ghostbtn">Set it up first</button>`;
+  $("#convo").appendChild(el);
+  el.firstElementChild.addEventListener("click", async () => {
+    el.querySelectorAll("button").forEach(b => b.disabled = true);
+    try {
+      const r = await postJSON("/api/habits/add", {name: d.name, minutes: d.minutes, check: d.check, schedule: [], start: true});
+      reply(r.reply); el.remove(); await Promise.all([loadHabits(), loadView()]); pollState(); refreshSlow();
+      if (/^Started\b/.test(r.reply || "")) showToast("started", `${r.label} added and started.`, "var(--accent)", [{label: "Undo", undo: () => cancelNow(true, r.key)}], 5000);
+    }
+    catch (err) { reply(`Couldn't add it: ${err.message}`); el.querySelectorAll("button").forEach(b => b.disabled = false); }
+  });
+  el.lastElementChild.addEventListener("click", async () => {
+    await openSetup("Habits");
+    habModel.push({key: "", isNew: true, h: {label: d.name, modality: CHECK_TO_MOD[d.check] || "physical", default_min: d.minutes || 25, weekly_target_min: (d.minutes || 25) * 3, schedule: [], calendar: true}});
+    renderHabitsEd(); setMsg("unsaved changes");
+    $("#habitsEd").lastElementChild?.scrollIntoView({behavior: "smooth", block: "center"});
+  });
+}
+
+/* ---------- setup: connections ---------- */
+const REQUIRED = new Set(["camera","windows","island"]);
+const checkState = c => c.ok ? "ok" : (c.key === "witness" && /test mode|mock|demo/i.test(c.detail || "")) ? "demo" : REQUIRED.has(c.key) ? "bad" : "opt";
+const ICON = {camera:"📷", windows:"💻", witness:"🔍", text:"💬", strava:"🏃", island:"⬛"};
 function setTab(name) {
-  ["Health", "Habits"].forEach(n => { $("#tab" + n).setAttribute("aria-selected", n === name); $("#pane" + n).hidden = n !== name; });
+  ["Health", "Habits", "Data"].forEach(n => { $("#tab" + n).setAttribute("aria-selected", n === name); $("#pane" + n).hidden = n !== name; });
+  if (name === "Data") loadData();
   updateFoot();
 }
 let habDirty = false;
 function updateFoot() { $("#dfoot").hidden = !($("#tabHabits").getAttribute("aria-selected") === "true" && (habDirty || $("#saveMsg").textContent)); }
 document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); });
-document.querySelector(".tabs").addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const n = $("#tabHealth").getAttribute("aria-selected") === "true" ? "Habits" : "Health"; setTab(n); $("#tab" + n).focus(); } });
+document.querySelector(".tabs").addEventListener("keydown", e => {
+  if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+  const T = ["Health","Habits","Data"], cur = T.findIndex(n => $("#tab" + n).getAttribute("aria-selected") === "true");
+  const n = T[(cur + (e.key === "ArrowRight" ? 1 : 2)) % 3]; setTab(n); $("#tab" + n).focus();
+});
+let lastHealth = null;
 async function loadHealth() {
   let h;
   try { h = await api("/api/health"); } catch { $("#sdot").className = "sdot"; return null; }
+  lastHealth = h;
   const bad = h.checks.filter(c => checkState(c) === "bad").length;
   $("#sdot").className = "sdot " + (bad ? "bad" : "ok");
   $("#setupN").textContent = bad ? ` · ${bad}` : "";
   $("#tabHealthN").textContent = bad ? `· ${bad}` : "";
-  $("#setupBtn").title = !bad ? "Setup — all required checks pass" : `Setup — ${bad} check${bad === 1 ? "" : "s"} need${bad === 1 ? "s" : ""} action`;
+  $("#setupBtn").title = !bad ? "Setup — everything needed is working" : `Setup — ${bad} thing${bad === 1 ? "" : "s"} to sort out`;
   return h;
 }
+function connCard({icon, title, ok, state, text, acts, msg, id}) {
+  return `<div class="conn ${ok ? "ok" : ""}" ${id ? `id="${id}"` : ""}><div class="ci" aria-hidden="true">${icon}</div><div>
+    <h4><span>${esc(title)}</span>${state ? `<span class="spill" style="--c:${ok ? "var(--on_task)" : "var(--faint)"}">${esc(state)}</span>` : ""}</h4><p>${text}</p></div>
+    ${acts ? `<div class="cacts">${acts}</div>` : ""}<div class="cmsg">${msg || ""}</div></div>`;
+}
 function renderChecks(h) {
-  if (!h) { $("#checks").innerHTML = `<div class="quiet">Couldn't reach the daemon.</div>`; return; }
-  $("#checks").innerHTML = h.checks.map(c => {
+  if (!h) { $("#checks").innerHTML = `<div class="quiet">Alibi isn't running, so it can't check anything right now.</div>`; return; }
+  $("#checks").innerHTML = h.checks.filter(c => c.key !== "strava").map(c => {
     const cls = checkState(c);
-    const isCmd = /^(\.\/|unset |export |brew |pip |cd )/.test(c.fix || "");
-    const fix = !c.ok && c.fix ? (isCmd ? `<div class="fixrow"><code class="fix">${esc(c.fix)}</code><button type="button" class="copybtn" data-copy="${esc(c.fix.split("  (")[0])}" aria-label="Copy command">copy</button></div>` : `<div class="cd" style="color:var(--ink);margin-top:6px">${esc(c.fix)}</div>`) : "";
-    return `<div class="chk ${cls}"><span class="mk" aria-hidden="true">${c.ok ? "✓" : cls === "bad" ? "!" : cls === "demo" ? "◐" : ""}</span><div>
-      <div class="cl"><b>${esc(c.label)}</b><span class="st">${({ok:"ok", bad:"needs action", demo:"demo mode", opt:"optional"})[cls]}</span></div>
-      <div class="cd">${esc(c.detail)}</div>${fix}</div></div>`;
+    let acts = "";
+    if (c.key === "island" && !c.ok) acts = `<span class="cd">Open <b>Alibi</b> from your Applications folder — the notch appears at the top of your screen.</span>`;
+    const fix = !c.ok && c.fix && !/see Details/i.test(c.fix) ? ` ${esc(c.fix)}.` : "";
+    return connCard({icon: ICON[c.key] || "•", title: c.label, ok: c.ok, state: ({ok: "working", bad: "needs you", demo: "test mode", opt: "optional"})[cls], text: esc(c.detail) + fix, acts});
   }).join("");
   const s = lastState || {};
-  $("#modelsInfo").innerHTML = `Witness: <b>${esc(s.witness_label || s.witness || "—")}</b> · text model: <b>${esc(s.text_model || "—")}</b>${s.daemon?.up_since ? ` · daemon up ${esc(dur(s.now - s.daemon.up_since))}` : ""}`;
+  $("#modelsInfo").innerHTML = `Photo checker: <b>${esc(s.witness_label || s.witness || "—")}</b> · replies: <b>${esc(s.text_model || "—")}</b>${s.daemon?.up_since ? ` · running for ${esc(dur(s.now - s.daemon.up_since))}` : ""}`;
+  $("#techPre").textContent = h.checks.map(c => `${c.key}: ${c.details || c.detail || ""}`).join("\n");
 }
+async function renderConnections() {
+  const [cal, integ] = await Promise.allSettled([api("/api/calendar/status"), api("/api/integrations")]);
+  if (cal.status === "fulfilled") {
+    const c = cal.value;
+    const acts = (c.action ? `<button type="button" class="${c.connected ? "ghostbtn" : "primary"}" data-cpost="${esc(c.action.post)}">${esc(c.action.label)}</button>` : "")
+      + (c.connected ? `<label class="toggle"><input type="checkbox" data-calset="log_unplanned" ${c.log_unplanned ? "checked" : ""}>Also add sessions I start without a plan</label><button type="button" class="linkbtn" data-cpost="/api/calendar/disconnect">Disconnect</button>` : "");
+    const extra = c.connected && c.last_sync_text ? `Last synced ${esc(c.last_sync_text)}.` : "";
+    $("#connCal").innerHTML = connCard({id: "calCard", icon: "📅", title: "Apple Calendar", ok: c.connected, state: c.connected ? "connected" : c.permission === "denied" ? "blocked" : "off", text: esc(c.message || "") + (extra ? ` ${extra}` : ""), acts});
+  } else $("#connCal").innerHTML = `<div class="quiet">Calendar status isn't available.</div>`;
+  if (integ.status === "fulfilled") {
+    const {strava: st, health: he, phone: ph} = integ.value;
+    const sActs = st.state === "connected" ? `<button type="button" class="ghostbtn" data-strava="sync">Check now</button><button type="button" class="linkbtn" data-strava="disconnect">Disconnect</button>`
+      : `<a class="primary" style="text-decoration:none" href="${st.state === "needs_reconnect" || st.state === "ready_to_authorize" ? "/strava/connect" : "/strava/setup"}">${esc(st.action || "Connect Strava")}</a>`;
+    const hActs = `<a class="${he.connected ? "ghostbtn" : "primary"}" style="text-decoration:none" href="/phone" target="_blank" rel="noopener">${esc(he.action || "Set up iPhone")}</a>`
+      + (ph.enabled ? `<button type="button" class="linkbtn" data-phone="disable">Turn off iPhone sync</button>` : "");
+    $("#connApps").innerHTML = connCard({id: "stravaCard", icon: "🏃", title: "Strava" + (st.athlete ? ` · ${st.athlete}` : ""), ok: st.connected, state: st.connected ? "connected" : st.state === "needs_reconnect" ? "reconnect" : "off", text: esc(st.text) + (st.last_error && !st.connected ? ` <span style="color:var(--accent-ink)">${esc(st.last_error)}</span>` : ""), acts: sActs})
+      + connCard({icon: "❤️", title: "Apple Health (iPhone)", ok: he.connected, state: he.connected ? "connected" : "off", text: esc(he.text) + (ph.enabled ? ` iPhone sync is on.` : ""), acts: hActs});
+  }
+}
+$("#paneHealth").addEventListener("click", async e => {
+  const c = e.target.closest("[data-cpost]"), sv = e.target.closest("[data-strava]"), ph = e.target.closest("[data-phone]");
+  if (!c && !sv && !ph) return;
+  const btn = c || sv || ph; btn.disabled = true;
+  const card = btn.closest(".conn"), msg = card?.querySelector(".cmsg");
+  if (msg) msg.innerHTML = `<span class="spin"></span>&nbsp; One moment…`;
+  try {
+    if (c) {
+      const j = await postJSON(c.dataset.cpost, c.dataset.cpost.endsWith("/disconnect") ? {remove_future: false} : {});
+      const sy = j.sync || j;
+      if (msg) msg.textContent = j.ok === false ? (j.reason || "That didn't work.") : sy.created != null ? `Done — ${sy.created} added, ${sy.updated || 0} updated in your “Alibi” calendar.` : "";
+    } else if (sv) {
+      const j = await postJSON(sv.dataset.strava === "sync" ? "/api/strava/sync" : "/api/strava/disconnect", {});
+      if (msg) msg.textContent = sv.dataset.strava === "sync" ? (j.error ? j.error : `${(j.added || []).length ? (j.added || []).length + " new run(s) found." : "No new runs."}`) : "Disconnected.";
+      refreshSlow();
+    } else await postJSON(`/api/phone-sync/${ph.dataset.phone}`, {});
+    setTimeout(renderConnections, c || ph ? 300 : 2200);
+  } catch (err) { if (msg) msg.textContent = `That didn't work: ${err.message}`; btn.disabled = false; }
+});
+$("#paneHealth").addEventListener("change", async e => {
+  const t = e.target.closest("[data-calset]"); if (!t) return;
+  try { await postJSON("/api/calendar/settings", {[t.dataset.calset]: t.checked}); } catch {}
+});
+$("#rerunOnb").addEventListener("click", async () => { closeLayer("drawer"); await postJSON("/api/onboarding/reset", {}).catch(() => {}); startOnboarding(true); });
 
+/* ---------- setup: habits (plain words) ---------- */
 let habitsCfg = null, habModel = [];
-const SLUG = /^[a-z][a-z0-9_]{0,23}$/;
 async function loadHabits() {
   try { habitsCfg = await api("/api/habits"); } catch { return; }
   renderChips(habitsCfg.habits, document.body.classList.contains("live"));
 }
 function modelFromCfg() {
-  habModel = Object.entries(habitsCfg?.habits || {}).map(([k, h]) => ({key: k, isNew: false, h: {...h, aliases: (h.aliases || []).join(", ")}}));
+  habModel = Object.entries(habitsCfg?.habits || {}).map(([k, h]) => ({key: k, isNew: false, h: JSON.parse(JSON.stringify({...h, aliases: (h.aliases || []).join(", ")}))}));
 }
 function habCard(m, i) {
-  const h = m.h, strava = h.source === "strava";
-  const num = (f, label, u, v, step = 1) => `<label><span>${label}</span><span class="unit" data-u="${u}"><input class="fld" type="number" inputmode="decimal" min="0" step="${step}" data-f="${f}" value="${esc(v ?? "")}"></span></label>`;
-  const top = `<div class="habtop">
-      <div class="hn">${m.isNew ? `<input class="fld" data-f="key" placeholder="habit_name" value="${esc(m.key)}" aria-label="Habit name" autocapitalize="off" spellcheck="false">` : `${esc(m.h.label || hname(m.key))}<small>${esc(m.key)}</small>`}</div>
-      ${strava ? `<span class="badge">strava</span>` : `<select class="fld" data-f="modality" aria-label="Modality">${["physical","digital","hybrid"].map(o => `<option${h.modality === o ? " selected" : ""}>${o}</option>`).join("")}</select>`}
-      <button class="del" type="button" data-del="${i}" aria-label="Delete ${esc(m.key || "new habit")}">delete</button></div>`;
-  const body = strava
-    ? `<div class="hgrid">${num("weekly_sessions", "Runs per week", "runs", h.weekly_sessions)}${num("min_km", "Counts if at least", "km", h.min_km, 0.5)}</div>`
-    : `<div class="hgrid">${num("default_min", "Default length", "min", h.default_min)}${num("weekly_target_min", "Weekly target", "min", h.weekly_target_min, 5)}
-        <label class="wide"><span>Aliases — comma separated</span><input class="fld" data-f="aliases" value="${esc(h.aliases)}" placeholder="sketch, draw, art" spellcheck="false"></label>
-        <label class="wide"><span>On task looks like</span><textarea class="fld" rows="2" data-f="on_task_looks_like" placeholder="what the camera should see when you're really doing it">${esc(h.on_task_looks_like || "")}</textarea></label></div>`;
-  return `<div class="hab${m.isNew ? " new" : ""}" data-i="${i}">${top}${body}<div class="herr"></div></div>`;
+  const h = m.h, src = h.source, v = habView[m.key] || {};
+  const label = h.label || h.display || v.label || (m.key ? hname(m.key) : "");
+  const num = (f, lab, u, val, step = 1) => `<label><span>${lab}</span><span class="unit" data-u="${u}"><input class="fld" type="number" inputmode="decimal" min="0" step="${step}" data-f="${f}" value="${esc(val ?? "")}"></span></label>`;
+  const check = MOD_TO_CHECK[h.modality] || h.check || "camera";
+  const top = `<div class="habtop"><span class="hemoji" aria-hidden="true">${esc(v.emoji || (src === "strava" ? "🏃" : src === "health" ? "❤️" : "⭐"))}</span>
+      <div class="hn"><input class="fld" data-f="label" placeholder="Name, e.g. Guitar" value="${esc(label)}" aria-label="Habit name"></div>
+      <button class="del" type="button" data-del="${i}" aria-label="Delete ${esc(label || "new habit")}">delete</button></div>`;
+  let body;
+  if (src === "strava") body = `<div class="howtxt">Checked by Strava — runs count on their own.</div><div class="hgrid" style="margin-top:12px">${num("weekly_sessions", "Runs a week", "runs", h.weekly_sessions)}${num("min_km", "Counts from", "km", h.min_km, 0.5)}</div>`;
+  else if (src === "health") { const M = METRIC[h.metric] || ["", "", 1]; body = `<div class="howtxt">Checked by Apple Health — your iPhone sends it each night.</div><div class="hgrid" style="margin-top:12px">${num("daily_target", "Daily goal", M[0], h.daily_target, M[2])}</div>`; }
+  else body = `<span class="flabel">How should Alibi check it?</span><div class="seg3" role="group">${CHECKS.map(([c, t]) => `<button type="button" data-check="${c}" aria-pressed="${c === check}">${t}</button>`).join("")}</div>
+      <div class="howtxt">${esc(v.how && MOD_TO_CHECK[h.modality] === v.check ? v.how : ({camera: "A photo every minute while you're at it, checked on this Mac.", screen: "Alibi notes which app or website is in front — nothing else.", both: "A minute counts if the camera or your screen shows you at it."})[check])}</div>
+      <div class="hgrid" style="margin-top:14px">${num("default_min", "Usual length", "min", h.default_min)}${num("weekly_target_min", "Weekly goal", "min", h.weekly_target_min, 5)}</div>`;
+  const sched = h.schedule || [];
+  const when = src === "health" ? "" : `<span class="flabel">When? <small>— Alibi reminds you, and it shows on your Today list</small></span>
+      <div class="scheds">${sched.length ? schedRows(sched, "s") : `<div class="howtxt" style="margin:0 0 6px">No set time yet.</div>`}</div>
+      <button type="button" class="ghostbtn" data-sadd="1" style="margin-top:6px">+ Add a time</button>
+      ${sched.length ? `<div style="margin-top:12px"><label class="toggle"><input type="checkbox" data-f="calendar" ${h.calendar !== false ? "checked" : ""}>Show in Apple Calendar</label></div>` : ""}`;
+  const details = src ? "" : `<details class="techd"><summary>Details</summary><div class="hgrid" style="margin-top:8px">
+        <label class="wide"><span>Other words for it</span><input class="fld" data-f="aliases" value="${esc(h.aliases)}" placeholder="sketch, draw, art" spellcheck="false"></label>
+        <label class="wide"><span>What it looks like when you're doing it</span><textarea class="fld" rows="2" data-f="on_task_looks_like" placeholder="e.g. hands on a guitar">${esc(h.on_task_looks_like || "")}</textarea></label></div></details>`;
+  return `<div class="hab${m.isNew ? " new" : ""}" data-i="${i}">${top}${body}${when}${details}<div class="herr"></div></div>`;
 }
+function syncSched(card) { const m = habModel[+card.dataset.i]; m.h.schedule = readSched(card, "s"); }
 function renderHabitsEd() {
-  $("#habitsEd").innerHTML = habModel.length ? habModel.map(habCard).join("") : `<div class="quiet">No habits. Add one below.</div>`;
+  $("#habitsEd").innerHTML = habModel.length ? habModel.map(habCard).join("") : `<div class="quiet">No habits yet. Add one below.</div>`;
 }
 function setMsg(t, cls = "") { const m = $("#saveMsg"); m.textContent = t; m.className = "msg " + cls; habDirty = /unsaved|fix|keep/.test(t); updateFoot(); }
 $("#habitsEd").addEventListener("input", e => {
-  const f = e.target.dataset.f, card = e.target.closest(".hab"); if (!f || !card) return;
-  const m = habModel[+card.dataset.i];
-  if (f === "key") m.key = e.target.value.trim(); else m.h[f] = e.target.value;
+  const card = e.target.closest(".hab"); if (!card) return;
+  const m = habModel[+card.dataset.i], f = e.target.dataset.f;
+  if (e.target.dataset.sf) syncSched(card);
+  else if (f === "calendar") m.h.calendar = e.target.checked;
+  else if (f) m.h[f] = e.target.value;
   e.target.classList.remove("bad"); card.classList.remove("err"); card.querySelector(".herr").textContent = "";
   setMsg("unsaved changes");
 });
 $("#habitsEd").addEventListener("click", e => {
+  const card = e.target.closest(".hab"); if (!card) return;
+  const m = habModel[+card.dataset.i];
+  const day = e.target.closest("[data-day]");
+  if (day) { day.setAttribute("aria-pressed", day.getAttribute("aria-pressed") !== "true"); syncSched(card); setMsg("unsaved changes"); return; }
+  const ck = e.target.closest("[data-check]");
+  if (ck) { m.h.modality = CHECK_TO_MOD[ck.dataset.check]; syncSchedSafe(card); renderHabitsEd(); setMsg("unsaved changes"); return; }
+  if (e.target.closest("[data-sadd]")) { syncSchedSafe(card); m.h.schedule = [...(m.h.schedule || []), {days: ["mon","wed","fri"], at: "19:00", min: +m.h.default_min || 25}]; if (m.h.calendar == null) m.h.calendar = true; renderHabitsEd(); setMsg("unsaved changes"); return; }
+  const sd = e.target.closest("[data-sdel]");
+  if (sd) { syncSchedSafe(card); m.h.schedule.splice(+sd.dataset.sdel, 1); renderHabitsEd(); setMsg("unsaved changes"); return; }
   const d = e.target.closest("[data-del]"); if (!d) return;
-  const card = d.closest(".hab");
   card.style.opacity = "0"; card.style.transform = "translateX(12px)";
-  setTimeout(() => { habModel.splice(+d.dataset.del, 1); renderHabitsEd(); setMsg("unsaved changes — revert to undo"); }, 200);
+  setTimeout(() => { habModel.splice(+d.dataset.del, 1); renderHabitsEd(); setMsg("unsaved changes — Undo puts it back"); }, 200);
 });
+function syncSchedSafe(card) { if (card.querySelector(".srow")) syncSched(card); }
 $("#addHabit").addEventListener("click", () => {
-  habModel.push({key: "", isNew: true, h: {modality: "physical", default_min: 25, weekly_target_min: 150, aliases: "", on_task_looks_like: ""}});
+  habModel.push({key: "", isNew: true, h: {label: "", modality: "physical", default_min: 25, weekly_target_min: 75, aliases: "", on_task_looks_like: "", schedule: [], calendar: true}});
   renderHabitsEd();
   const cards = $("#habitsEd").querySelectorAll(".hab"), last = cards[cards.length - 1];
   last.scrollIntoView({behavior: "smooth", block: "center"});
-  setTimeout(() => last.querySelector('[data-f="key"]').focus({preventScroll: true}), 250);
+  setTimeout(() => last.querySelector('[data-f="label"]').focus({preventScroll: true}), 250);
   setMsg("unsaved changes");
 });
+$("#revertHabits").textContent = "Undo changes";
 $("#revertHabits").addEventListener("click", () => { modelFromCfg(); renderHabitsEd(); setMsg(""); });
 function cardErr(i, text, field) {
   const card = $("#habitsEd").querySelector(`.hab[data-i="${i}"]`); if (!card) return false;
@@ -1449,18 +1972,27 @@ function cardErr(i, text, field) {
 $("#saveHabits").addEventListener("click", async () => {
   $("#habitsEd").querySelectorAll(".hab.err").forEach(c => { c.classList.remove("err"); c.querySelector(".herr").textContent = ""; });
   $("#habitsEd").querySelectorAll(".fld.bad").forEach(f => f.classList.remove("bad"));
+  $("#habitsEd").querySelectorAll(".hab").forEach(c => syncSchedSafe(c));
   let bad = null; const seen = new Set(), out = {};
   habModel.forEach((m, i) => {
-    const h = m.h, key = m.key;
+    const h = m.h, label = String(h.label || h.display || "").trim();
     const fail = (t, f) => { cardErr(i, t, f); bad = bad ?? i; };
-    if (!SLUG.test(key)) return fail(key ? "Name: lowercase letters, digits and underscores, starting with a letter." : "Give the habit a name.", "key");
-    if (seen.has(key)) return fail(`There's already a habit called “${key}”.`, "key");
+    if (!label && m.isNew) return fail("Give the habit a name.", "label");
+    let key = m.isNew ? slugify(label) : m.key;
+    if (m.isNew) { const taken = new Set(habModel.filter(x => !x.isNew).map(x => x.key)); let n = 2; const base = key; while (seen.has(key) || taken.has(key)) key = `${base}_${n++}`; }
+    if (seen.has(key)) return fail(`There's already a habit called “${label}”.`, "label");
     seen.add(key);
-    if (h.source === "strava") { out[key] = {source: "strava", weekly_sessions: +h.weekly_sessions || 0, min_km: +h.min_km || 0}; return; }
-    if (!(+h.default_min >= 1)) return fail("Default length needs to be at least 1 minute.", "default_min");
-    if (!(+h.weekly_target_min >= 0)) return fail("Weekly target can't be negative.", "weekly_target_min");
-    out[key] = {modality: h.modality, default_min: Math.round(+h.default_min), weekly_target_min: Math.round(+h.weekly_target_min || 0),
-                aliases: String(h.aliases || "").split(",").map(a => a.trim()).filter(Boolean), on_task_looks_like: String(h.on_task_looks_like || "").trim() || key, ...(h.label ? {label: h.label} : {})};
+    const sched = (h.schedule || []);
+    if (!schedOk(sched)) return fail("Each time needs at least one day, a time and a length.");
+    const base = {...h}; delete base.aliases;
+    const extra = sched.length ? {schedule: sched, calendar: h.calendar !== false} : {schedule: [], calendar: false};
+    if (h.source === "strava") { out[key] = {...base, ...extra, label: label || base.label, weekly_sessions: +h.weekly_sessions || 0, min_km: +h.min_km || 0}; return; }
+    if (h.source === "health") { if (!(+h.daily_target > 0)) return fail("The daily goal needs to be more than 0.", "daily_target"); out[key] = {...base, display: label || base.display, daily_target: +h.daily_target}; delete out[key].schedule; delete out[key].calendar; if (label) out[key].label = label; return; }
+    if (!(+h.default_min >= 1)) return fail("Usual length needs to be at least 1 minute.", "default_min");
+    if (!(+h.weekly_target_min >= 0)) return fail("Weekly goal can't be negative.", "weekly_target_min");
+    delete base.check;
+    out[key] = {...base, ...extra, label, modality: h.modality || "physical", default_min: Math.round(+h.default_min), weekly_target_min: Math.round(+h.weekly_target_min || 0),
+                aliases: String(h.aliases || "").split(",").map(a => a.trim()).filter(Boolean), on_task_looks_like: String(h.on_task_looks_like || "").trim() || label.toLowerCase()};
   });
   if (bad != null) { setMsg("fix the highlighted habit", "bad"); $("#habitsEd").querySelector(`.hab[data-i="${bad}"]`)?.scrollIntoView({behavior: "smooth", block: "center"}); return; }
   if (!Object.keys(out).length) { setMsg("keep at least one habit", "bad"); return; }
@@ -1471,34 +2003,202 @@ $("#saveHabits").addEventListener("click", async () => {
     if (!r.ok) {
       const d = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail || r.status);
       const k = (/habit name '([^']+)'/.exec(d) || /^([a-z][a-z0-9_]*):/.exec(d) || [])[1];
-      const i = k != null ? habModel.findIndex(m => m.key === k) : -1;
-      if (i < 0 || !cardErr(i, d)) setMsg(d, "bad"); else setMsg("fix the highlighted habit", "bad");
+      const i = k != null ? habModel.findIndex(m => m.key === k || slugify(m.h.label) === k) : -1;
+      if (i < 0 || !cardErr(i, d.replace(/^[a-z0-9_]+: /, ""))) setMsg(d, "bad"); else setMsg("fix the highlighted habit", "bad");
       return;
     }
-    habitsCfg = j; modelFromCfg(); renderHabitsEd(); renderChips(j.habits, document.body.classList.contains("live"));
-    setMsg("saved — habits.yaml updated", "good");
-    refreshSlow();
-  } catch { setMsg("couldn't reach the daemon", "bad"); }
+    habitsCfg = j; await loadView(); modelFromCfg(); renderHabitsEd(); renderChips(j.habits, document.body.classList.contains("live"));
+    setMsg("Saved. Your plan and calendar update in a moment.", "good");
+    refreshSlow(); setTimeout(loadPlan, 1500);
+  } catch { setMsg("Alibi isn't running — couldn't save", "bad"); }
   finally { btn.disabled = false; }
 });
-async function openSetup() {
+async function openSetup(tab) {
   openLayer("drawer");
   $("#checks").innerHTML = `<div class="quiet"><span class="spin"></span>&nbsp; Checking…</div>`;
-  setMsg(""); setTab("Health");
-  const [h] = await Promise.all([loadHealth(), loadHabits()]);
+  setMsg(""); setTab(typeof tab === "string" ? tab : "Health");
+  const [h] = await Promise.all([loadHealth(), loadHabits(), loadView(), renderConnections()]);
   renderChecks(h); modelFromCfg(); renderHabitsEd();
 }
-$("#setupBtn").addEventListener("click", openSetup);
-$("#recheck").addEventListener("click", async () => { $("#checks").style.opacity = ".5"; renderChecks(await loadHealth()); $("#checks").style.opacity = ""; });
+$("#setupBtn").addEventListener("click", () => openSetup());
+$("#recheck").addEventListener("click", async () => { $("#checks").style.opacity = ".5"; renderChecks(await loadHealth()); renderConnections(); $("#checks").style.opacity = ""; });
+
+/* ---------- setup: your data ---------- */
+async function loadData() {
+  const [runs, days] = await Promise.allSettled([api("/api/strava/runs?days=30"), api("/api/apple-health/days?days=14")]);
+  const minKm = Object.values(habitsCfg?.habits || {}).find(h => h.source === "strava")?.min_km || 0;
+  const rs = runs.status === "fulfilled" ? runs.value.runs || [] : [];
+  $("#dataRuns").innerHTML = rs.length ? `<table class="dtable"><thead><tr><th>Day</th><th>Run</th><th class="n">Distance</th><th class="n">Time</th><th>Counts?</th></tr></thead><tbody>${rs.map(x => {
+    const ok = x.distance_km >= minKm;
+    return `<tr><td>${esc(dayT(typeof x.start_date === "number" ? x.start_date : Date.parse(x.start_date) / 1000))}</td><td>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name || "Run")}</a>` : esc(x.name || "Run")}<small>${esc(x.sport_type || "")}${x.elevation_m ? ` · ${Math.round(x.elevation_m)} m climb` : ""}</small></td><td class="n">${esc(x.distance_km)} km</td><td class="n">${esc(Math.round(x.moving_min || 0))} min</td><td class="${ok ? "ok" : "no"}">${minKm ? (ok ? "✓ yes" : `too short (needs ${minKm} km)`) : "—"}</td></tr>`;
+  }).join("")}</tbody></table>` : `<div class="quiet">No runs yet. ${esc(lastReport?.running?.strava?.connected ? "Runs from the last 30 days appear here." : "Connect Strava in the Connections tab and your runs appear here.")}</div>`;
+  const ds = days.status === "fulfilled" ? days.value.days || [] : [];
+  const hh = Object.entries(habitsCfg?.habits || {}).filter(([, h]) => h.source === "health");
+  const tgt = m => hh.find(([, h]) => h.metric === m)?.[1].daily_target;
+  const cellv = (m, v, f) => { if (v == null) return `<td class="n no">—</td>`; const t = tgt(m); return `<td class="n ${t != null ? (v >= t ? "ok" : "") : ""}">${f(v)}${t != null && v >= t ? " ✓" : ""}</td>`; };
+  $("#dataHealth").innerHTML = ds.length ? `<table class="dtable"><thead><tr><th>Day</th><th class="n">Steps</th><th class="n">Sleep</th><th class="n">Mindful</th><th class="n">Workouts</th></tr></thead><tbody>${ds.map(d => {
+    const [Y, M, D] = d.date.split("-").map(Number);
+    return `<tr><td>${esc(new Date(Y, M - 1, D).toLocaleDateString(undefined, {weekday: "short", day: "numeric", month: "short"}))}</td>${cellv("steps", d.steps, v => fmtN(v))}${cellv("sleep_h", d.sleep_h, v => `${Math.floor(v)} h ${pad(Math.round(v % 1 * 60))}`)}${cellv("mindful_min", d.mindful_min, v => `${Math.round(v)} min`)}${cellv("workout_min", d.workout_min, v => `${Math.round(v)} min`)}</tr>`;
+  }).join("")}</tbody></table><div class="howtxt">✓ means you hit the goal for a habit that day.</div>` : `<div class="quiet">Nothing from your iPhone yet. Set up the nightly Shortcut from the Connections tab — it takes about 5 minutes.</div>`;
+}
+
+/* ---------- first-run welcome ---------- */
+let onb = null;
+const ONB_STEPS = ["welcome","habits","schedule","connect","practice"];
+async function startOnboarding(force) {
+  let st, tp;
+  try { [st, tp] = await Promise.all([api("/api/onboarding"), api("/api/onboarding/templates")]); } catch { return; }
+  if (!force && !st.needs_onboarding) return;
+  const replay = !!(st.replay || (force && (st.habits || []).length));        // tour again: add to habits, never wipe them
+  const haveH = {}; (st.habits || []).forEach(h => { const id = h.template || h.key; if (id !== "custom" && !haveH[id]) haveH[id] = h; });
+  const have = new Set(Object.keys(haveH));
+  onb = {st, tpl: tp.templates || [], step: ONB_STEPS.includes(st.step) && st.step !== "connect" && st.step !== "practice" ? st.step : "welcome", picked: new Set(replay ? (tp.templates || []).filter(t => have.has(t.id)).map(t => t.id) : st.picked || []), names: {}, sched: {}, cal: true, busy: false, replay};
+  if (replay) for (const id of onb.picked) if ((haveH[id]?.schedule || []).length) onb.sched[id] = haveH[id].schedule.map(x => ({...x}));   // keep their plan
+  if (onb.step !== "welcome" && !onb.picked.size) onb.step = "welcome";
+  if (onb.step === "schedule") onb.step = "habits";
+  $("#onb").classList.add("show"); $("#onb").setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden";
+  renderOnb();
+}
+function closeOnb() { $("#onb").classList.remove("show"); $("#onb").setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; onb = null; }
+const tplById = id => onb.tpl.find(t => t.id === id) || {};
+function renderOnb() {
+  const i = ONB_STEPS.indexOf(onb.step), meta = (onb.st.steps || []).find(x => x.id === onb.step) || {};
+  const dots = `<div class="onbdots" aria-label="Step ${i + 1} of 5">${ONB_STEPS.map((_, j) => `<i class="${j <= i ? "on" : ""}"></i>`).join("")}</div>`;
+  let body = "";
+  if (onb.step === "welcome") body = `<h1>Welcome to Alibi</h1>
+    <p class="lead">You say what you're going to do. Alibi quietly checks that it really happened — and keeps an honest streak.</p>
+    <div class="how3"><div><span class="e">📷</span><b>Desk habits</b><span>Drawing, reading, an instrument: a photo every minute while you're at it. Photos stay on this Mac.</span></div>
+    <div><span class="e">💻</span><b>Computer habits</b><span>Coding or studying: Alibi notes which app or website is in front. Nothing is recorded.</span></div>
+    <div><span class="e">🏃</span><b>Runs, steps &amp; sleep</b><span>Strava and Apple Health count on their own — nothing to start.</span></div></div>
+    <p class="lead" style="font-size:17px">This takes about two minutes. Everything can be changed later.</p>`;
+  else if (onb.step === "habits") body = `<h1>${esc(meta.title || "What do you want to do more of?")}</h1><p class="lead">${esc(onb.replay ? "Your current habits are ticked and stay as they are, history included. Tick anything you'd like to add." : meta.text || "Pick a few.")}</p>
+    <div class="tgrid">${onb.tpl.map(t => { const on = onb.picked.has(t.id); return `<div class="tcard" role="button" tabindex="0" data-tpl="${esc(t.id)}" aria-pressed="${on}">
+      <span class="e" aria-hidden="true">${esc(t.emoji)}</span><b>${esc(t.title)}</b><span class="tk" aria-hidden="true">${on ? "✓" : ""}</span>
+      <span>${esc(t.blurb)}</span><span class="via">Checked by: ${esc(t.check_text)}</span>
+      ${on && t.ask_name ? `<input class="fld" data-name="${esc(t.id)}" placeholder="${esc(t.ask_name)}" value="${esc(onb.names[t.id] || "")}" aria-label="${esc(t.ask_name)}">` : ""}</div>`; }).join("")}</div>`;
+  else if (onb.step === "schedule") {
+    const ps = [...onb.picked].map(tplById);
+    body = `<h1>${esc(meta.title || "When will you do them?")}</h1><p class="lead">${esc(meta.text || "")}</p>
+    ${ps.map(t => {
+      const sc = onb.sched[t.id] ?? (t.schedule || []).map(x => ({...x}));
+      const nm = onb.names[t.id] || t.label || t.title;
+      if (t.check === "health") return `<div class="pickrow"><h3><span>${esc(t.emoji)}</span>${esc(t.title)}</h3><div class="howtxt">Checked automatically each night from your iPhone — no set time needed.</div></div>`;
+      return `<div class="pickrow" data-tid="${esc(t.id)}"><h3><span>${esc(t.emoji)}</span>${esc(nm)}</h3><div class="howtxt">${esc(t.how)}</div>
+        <div class="scheds">${schedRows(sc, "s")}</div>${sc.length ? "" : `<div class="howtxt">No set time — you'll start it whenever you like.</div>`}
+        <button type="button" class="ghostbtn" data-oadd="${esc(t.id)}" style="margin-top:8px">+ Add a time</button></div>`;
+    }).join("")}
+    <div class="calask"><div><b>Put these in Apple Calendar?</b><p>Alibi makes its own calendar called “Alibi” and only touches that one. After each session, the event shows how it went. You'll be asked for permission on the next step.</p></div>
+      <label class="toggle"><input type="checkbox" id="onbCal" ${onb.cal ? "checked" : ""}>${onb.cal ? "Yes" : "No"}</label></div>`;
+  } else if (onb.step === "connect") {
+    const list = [...(onb.st.connect || [])];
+    const hasSched = Object.values(onb.sched).some(sc => sc.length) || [...onb.picked].some(id => !onb.sched[id] && (tplById(id).schedule || []).length && tplById(id).check !== "health");
+    if (onb.cal && hasSched) list.unshift({id: "calendar", title: "Apple Calendar", why: "So your plan shows up on your Mac, iPhone and Watch. Your Mac will ask for permission — choose “Allow Full Access” so Alibi can update events with how each session went.", button: "Add to Apple Calendar", skip: "Not now"});
+    if ([...onb.picked].some(id => tplById(id).check === "health") && !list.some(x => x.id === "health")) list.push({id: "health", title: "Apple Health on your iPhone", why: "A small Shortcut on your iPhone sends steps, sleep and mindful minutes to Alibi each night. Setup takes about 5 minutes and opens in a new tab.", button: "Set up iPhone", skip: "Later"});
+    const ICO = {camera: "📷", screen: "💻", strava: "🏃", health: "❤️", calendar: "📅"};
+    body = `<h1>${esc(meta.title || "Let Alibi check")}</h1><p class="lead">${esc(meta.text || "Each one is optional.")}</p>
+      ${list.length ? list.map(c => connCard({id: "oc-" + c.id, icon: ICO[c.id] || "•", title: c.title, ok: false, state: "", text: esc(c.why), acts: `<button type="button" class="primary" data-oconn="${esc(c.id)}">${esc(c.button)}</button>`})).join("") : `<p class="lead">Nothing to connect for these habits. 🎉</p>`}`;
+  } else if (onb.step === "practice") {
+    body = `<h1>${esc(meta.title || "Try it once")}</h1><p class="lead">${esc(meta.text || "")}</p>
+      <div class="how3"><div><span class="e">1</span><b>Start</b><span>A 2-minute session begins. The notch at the top of your screen shows the timer.</span></div>
+      <div><span class="e">2</span><b>Do a bit, then drift</b><span>Do the habit for a minute, then pick up your phone. Alibi will nudge you.</span></div>
+      <div><span class="e">3</span><b>See how it went</b><span>You get a score with the photos Alibi took. Tap any it got wrong to fix it.</span></div></div>`;
+  }
+  $("#onbIn").innerHTML = `<div class="onbtop"><span class="wordmark" style="font-size:30px">Alibi<i>.</i></span>${dots}</div>${body}`;
+  $("#onbBack").style.visibility = i ? "visible" : "hidden";
+  $("#onbNext").textContent = onb.step === "welcome" ? (meta.button || "Get started") : onb.step === "practice" ? (meta.button || "Start 2-minute practice") : onb.step === "connect" ? "Next" : "Next";
+  $("#onbSkip").textContent = onb.step === "practice" ? (meta.skip || "Skip — go to my dashboard") : onb.step === "connect" ? "Skip for now" : "";
+  $("#onbSkip").hidden = !$("#onbSkip").textContent;
+  onbMsg(onb.step === "habits" ? (onb.picked.size ? `${onb.picked.size} picked` : "Pick at least one") : "");
+  $("#onb").scrollTop = 0;
+}
+function onbMsg(t, bad) { $("#onbMsg").textContent = t; $("#onbMsg").className = "msg" + (bad ? " bad" : ""); }
+function onbReadSched() { $("#onbIn").querySelectorAll(".pickrow[data-tid]").forEach(r => { onb.sched[r.dataset.tid] = readSched(r, "s"); }); }
+$("#onbIn").addEventListener("click", async e => {
+  if (!onb) return;
+  const t = e.target.closest("[data-tpl]");
+  if (t && !e.target.closest("input")) { const id = t.dataset.tpl; onb.picked.has(id) ? onb.picked.delete(id) : onb.picked.add(id); renderOnb(); const inp = $("#onbIn").querySelector(`[data-name="${id}"]`); inp?.focus(); return; }
+  const day = e.target.closest("[data-day]"); if (day) { day.setAttribute("aria-pressed", day.getAttribute("aria-pressed") !== "true"); onbReadSched(); return; }
+  const add = e.target.closest("[data-oadd]"); if (add) { onbReadSched(); const t2 = tplById(add.dataset.oadd); (onb.sched[t2.id] = onb.sched[t2.id] || []).push({days: ["mon","wed","fri"], at: "19:00", min: t2.minutes || 25}); renderOnb(); return; }
+  const sd = e.target.closest("[data-sdel]"); if (sd) { onbReadSched(); const tid = sd.closest(".pickrow").dataset.tid; onb.sched[tid].splice(+sd.dataset.sdel, 1); renderOnb(); return; }
+  const oc = e.target.closest("[data-oconn]"); if (oc) return onbConnect(oc.dataset.oconn, oc);
+});
+$("#onbIn").addEventListener("keydown", e => { const t = e.target.closest("[data-tpl]"); if (t && e.target === t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); t.click(); } });
+$("#onbIn").addEventListener("input", e => {
+  if (e.target.dataset.name) onb.names[e.target.dataset.name] = e.target.value;
+  if (e.target.dataset.sf) onbReadSched();
+  if (e.target.id === "onbCal") { onb.cal = e.target.checked; e.target.parentElement.lastChild.nodeValue = onb.cal ? "Yes" : "No"; }
+});
+async function onbConnect(id, btn) {
+  const card = btn.closest(".conn"), msg = card.querySelector(".cmsg");
+  const done = (t, ok) => { msg.innerHTML = t; if (ok) { card.classList.add("ok"); btn.textContent = "✓ Done"; btn.className = "ghostbtn"; } btn.disabled = !!ok; };
+  btn.disabled = true; msg.innerHTML = `<span class="spin"></span>&nbsp; One moment…`;
+  try {
+    if (id === "calendar") { const j = await postJSON("/api/calendar/connect", {}); const s = j.status || {}; done(esc(j.ok ? `Added — ${j.sync?.created ?? 0} sessions are in your “Alibi” calendar.` : (s.message || j.reason || "Calendar wasn't allowed.")), j.ok); if (!j.ok && s.action) { btn.textContent = s.action.label; btn.disabled = false; btn.dataset.oconn = s.action.post.endsWith("open-settings") ? "calsettings" : "calendar"; } }
+    else if (id === "calsettings") { await postJSON("/api/calendar/open-settings", {}); done("System Settings is open. Turn on Alibi under Calendars, then come back and tap again.", false); btn.dataset.oconn = "calendar"; btn.textContent = "Check again"; }
+    else if (id === "camera" || id === "screen") { const h = await api("/api/health"); const c = h.checks.find(x => x.key === (id === "camera" ? "camera" : "windows")) || {}; done(esc(c.detail || "") + (c.ok ? "" : c.fix ? ` ${esc(c.fix)}.` : ""), c.ok); if (!c.ok) { btn.textContent = "Check again"; } }
+    else if (id === "strava") { window.open("/strava/setup", "_blank", "noopener"); done("Strava setup opened in a new tab. Finish there, then come back — this updates on its own.", false); btn.textContent = "Open again"; btn.disabled = false; pollConn("strava", card, btn); }
+    else if (id === "health") { window.open("/phone", "_blank", "noopener"); done("iPhone setup opened in a new tab. You can finish it later from Setup.", false); btn.textContent = "Open again"; btn.disabled = false; }
+  } catch (err) { done(`That didn't work: ${esc(err.message)}`, false); btn.disabled = false; }
+}
+function pollConn(kind, card, btn) {
+  let n = 0; const iv = setInterval(async () => {
+    if (!onb || !card.isConnected || ++n > 120) return clearInterval(iv);
+    try { const s = await api("/api/strava/status"); if (s.connected) { clearInterval(iv); card.classList.add("ok"); card.querySelector(".cmsg").textContent = s.text; btn.textContent = "✓ Connected"; btn.className = "ghostbtn"; btn.disabled = true; } } catch {}
+  }, 3000);
+}
+$("#onbBack").addEventListener("click", () => { if (!onb) return; if (onb.step === "schedule") onbReadSched(); onb.step = ONB_STEPS[Math.max(0, ONB_STEPS.indexOf(onb.step) - 1)]; renderOnb(); });
+$("#onbSkip").addEventListener("click", async () => {
+  if (!onb) return;
+  if (onb.step === "connect") { onb.step = "practice"; renderOnb(); return; }
+  await postJSON("/api/onboarding/done", {}).catch(() => {}); closeOnb(); refreshAll();
+});
+$("#onbNext").addEventListener("click", async () => {
+  if (!onb || onb.busy) return;
+  const step = onb.step, btn = $("#onbNext");
+  if (step === "habits") {
+    if (!onb.picked.size) return onbMsg("Pick at least one habit to continue.", true);
+    const miss = [...onb.picked].map(tplById).find(t => t.ask_name && !String(onb.names[t.id] || "").trim());
+    if (miss) { onbMsg(`${miss.ask_name} — type a name on the “${miss.title}” card.`, true); $("#onbIn").querySelector(`[data-name="${miss.id}"]`)?.focus(); return; }
+  }
+  if (step === "schedule") {
+    onbReadSched();
+    const bad = Object.entries(onb.sched).find(([, sc]) => !schedOk(sc));
+    if (bad) return onbMsg(`${tplById(bad[0]).title}: each time needs a day, a time and a length.`, true);
+    onb.busy = true; btn.disabled = true; onbMsg("Saving your habits…");
+    const picks = [...onb.picked].map(id => { const t = tplById(id); const p = {template: id, calendar: onb.cal}; if (onb.names[id]) p.name = onb.names[id].trim(); if (t.check !== "health") p.schedule = onb.sched[id] ?? t.schedule ?? []; return p; });
+    try { await postJSON("/api/onboarding/habits", {picks, replace: !onb.replay}); onb.st = await api("/api/onboarding"); }
+    catch (err) { onb.busy = false; btn.disabled = false; return onbMsg(`Couldn't save: ${err.message}`, true); }
+    onb.busy = false; btn.disabled = false;
+  }
+  if (step === "practice") {
+    onb.busy = true; btn.disabled = true; onbMsg("Starting…");
+    let j = null; try { j = await postJSON("/api/onboarding/practice", {}); } catch {}
+    await postJSON("/api/onboarding/done", {}).catch(() => {});
+    closeOnb(); await refreshAll();
+    if (j?.reply) $("#convo").innerHTML = `<div class="line alibi"><span class="who">Alibi</span><span class="txt">${esc(j.reply)}</span></div>`;
+    return;
+  }
+  onb.step = ONB_STEPS[ONB_STEPS.indexOf(step) + 1];
+  postJSON("/api/onboarding/progress", {step: onb.step, picked: [...onb.picked]}).catch(() => {});
+  renderOnb();
+});
+async function refreshAll() { await Promise.all([loadHabits(), loadView()]); pollState(); refreshSlow(); loadHealth(); }
 
 async function refreshSlow() {
   const [r, s] = await Promise.allSettled([api("/api/report"), api("/api/sessions")]);
-  if (r.status === "fulfilled") renderReport(r.value);
   if (s.status === "fulfilled") renderSessions(s.value);
+  if (r.status === "fulfilled") { renderReport(r.value); renderHealthLines(); loadWeekPlan(); }
+  loadPlan();
   $("#foot").textContent = `updated ${clockT(Date.now()/1000)}`;
 }
 
-pollState(); refreshSlow(); loadHabits(); loadHealth();
+loadView().then(() => { refreshSlow(); });
+pollState(); loadHabits(); loadHealth(); startOnboarding();
+function route() {
+  if (/^#setup/.test(location.hash)) openSetup();
+  else if (location.hash === "#plan") $("#todayBlock").scrollIntoView({behavior: "smooth"});
+}
+addEventListener("hashchange", route); route();
 setInterval(pollState, 1000);
 setInterval(refreshSlow, 15000);
 setInterval(loadHealth, 120000);

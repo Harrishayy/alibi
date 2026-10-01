@@ -82,7 +82,43 @@ def main():
         if ts < now:
             db.add_event(con, "strava", "activity", {"id": 1000 + d, "name": "Morning Run", "distance_km": km,
                                                      "moving_min": mins, "start_date": ts}, ts=ts)
+    seed_plan_and_health(con, t0, now)
+    from alibi import onboarding
+    onboarding.mark_done("seed")              # a seeded demo is past the first-run wizard
     print(report.build())
+
+
+def seed_plan_and_health(con, t0, now):
+    """Round 3: planned blocks (schedule + calendar) and Apple Health habits/samples — only into a scratch
+    habits.yaml (ALIBI_HABITS), never the real one."""
+    import datetime as dt
+    from alibi import health
+    if config.HABITS_PATH.resolve() == (ROOT / "habits.yaml").resolve():
+        print("habits.yaml is the real one — not adding schedules/Health habits (set ALIBI_HABITS to a copy).")
+    else:
+        hs = config.habits()["habits"]
+        plan = {"drawing": [{"days": ["mon", "wed", "fri"], "at": "19:00", "min": 25}],
+                "cpp": [{"days": ["mon", "tue", "wed", "thu", "fri"], "at": "09:00", "min": 40}],
+                "building": [{"days": ["sat", "sun"], "at": "10:00", "min": 90}],
+                "running": [{"days": ["tue", "thu", "sat"], "at": "07:30", "min": 30}]}
+        for k, sched in plan.items():
+            if k in hs:
+                hs[k]["schedule"], hs[k]["calendar"] = sched, True
+        hs.setdefault("steps", {"source": "health", "metric": "steps", "daily_target": 8000, "display": "Steps"})
+        hs.setdefault("sleep", {"source": "health", "metric": "sleep_h", "daily_target": 7, "display": "Sleep"})
+        health.save_habits(hs)
+    monday = dt.date.fromtimestamp(t0)
+    for i in range(7):
+        d = monday + dt.timedelta(days=i)
+        ts = dt.datetime.combine(d, dt.time(23, 30)).timestamp()
+        if ts > now:
+            ts = now - 60                        # today's numbers so far
+            if d != dt.date.today():
+                break
+        db.add_event(con, "health", "samples", {
+            "date": d.isoformat(), "steps": random.choice([4210, 6890, 8412, 9120, 11873, 7650]),
+            "sleep_h": random.choice([5.8, 6.4, 7.2, 7.6, 6.9]), "mindful_min": random.choice([0, 5, 10, 12]),
+            "workout_min": random.choice([0, 0, 29, 45]), "workouts": []}, ts=ts)
 
 
 if __name__ == "__main__":

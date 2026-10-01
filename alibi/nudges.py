@@ -8,13 +8,13 @@ from . import config, db
 from .notify import notify
 
 LINES = {
-    "phone": "You said {habit}. I've seen your phone for {mins}.",
-    "absent": "You said {habit}. The desk has been empty for {mins}.",
-    "idle": "You said {habit}. You're there, but nothing's happening — {mins} now.",
-    "off_task": "You said {habit}. That isn't {habit} — {mins} and counting.",
-    "window": "You said {habit}. Your screen has been {title} for {mins}.",
-    "window_then": "You said {habit}. Your screen has been {title} for {mins}, plus {rest}.",
-    "window_mixed": "You said {habit}. Your screen has been everything but {habit} for {mins} ({names}).",
+    "phone": "Still {habit}? Your phone's been out for {mins}.",
+    "absent": "Still {habit}? The desk has been empty for {mins}.",
+    "idle": "Still {habit}? You're there, but nothing's moving — {mins} now.",
+    "off_task": "Still {habit}? That doesn't look like {habit} — {mins} now.",
+    "window": "Still {habit}? Your screen has been {title} for {mins}.",
+    "window_then": "Still {habit}? Your screen has been {title} for {mins}, plus {rest}.",
+    "window_mixed": "Still {habit}? Your screen has been everything but {habit} for {mins} ({names}).",
 }
 SECOND = "Second time. It's going in the report."
 

@@ -50,12 +50,12 @@ DISPLAY_NAMES = {"cpp": "C++"}
 
 
 def display_name(key: str, cfg: dict | None = None) -> str:
-    """habits.yaml `label:` wins; then a small map (cpp -> C++); else Capitalised key."""
+    """habits.yaml `label:` (or `display:`) wins; then a small map (cpp -> C++); else Capitalised key."""
     try:
         h = (cfg or habits())["habits"].get(key) or {}
     except Exception:
         h = {}
-    return str(h.get("label") or DISPLAY_NAMES.get(key) or key.replace("_", " ").capitalize())
+    return str(h.get("label") or h.get("display") or DISPLAY_NAMES.get(key) or key.replace("_", " ").capitalize())
 
 
 LABEL_TEXT = {"on_task": "On task", "phone": "On your phone", "absent": "Away from desk", "idle": "Idle",
@@ -66,3 +66,51 @@ def spoken_name(key: str) -> str:
     """Mid-sentence form: 'You said drawing.' but 'You said C++.'"""
     n = display_name(key)
     return key.replace("_", " ") if n == key.replace("_", " ").capitalize() else n
+
+
+# --- round 3: plain-language habit kinds, schedules, health habits, secrets, first-run flag ---------------------
+DAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+HEALTH_METRICS = {   # metric -> (plain name, unit, default target, how it's said in a sentence)
+    "steps": ("Steps", "steps", 8000, "{v:,.0f} steps"),
+    "sleep_h": ("Sleep", "h", 7, "{v:.1f} h of sleep"),
+    "mindful_min": ("Meditate", "min", 10, "{v:.0f} mindful min"),
+    "workout_min": ("Workout", "min", 30, "{v:.0f} workout min"),
+}
+# How Alibi checks a habit, in the words the dashboard/island show. Keys are what /api/habits/kinds returns.
+CHECK_TEXT = {"camera": "Camera on my desk", "screen": "What's on my screen", "both": "Camera and screen",
+              "strava": "Strava", "health": "Apple Health"}
+MODALITY_TO_CHECK = {"physical": "camera", "digital": "screen", "hybrid": "both"}
+CHECK_TO_MODALITY = {v: k for k, v in MODALITY_TO_CHECK.items()}
+ONBOARDED_PATH = DATA_DIR / "onboarded"
+SECRETS_PATH = DATA_DIR / "secrets.json"
+
+
+def habit_check(h: dict) -> str:
+    """camera | screen | both | strava | health — the plain answer to 'How should Alibi check it?'."""
+    if h.get("source") in ("strava", "health"):
+        return h["source"]
+    return MODALITY_TO_CHECK.get(h.get("modality", ""), "camera")
+
+
+def secrets() -> dict:
+    """data/secrets.json (chmod 600, never in git) — a thin alias of alibi.secrets.load()."""
+    from . import secrets as store
+    return store.load()
+
+
+def save_secrets(**kv) -> dict:
+    """Merge keys into data/secrets.json (None deletes a key) — alias of alibi.secrets.update(), one writer."""
+    from . import secrets as store
+    return store.update(**kv)
+
+
+def habit_created_ts(h: dict) -> float | None:
+    """`created_at: "2026-10-01 18:02"` (stamped by health.save_habits on new habits) -> epoch seconds, else None."""
+    import datetime as _dt
+    v = (h or {}).get("created_at")
+    if not v:
+        return None
+    try:
+        return float(v) if isinstance(v, (int, float)) else _dt.datetime.fromisoformat(str(v)).timestamp()
+    except ValueError:
+        return None

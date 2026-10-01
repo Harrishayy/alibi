@@ -19,7 +19,8 @@ ts = [threading.Thread(target=go) for _ in range(6)]
 n_active = con.execute("SELECT count(*) FROM sessions WHERE status='active'").fetchone()[0]
 check(n_active == 1, f"6 parallel starts -> 1 active session (replies: {sum('Session' in r for r in replies)} started)")
 
-# R3: racing ends -> one verdict alert, one close
+# R3: racing ends -> one verdict alert, one close (past the "only just started -> Cancel" window)
+_cw, cli.CANCEL_WINDOW_S = getattr(cli, "CANCEL_WINDOW_S", 0), 0
 sid = db.active_session(con)["id"]
 before = sum(a["kind"] == "verdict" for a in notify.recent_alerts(500))
 outs = []
@@ -33,7 +34,7 @@ check(db.get_session(con, sid)["status"] == "done", "session closed once")
 clock = Clock()
 # R1: ending a long claim after one sample is not a done verdict and doesn't credit the declared minutes
 r = cli.say(con, "draw for 200 minutes")
-check("Session" in r, r)
+check("Started" in r, r)
 daemon.tick(con); clock.advance(10); daemon.tick(con)
 v = cli.say(con, "done")
 s = con.execute("SELECT * FROM sessions ORDER BY id DESC LIMIT 1").fetchone()
@@ -41,6 +42,7 @@ check(s["verdict"] == "slacked" and s["on_task_ratio"] < 0.01, f"10 s of a 200-m
 row = next(x for x in report.build_json()["rows"] if x["habit"] == "drawing")
 check(row["verified_min"] < 5, f"report verified ≈ elapsed, not declared (verified {row['verified_min']} of {row['declared_min']})")
 check("Ended after 0 min of 200" in v, "verdict says it ended early: " + v)
+cli.CANCEL_WINDOW_S = _cw          # (R1 above is about judging; a 10 s 'end' is a Cancel in normal use — test_journey)
 st = c.get(f"/api/sessions").json()[0]
 check(st["coverage"] < 0.01 and "only 0 of 200 min happened" in st["why"], "session JSON explains coverage: " + st["why"])
 
@@ -51,7 +53,7 @@ for text in ("draw for 0 minutes", "draw for 600 minutes", "draw for 99999999999
     r = c.post("/api/say", json={"text": text})
     check(r.status_code == 200 and db.active_session(con) is None, f"{text!r} -> friendly no: {r.json()['reply']}")
 r = cli.say(con, "finish the sketch for 20 min")
-check("Session" in r and "20 min" in r, f"'finish the sketch for 20 min' starts drawing: {r}")
+check("Started" in r and "20 min" in r, f"'finish the sketch for 20 min' starts drawing: {r}")
 cli.end(con)
 r = cli.say(con, "write the report for 30 min")
 check("habit" in r.lower() and "verified" not in r.lower(), f"'write the report for 30 min' isn't the weekly report: {r}")
@@ -86,7 +88,7 @@ reel = config.DATA_DIR / "reels" / f"session-{s4['id']}.mp4"
 check(reel.exists(), "reel built after the bell")
 lab = c.get("/api/sessions").json()[0]["labels"][0]
 out = c.post(f"/api/sessions/{s4['id']}/correct", json={"ts": lab["ts"], "label": "phone"})
-check(out.status_code == 200 and "Re-scored" in out.json()["reply"], out.json()["reply"])
+check(out.status_code == 200 and "New score" in out.json()["reply"], out.json()["reply"])
 daemon.join_reels()
 check(reel.exists() and "?v=" in c.get("/api/sessions").json()[0]["reel_url"], "reel rebuilt, URL cache-busted")
 
@@ -109,7 +111,7 @@ cli.end(con)
 # R9: island health from heartbeat
 c.get("/api/state", headers={"X-Alibi-Client": "island"})
 isl = next(x for x in c.get("/api/health").json()["checks"] if x["key"] == "island")
-check(isl["ok"] and "last seen" in isl["detail"], "island health from heartbeat: " + isl["detail"])
+check(isl["ok"] and "last seen" in isl["details"], "island health from heartbeat: " + isl["details"])
 
 # R10: data dir not public; Host check
 check(c.get("/files/alibi.db").status_code == 404 and c.get("/files/alerts.jsonl").status_code == 404,

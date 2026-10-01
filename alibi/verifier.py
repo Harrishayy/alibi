@@ -2,7 +2,7 @@
 
 physical -> camera labels; digital -> laptop window titles (classified once, cached); hybrid -> per-minute OR of both.
 """
-import re
+import json, re, time
 from collections import Counter
 from . import config, db, evidence, llm
 
@@ -73,12 +73,22 @@ def correct(con, session_id: int, target_ts: float | None, label: str, title: st
         db.add_event(con, "user", "correction", {"target_ts": hit["ts"], "label": label, "was": was,
                                                  "note": hit["payload"].get("note", "")}, session_id=session_id)
         what = hit["payload"].get("note") or config.LABEL_TEXT.get(was, was).lower()
+        at = time.strftime("%H:%M", time.localtime(hit["ts"]))
+        new = config.LABEL_TEXT.get(label, label).lower()
         if was == label:
-            reply = "Noted. That one stands."
-        elif was == "on_task":
-            reply = f"Noted. That was {config.LABEL_TEXT.get(label, label).lower()}, not work. Your call."
+            reply = f"{at} already says {new} — nothing to change."
         else:
-            reply = f"Noted. I'll stop counting \"{what}\" as {config.LABEL_TEXT.get(was, was).lower()}."
+            reply = f"Changed that moment ({at}) to {new}."
+            # J8: one camera fix is one moment. Only the same fix twice becomes a rule (witness._apply_lessons).
+            same = sum(1 for e in con.execute(
+                "SELECT e.payload FROM events e JOIN sessions s ON s.id=e.session_id WHERE e.source='user' "
+                "AND e.kind='correction' AND s.habit=?", (s["habit"],))
+                if (lambda p: p.get("was") == was and p.get("label") == label
+                    and p.get("note", "") == hit["payload"].get("note", ""))(json.loads(e["payload"])))
+            if same == 2 and config.VISION_BACKEND != "nvidia":
+                reply += f" That's twice for \"{what}\" — from now on Alibi counts it as {new}."
+            elif same == 2:
+                reply += " Alibi will keep that in mind next time."
     else:
         if not title and target_ts is not None:
             w = min(_window_events(con, s), key=lambda e: abs(e["ts"] - target_ts), default=None)
@@ -90,15 +100,17 @@ def correct(con, session_id: int, target_ts: float | None, label: str, title: st
         con.execute("INSERT OR REPLACE INTO title_cache(habit, title, label) VALUES (?,?,?)", (s["habit"], title, lab))
         con.commit()
         db.add_event(con, "user", "correction", {"title": title, "label": lab}, session_id=session_id)
-        reply = f"Noted. \"{title[:40]}\" counts as {'work' if lab == 'on_task' else 'a distraction'} for " \
-                f"{config.display_name(s['habit'])} from now on."
+        reply = f"Got it — \"{title[:40]}\" counts as {'work' if lab == 'on_task' else 'a distraction'} " \
+                f"for {config.display_name(s['habit'])} from now on."
     if s["status"] != "done":
-        return reply + " It counts when the session ends."
+        return reply + " It'll count in the final score."
+    old_v = s["verdict"]
     finalise(con, s, artefact=s["artefact"], keep_end=True)
     reel = config.DATA_DIR / "reels" / f"session-{session_id}.mp4"
     reel.unlink(missing_ok=True)                 # R5: the daemon rebuilds it with the corrected labels
     s2 = db.get_session(con, session_id)
-    return f"{reply} Re-scored: {s2['verdict']} — {s2['on_task_ratio']:.0%}."
+    word = {"done": "done ✓", "partial": "partial", "slacked": "slacked"}[s2["verdict"]]
+    return f"{reply} New score: {s2['on_task_ratio']:.0%} — {'still ' if s2['verdict'] == old_v else 'now '}{word}."
 
 
 def close(con, session, artefact: str | None = None, ended_at: float | None = None) -> dict | None:
@@ -209,21 +221,31 @@ def stats(con, session, cam=None, windows=None) -> dict:
     r = session["on_task_ratio"]
     seen = (r / cov) if (r is not None and cov > 0) else None
     elapsed = round(cov * session["declared_min"])
-    how = {"physical": "camera samples on task", "digital": "screen time on task",
-           "hybrid": "minutes where camera or screen showed the work"}[session["modality"]]
+    how = {"physical": "how many camera checks showed you working", "digital": "how much screen time was on task",
+           "hybrid": "minutes where the camera or the screen showed the work"}[session["modality"]]
     parts = []
     if cam_ratio is not None:
         parts.append(f"camera {cam_ratio:.0%}")
     if scr is not None:
         parts.append(f"screen {scr:.0%}")
-    why = f"Scored by {how}" + (f" ({', '.join(parts)})" if parts else "")
+    why = f"Score = {how}" + (f" ({', '.join(parts)})" if parts else "")
     if cov < 0.98 and session["status"] == "done":
         if tcov - cov > 0.02:
             dk = min(session["declared_min"], round(dark / 60))
-            why += f"; no samples for {dk} of {session['declared_min']} min (laptop asleep?)"
+            why += f"; nothing was seen for {dk} of {session['declared_min']} min (laptop asleep?)"
         else:
             why += f"; only {elapsed} of {session['declared_min']} min happened"
-    return {"coverage": round(cov, 3), "time_coverage": round(tcov, 3), "elapsed_min": elapsed, "seen_ratio": seen, "camera_ratio": cam_ratio,
+    t = config.habits().get("verdict", {})
+    done_at, partial_at = float(t.get("done", 0.7)), float(t.get("partial", 0.4))
+    score_line = None
+    if r is not None:
+        if r >= done_at:
+            score_line = f"You were on task {r:.0%} — a full tick."
+        elif r >= partial_at:
+            score_line = f"You were on task {r:.0%} — {round((done_at - r) * 100)}% short of a full tick."
+        else:
+            score_line = f"You were on task {r:.0%} — {round((partial_at - r) * 100)}% short of a partial."
+    return {"done_at": done_at, "partial_at": partial_at, "score_line": score_line, "coverage": round(cov, 3), "time_coverage": round(tcov, 3), "elapsed_min": elapsed, "seen_ratio": seen, "camera_ratio": cam_ratio,
             "screen_ratio": scr, "verified_min": round((r or 0) * session["declared_min"]), "why": why + "."}
 
 
@@ -240,7 +262,7 @@ def voice(con, s) -> str:
     if tcov - cov > 0.1 and v != "done":
         dm, dk = s["declared_min"], min(s["declared_min"], round(dark / 60))
         return (f"{name}: {v}. No evidence for {dk} of {dm} min — the laptop slept "
-                f"or the witness couldn't see; {max(0, min(round(r * dm), dm - dk))} min seen.")
+                f"or the camera couldn't see; {max(0, min(round(r * dm), dm - dk))} min seen.")
     if cov < 0.5 and v != "done":
         return (f"{name}: {v}. Ended after {elapsed} min of {s['declared_min']} — "
                 f"a claim isn't evidence; {round(r * s['declared_min'])} min seen.")
@@ -271,7 +293,7 @@ def voice(con, s) -> str:
         tail = (", " + ", ".join(what(l, k) for l, k in off.most_common(2))) if worst else ""
         return f"{name}: partial. {pct} on task{tail}.{early}"
     seen = config.LABEL_TEXT.get(worst, "nothing").lower() if worst else "nothing useful"
-    return f"{name}: slacked. {pct} on task. The witness mostly saw: {seen}.{early}"
+    return f"{name}: slacked. {pct} on task. The camera mostly saw: {seen}.{early}"
 
 
 def _window_events(con, session):

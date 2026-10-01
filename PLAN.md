@@ -242,3 +242,11 @@ Cut order if behind: P11 → P10 → P9 editor (keep health) → P8 chips (keep 
 ### P13 — Critique → build → review round (multi-agent workflow)
 4 critics (island, dashboard, features vs Opal/Rize/Forest/Beeminder/notch apps, robustness) → backend, island, dashboard builders → adversarial reviewers → fix round.
 Scores: island 5 → 6.5 → fixed; dashboard 6 → 8.2 (ship); backend 4.5 → 7.2 → fixed. Tests: tests/test_robust.py, test_features.py, test_backend_fixes.py.
+
+### P14 — End-to-end round 2: onboarding, Calendar, Strava, Health (multi-agent workflow)
+Audit (fresh-install journey 5.2, island 6.2, integrations 3.5) → calendar / strava+health / habits+onboarding builders → dashboard + island → reviewers (7.3 / 7.0 / 7.4) → fix round.
+- Onboarding wizard: welcome → templates (plain-language "Checked by") → days/time/length → connections → first session.
+- Apple Calendar via `bin/alibi-calendar` (EventKit): plan blocks in an "Alibi" calendar, verdicts written back, "planned now — start?" on the island.
+- Strava: guided connect at /strava/setup (OAuth callback, tokens in data/secrets.json, refresh rotation, rate limits, all run types).
+- Apple Health: opt-in phone listener + /phone setup page (QR + Shortcut steps); steps/sleep/mindful/workout habits.
+Manual checks only the user can do: Calendar permission prompt, real Strava app, real iPhone Shortcut.
