@@ -1,23 +1,59 @@
+# ── Secrets & per-machine config ─────────────────────────────
 .env
-.venv/
-data/*.db*
-data/frames/*
-data/evidence/*
-demo/clips/*
-!**/.gitkeep
-__pycache__/
-bin/
-data/demo/
-data/alerts.jsonl
-tests/fixtures/
-Alibi.app/
-data/logs/
-data/alibi.pid
-# secrets and per-machine state (Strava tokens, phone key, calendar event map)
+.env.*
+!.env.example
 data/secrets.json
 data/.secrets.*.tmp
+*.pem
+*.key
+*.p12
+*.mobileprovision
+*.cer
+
+# ── Personal data (never commit: camera frames, sessions, logs) ──
+data/*.db*
 data/*.json
-data/strava_state.json
+data/*.jsonl
+data/*.log
+data/alibi.pid
+data/frames/*
+data/evidence/*
+data/reels/
+data/logs/
+data/demo/
+data/backup-*/
+demo/clips/*
+!**/.gitkeep
+
+# ── Build output (rebuild: bash scripts/build_native.sh) ─────
+bin/
+Alibi.app/
 ios/Generated/
 ios/build/
 ios/*.xcodeproj/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.dSYM/
+
+# ── Python ───────────────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# ── Test fixtures (regenerate: python tests/make_fixtures.py) ─
+tests/fixtures/
+
+# ── Tooling caches ───────────────────────────────────────────
+.impeccable/
+.claude/settings.local.json
+.claude/worktrees/
+.DS_Store
+*.swp
+.idea/
+.vscode/
