@@ -22,3 +22,18 @@ def video(name: str, plan: list[tuple[str, int]]):
 
 if __name__ == "__main__":
     print(video("desk_4min.mp4", [("on_task", 120), ("phone", 60), ("absent", 60)]))
+
+
+def strava(name: str = "strava.json"):
+    """This week's runs, Strava API shape: one long, one too short to count, plus a ride (ignored)."""
+    import datetime as dt, json, sys
+    sys.path.insert(0, str(OUT.parents[1]))
+    from alibi import report
+    t0 = dt.datetime.fromtimestamp(report.week_start(), dt.timezone.utc)
+    iso = lambda h: (t0 + dt.timedelta(hours=h)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    acts = [{"id": 901, "name": "Morning Run", "sport_type": "Run", "distance": 5400.0, "moving_time": 1740, "start_date": iso(7)},
+            {"id": 902, "name": "Shakeout", "sport_type": "Run", "distance": 3100.0, "moving_time": 1140, "start_date": iso(55)},
+            {"id": 903, "name": "Commute", "sport_type": "Ride", "distance": 9000.0, "moving_time": 1800, "start_date": iso(30)}]
+    OUT.mkdir(exist_ok=True)
+    (OUT / name).write_text(json.dumps(acts, indent=1))
+    return OUT / name

@@ -2,12 +2,13 @@
 
 Run:  python -m alibi.daemon            (then open http://127.0.0.1:8765 or launch the island)
 """
-import datetime as dt, time
+import datetime as dt, os, time
 from . import camera, config, db, laptop_logger, nudges, verifier
 from .notify import notify
 
 TICK_S = 5
 _report_sent_on = None
+_strava_synced = 0.0
 
 
 def tick(con) -> None:
@@ -23,6 +24,12 @@ def tick(con) -> None:
         line = verifier.finalise(con, s)
         done = con.execute("SELECT evidence_path FROM sessions WHERE id=?", (s["id"],)).fetchone()
         notify(f"Time's up. {line}", image_path=done["evidence_path"], kind="verdict")
+    global _strava_synced
+    if os.getenv("STRAVA_REFRESH_TOKEN") and time.time() - _strava_synced > 3600:
+        _strava_synced = time.time()
+        from . import strava
+        for r in strava.sync():
+            notify(f"Strava: {r['name']}, {r['distance_km']} km — logged.", kind="info")
     today = dt.date.fromtimestamp(time.time())
     if dt.datetime.fromtimestamp(time.time()).hour == config.REPORT_HOUR and _report_sent_on != today:
         from . import report
