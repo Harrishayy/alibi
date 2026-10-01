@@ -257,3 +257,20 @@ heart rate, motion + pickups, home geofence (in/out only), Screen Time (picked a
 shields during sessions, and an "Alibi" Focus filter. Mac: idle/lock, camera+mic in use, media, Focus, notification counts
 (Full Disk Access), app-switch rate, git. Fusion only lowers scores, with a stated reason; signal nudges. Page: /signals.
 Reviews: backend 6.5, iOS 7, UI 6 → all majors fixed in the fix round. 23 test suites green.
+
+### P21 — Always-on agent on the DGX Spark (NemoClaw) (added 2026-10-01)
+Mac stays the hub and the truth. The Spark runs OpenClaw in a NemoClaw/OpenShell sandbox on Nemotron 3 Super (Build).
+It reads `/api/agent/context` and posts briefs (docs/NEMOCLAW.md §5) through `alibi/relay.py`, which holds the agent
+token and mirrors the Mac into `data/relay/`. Briefs on OpenClaw cron at the contract's slots; heartbeat risk briefs;
+memory in the sandbox workspace. The agent can't start, stop or change sessions. Skill, cron, egress preset: `spark/`;
+`scripts/spark_setup.sh` wires it. Video witness (`VLM_VIDEO=1`, Nemotron 3 Nano Omni) judges a minute as one clip.
+**DoD:** `tests/test_relay.py` and `tests/test_video_witness.py` pass; on the Spark, `openclaw cron run <night job>`
+stores a brief on the Mac with `via: nemoclaw`; with the Mac asleep the relay serves stale context and refuses briefs.
+**Clip:** the night brief arriving, tagged NemoClaw, after the cron fires on the Spark.
+
+### Later (after submission)
+- **Agent briefs in the island and iPhone app** (stored and served now; no UI yet).
+- Fully local agent on Nemotron 3 Nano: run our own llama.cpp/vLLM server (NemoClaw's managed profile caps requests at
+  32 KB, too small for OpenClaw's tool loop). Model is already downloaded on the Spark.
+- Video witness on a local Omni on the Spark, so clips never leave the network.
+- Grounded Ask through the OpenClaw gateway with web_search (NEMOCLAW.md §4).

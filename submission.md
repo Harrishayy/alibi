@@ -2,6 +2,8 @@
 
 **Name:** Alibi — the habit tracker that checks your alibi
 
+**Agent harness (form):** NemoClaw (OpenClaw in an OpenShell sandbox on a DGX Spark, Nemotron 3 Super via NVIDIA Build)
+
 **Short description:**
 Habit trackers trust you. Alibi doesn't. You tell it what you're about to do ("draw for an hour", "learn C++ for 30 minutes"), and a long-running agent gathers evidence while you work: a desk camera sampled once a minute and judged by a vision-language model for physical work, your laptop's active windows for digital work, and Strava for runs. If you drift to your phone, it nudges you mid-session. When the timer ends, it gives a verdict (done / partial / slacked) backed by a contact sheet of timestamped frames or a breakdown of what was actually on screen, and only then updates your tracker. Every night it reports whether you're actually aligned with your weekly goals.
 
@@ -11,6 +13,8 @@ Habit trackers trust you. Alibi doesn't. You tell it what you're about to do ("d
 
 **Also:** every camera session becomes a short timelapse "memories reel", and you can correct any sample the witness got wrong — the verdict re-scores, but the correction stays on the record.
 
-**What's next:** iOS Shortcuts for phone Focus + Apple Health (the endpoint already exists), learning from your corrections, a fully local VLM on DGX Spark so frames never leave the network, and 3D "where did I leave it" memory of the desk.
+**Where the agent lives:** an OpenClaw agent runs 24/7 inside a NemoClaw / OpenShell sandbox on a DGX Spark, driven by Nemotron 3 Super on NVIDIA Build (the key stays on the host, never in the sandbox). It reaches the Mac over Tailscale through a single relay: deny-by-default egress, four allowed calls (status, context, digests, brief), and the Mac's agent token never enters the sandbox. It can read Alibi's evidence and write briefs, but it can't start, stop or change a session; Alibi keeps the last word. On a schedule it writes the morning, checkpoint and night briefs, keeps a memory of what slipped and why, and says whether last night's plan held. The relay mirrors the Mac every 20 seconds, so the agent still knows the last state while the laptop sleeps. The optional camera witness, Nemotron 3 Nano Omni, judges each minute as a short clip rather than a single photo, so a glance at your phone and ten minutes on it aren't the same thing.
+
+**What's next:** iOS Shortcuts for phone Focus + Apple Health (the endpoint already exists), learning from your corrections, the agent and the witness fully local on the Spark (Nemotron 3 Nano is already downloaded) so nothing leaves your network, agent messages straight into the island and iPhone app, and 3D "where did I leave it" memory of the desk.
 
 **Demo:** <video link>
