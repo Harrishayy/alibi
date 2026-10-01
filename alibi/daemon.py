@@ -3,7 +3,7 @@
 Run:  python -m alibi.daemon            (then open http://127.0.0.1:8765 or launch the island)
 """
 import datetime as dt, time
-from . import camera, config, db, nudges, verifier
+from . import camera, config, db, laptop_logger, nudges, verifier
 from .notify import notify
 
 TICK_S = 5
@@ -13,6 +13,7 @@ _report_sent_on = None
 def tick(con) -> None:
     """One pass of everything time-based. Tests call this directly with a fake clock."""
     global _report_sent_on
+    laptop_logger.log_once(con)                                       # free, runs always
     s = db.active_session(con)
     if s and s["modality"] in ("physical", "hybrid"):
         camera.maybe_sample(con, s, force=time.time() >= s["ends_at"])   # always one last look at the bell

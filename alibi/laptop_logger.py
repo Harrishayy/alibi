@@ -4,7 +4,7 @@ Run in tmux:  python -m alibi.laptop_logger
 Contract: events(source='laptop', kind='window', payload={app, title, url}).
 """
 import platform, subprocess, time
-from . import db
+from . import config, db
 
 MAC_APP_TITLE = '''
 tell application "System Events"
@@ -36,6 +36,27 @@ def frontmost() -> dict:
     #   Hyprland: hyprctl activewindow -j
     #   KDE/Wayland: kdotool getactivewindow getwindowname
     return {"app": "", "title": "", "url": ""}
+
+
+_last_log = 0.0
+
+
+def log_once(con, force: bool = False) -> dict | None:
+    """Called from the daemon tick; logs at most every LAPTOP_EVERY_S. Never raises."""
+    global _last_log
+    now = time.time()
+    if not force and now - _last_log < config.LAPTOP_EVERY_S:
+        return None
+    _last_log = now
+    try:
+        w = frontmost()
+    except Exception:
+        return None
+    if not w.get("app"):
+        return None
+    s = db.active_session(con)
+    db.add_event(con, "laptop", "window", w, session_id=s["id"] if s else None, ts=now)
+    return w
 
 
 def main(every_s: int = 30):

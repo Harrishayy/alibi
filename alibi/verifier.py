@@ -51,7 +51,8 @@ def finalise(con, session, artefact: str | None = None) -> str:
 
 def _window_events(con, session):
     end = session["ended_at"] or session["ends_at"]
-    return [e for e in db.events_between(con, session["started_at"], end, "laptop") if e["payload"].get("app")]
+    return [e for e in db.events_between(con, session["started_at"], end, "laptop")
+            if e["payload"].get("app") and e["ts"] < end]          # half-open: the bell's own sample isn't evidence
 
 
 def window_breakdown(con, session) -> list[dict]:

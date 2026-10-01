@@ -36,10 +36,22 @@ def end(con, artefact: str | None = None) -> str:
         return "No active session."
     from . import verifier
     from .notify import notify
-    line = verifier.finalise(con, s, artefact=artefact)
+    line = verifier.finalise(con, s, artefact=artefact) + _artefact_note(s, artefact)
     done = con.execute("SELECT evidence_path FROM sessions WHERE id=?", (s["id"],)).fetchone()
     notify(f"Ended early. {line}", image_path=done["evidence_path"], kind="verdict")
     return line
+
+
+def _artefact_note(s, artefact: str | None) -> str:
+    """If the artefact is a git repo, show what actually changed during the session."""
+    import os, subprocess
+    if not artefact or not os.path.isdir(os.path.join(os.path.expanduser(artefact), ".git")):
+        return f" Artefact: {artefact}." if artefact else ""
+    since = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(s["started_at"]))
+    log = subprocess.run(["git", "-C", os.path.expanduser(artefact), "log", f"--since={since}", "--shortstat",
+                          "--format="], capture_output=True, text=True).stdout.split("\n")
+    stats = [l.strip() for l in log if l.strip()]
+    return f" Repo: {len(stats)} commit(s) this session" + (f", last: {stats[0]}." if stats else ".")
 
 
 def report(con=None) -> str:
