@@ -1,5 +1,5 @@
 """THE CONTRACT. Freeze after P0. Observers write `events`; the verifier reads them."""
-import json, sqlite3, time
+import json, sqlite3, threading, time
 from . import config
 
 DB_PATH = config.DATA_DIR / "alibi.db"
@@ -55,14 +55,39 @@ def add_event(con, source: str, kind: str, payload: dict, session_id=None, ts=No
     con.commit()
 
 
-def create_session(con, habit: str, modality: str, minutes: int) -> int:
+_write_lock = threading.RLock()     # FastAPI runs sync endpoints in a thread pool; serialise session state changes
+
+
+def create_session(con, habit: str, modality: str, minutes: int) -> int | None:
+    """Atomic: inserts only if no session is active (R2). Returns the new id, or None if one is already live."""
     now = time.time()
-    cur = con.execute(
-        "INSERT INTO sessions(habit, modality, declared_min, started_at, ends_at) VALUES (?,?,?,?,?)",
-        (habit, modality, minutes, now, now + minutes * 60),
-    )
-    con.commit()
-    return cur.lastrowid
+    with _write_lock:
+        con.commit()
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            cur = con.execute(
+                "INSERT INTO sessions(habit, modality, declared_min, started_at, ends_at) SELECT ?,?,?,?,? "
+                "WHERE NOT EXISTS (SELECT 1 FROM sessions WHERE status='active')",
+                (habit, modality, int(minutes), now, now + int(minutes) * 60),
+            )
+            con.commit()
+        except Exception:
+            con.rollback()
+            raise
+    return cur.lastrowid if cur.rowcount == 1 else None
+
+
+def claim_session(con, session_id: int, ended_at: float) -> bool:
+    """Atomic close (R3): exactly one caller (CLI end, API end, or the bell) wins; the rest get False."""
+    with _write_lock:
+        cur = con.execute("UPDATE sessions SET status='done', ended_at=? WHERE id=? AND status='active'",
+                          (ended_at, session_id))
+        con.commit()
+    return cur.rowcount == 1
+
+
+def get_session(con, session_id: int):
+    return con.execute("SELECT * FROM sessions WHERE id=?", (session_id,)).fetchone()
 
 
 def active_session(con):
@@ -85,6 +110,32 @@ def events_between(con, t0: float, t1: float, source: str):
         "SELECT * FROM events WHERE source=? AND ts BETWEEN ? AND ? ORDER BY ts", (source, t0, t1)
     )
     return [dict(r, payload=json.loads(r["payload"])) for r in rows]
+
+
+def user_events(con, session_id: int, kind: str | None = None) -> list[dict]:
+    return [e for e in session_events(con, session_id, "user") if kind is None or e["kind"] == kind]
+
+
+def breaks(con, session_id: int, now: float | None = None) -> list[tuple[float, float]]:
+    """Break windows [(start, end)] from user 'break' events, cut short by a later 'resume'. No schema change."""
+    now = now or time.time()
+    ev = session_events(con, session_id, "user")
+    out = []
+    for i, e in enumerate(ev):
+        if e["kind"] != "break":
+            continue
+        end = float(e["payload"].get("until", e["ts"]))
+        for r in ev[i + 1:]:
+            if r["kind"] in ("resume", "break") and r["ts"] < end:
+                end = r["ts"]
+                break
+        out.append((e["ts"], end))
+    return out
+
+
+def in_break(con, session_id: int, ts: float | None = None) -> tuple[float, float] | None:
+    ts = ts or time.time()
+    return next((b for b in breaks(con, session_id, ts) if b[0] <= ts < b[1]), None)
 
 
 def finish_session(con, session_id: int, **fields) -> None:

@@ -39,3 +39,30 @@ ALERTS_PATH = DATA_DIR / "alerts.jsonl"
 TEXT_READY = bool(NVIDIA_API_KEY.startswith("nvapi-") and len(NVIDIA_API_KEY) > 12 and LLM_MODEL and "<" not in LLM_MODEL)
 VISION_BACKEND = os.getenv("VISION_BACKEND") or (
     "nvidia" if TEXT_READY and VLM_MODEL and "<" not in VLM_MODEL else "apple")   # nvidia | apple | mock
+
+# --- added: limits, pace reminders, drift consequences --------------------------------------------------------
+MAX_SESSION_MIN = int(os.getenv("MAX_SESSION_MIN", "240"))       # longer claims must be said in chunks
+PACE_HOURS = tuple(int(h) for h in os.getenv("PACE_HOURS", "11,15,19").split(",") if h.strip())
+BLOCK_ON_DRIFT = os.getenv("BLOCK_ON_DRIFT", "0") == "1"           # hide the off-task app on the 2nd nudge (digital)
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALIBI_ALLOWED_HOSTS", "").split(",") if h.strip()]
+
+DISPLAY_NAMES = {"cpp": "C++"}
+
+
+def display_name(key: str, cfg: dict | None = None) -> str:
+    """habits.yaml `label:` wins; then a small map (cpp -> C++); else Capitalised key."""
+    try:
+        h = (cfg or habits())["habits"].get(key) or {}
+    except Exception:
+        h = {}
+    return str(h.get("label") or DISPLAY_NAMES.get(key) or key.replace("_", " ").capitalize())
+
+
+LABEL_TEXT = {"on_task": "On task", "phone": "On your phone", "absent": "Away from desk", "idle": "Idle",
+              "off_task": "Off task"}
+
+
+def spoken_name(key: str) -> str:
+    """Mid-sentence form: 'You said drawing.' but 'You said C++.'"""
+    n = display_name(key)
+    return key.replace("_", " ") if n == key.replace("_", " ").capitalize() else n

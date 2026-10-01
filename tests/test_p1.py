@@ -22,5 +22,7 @@ check(0.4 <= s["on_task_ratio"] <= 0.6, f"ratio ≈ 50% (got {s['on_task_ratio']
 check({e["payload"]["label"] for e in ev} == {"on_task", "phone", "absent"}, "saw on_task, phone, absent")
 check(any(e["payload"]["reused"] for e in ev), "motion gate skipped some model calls")
 check(s["evidence_path"] and pathlib.Path(s["evidence_path"]).exists(), f"contact sheet at {s['evidence_path']}")
-check("PARTIAL" in notify.recent_alerts()[-1]["text"], "verdict notified: " + notify.recent_alerts()[-1]["text"])
+a = notify.recent_alerts()[-1]
+check(a["kind"] == "verdict" and a["verdict"] == "partial" and "partial" in a["text"] and a["session_id"] == sid,
+      "verdict notified in the witness's voice, with structured fields: " + a["text"])
 print("P1 DoD passed.")

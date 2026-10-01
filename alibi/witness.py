@@ -8,10 +8,39 @@ WITNESS_BIN = config.ROOT / "bin" / "alibi-witness"
 PHONE_WORDS = ("phone", "cellphone", "smartphone", "telephone", "mobile")
 
 
+def lessons(habit_key: str, limit: int = 5) -> list[dict]:
+    """The user's last corrections for this habit: [{was, label, note}] (F6). Newest first."""
+    try:
+        con = db.connect()
+        rows = con.execute("SELECT e.payload FROM events e JOIN sessions s ON s.id=e.session_id WHERE e.source='user' "
+                           "AND e.kind='correction' AND s.habit=? ORDER BY e.ts DESC LIMIT ?", (habit_key, limit * 4))
+        out = [json.loads(r["payload"]) for r in rows]
+    except Exception:
+        return []
+    return [x for x in out if x.get("was") and x.get("was") != x.get("label")][:limit]
+
+
 def prompt_for(habit_key: str, habit_cfg: dict) -> str:
-    return (f"The person declared they are doing: {habit_key}. "
+    base = (f"The person declared they are doing: {habit_key}. "
             f"On task looks like: {habit_cfg.get('on_task_looks_like', habit_key)}. "
             "phone = holding or looking at a phone. idle = present but not working. absent = nobody there.")
+    past = lessons(habit_key)
+    if past:
+        base += " The person has corrected you before; learn from it: " + " ".join(
+            f'Previously "{x.get("note") or x["was"]}" ({x["was"]}) was corrected to {x["label"]}.' for x in past)
+    return base
+
+
+def _apply_lessons(out: dict, habit_key: str) -> dict:
+    """On-device witnesses can't read a prompt, so apply the user's rule directly: the same (label, note) corrected
+    the same way twice for this habit is overruled from now on."""
+    from collections import Counter
+    votes = Counter((x["was"], x.get("note", ""), x["label"]) for x in lessons(habit_key, 20))
+    for (was, note, new), n in votes.items():
+        if n >= 2 and was == out.get("label") and note == out.get("note"):
+            return {**out, "label": new, "note": f"{out.get('note', '')} — you've overruled this before"[:80],
+                    "learned_from": was}
+    return out
 
 
 def judge(jpeg: bytes, path: str, habit_key: str, habit_cfg: dict, backend: str | None = None) -> dict:
@@ -22,6 +51,8 @@ def judge(jpeg: bytes, path: str, habit_key: str, habit_cfg: dict, backend: str 
         out = {"label": "idle", "note": f"witness error: {type(e).__name__}"}
     if out.get("label") not in db.LABELS:
         out["label"] = "off_task"
+    if backend != "nvidia":
+        out = _apply_lessons(out, habit_key)
     out["note"] = str(out.get("note", ""))[:80]
     out["backend"] = backend
     return out
@@ -52,9 +83,9 @@ def _mock(jpeg, path, habit_key, habit_cfg):
     from PIL import Image
     r, g, b = Image.open(path).convert("RGB").resize((8, 8)).getdata()[27]
     if max(r, g, b) < 40:
-        return {"label": "absent", "note": "dark frame"}
+        return {"label": "absent", "note": "nobody at the desk"}
     if g > r and g > b:
-        return {"label": "on_task", "note": "green frame"}
+        return {"label": "on_task", "note": "hands on the work"}
     if r > g and r > b:
-        return {"label": "phone", "note": "red frame"}
-    return {"label": "idle", "note": "blue frame"}
+        return {"label": "phone", "note": "phone in hand"}
+    return {"label": "idle", "note": "at the desk, hands still"}

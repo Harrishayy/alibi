@@ -15,7 +15,7 @@ for _ in range(49):
     daemon.tick(con); clock.advance(5)
 c = TestClient(api.app)
 url = c.get(f"/api/reel?session={sid}").json()["url"]
-path = os.environ["ALIBI_DATA_DIR"] + url.removeprefix("/files")
+path = os.environ["ALIBI_DATA_DIR"] + url.split("?")[0].removeprefix("/files")
 probe = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name:format=duration",
                         "-of", "csv=p=0", path], capture_output=True, text=True).stdout.split()
 print("    reel:", url, probe)

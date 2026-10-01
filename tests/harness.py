@@ -8,6 +8,7 @@ import shutil
 os.environ["ALIBI_HABITS"] = shutil.copy(ROOT / "habits.yaml", os.environ["ALIBI_DATA_DIR"] + "/habits.yaml")
 os.environ.setdefault("NOTIFY", "print")
 os.environ.setdefault("VISION_BACKEND", "mock")
+os.environ.setdefault("PACE_HOURS", "")             # pace reminders only where a test asks for them
 
 
 class Clock:

@@ -13,7 +13,7 @@ for text, want in [("draw for 2 minutes", ("drawing", 2)), ("work on iggy for 45
 
 print(" ", cli.start(con, "draw for 2 minutes"))
 check(db.active_session(con) is not None, "session active after start")
-check("drawing" in cli.status(con), "status shows drawing")
+check("drawing" in cli.status(con).lower(), "status shows drawing")
 for _ in range(23):                        # 23 ticks x 5 s = 115 s
     clock.advance(5); daemon.tick(con)
 check(db.active_session(con) is not None, "still active at 1:55")

@@ -3,7 +3,7 @@
   python -m alibi.reel session 12
   python -m alibi.reel day 2026-10-01
 """
-import datetime as dt, shutil, subprocess, sys, tempfile
+import datetime as dt, os, shutil, subprocess, sys, tempfile, threading
 from PIL import Image, ImageDraw
 from . import config, db, evidence
 
@@ -49,7 +49,7 @@ def _session_frames(con, s) -> list[Image.Image]:
     out = []
     ratio = s["on_task_ratio"]
     sub = (f"{s['verdict'].upper()} · {ratio:.0%} on task" if s["verdict"] else "in progress")
-    card = _card([(f"{s['habit'].capitalize()}", 84, evidence.INK),
+    card = _card([(config.display_name(s["habit"]), 84, evidence.INK),
                   (f"{dt.datetime.fromtimestamp(s['started_at']):%a %d %b, %H:%M} · {s['declared_min']} min", 30, evidence.MUTED),
                   (sub, 30, evidence.VERDICT_COLOUR.get(s["verdict"], evidence.MUTED))])
     out += [card] * (FPS * 2)
@@ -60,17 +60,35 @@ def _session_frames(con, s) -> list[Image.Image]:
     return out
 
 
+_locks: dict[str, threading.Lock] = {}
+_locks_guard = threading.Lock()
+
+
+def _lock_for(name: str) -> threading.Lock:
+    with _locks_guard:
+        return _locks.setdefault(name, threading.Lock())
+
+
+def building(name: str) -> bool:
+    return _lock_for(name).locked()
+
+
 def _encode(frames: list[Image.Image], out_path) -> str:
+    """One build per reel at a time (R3); write to .tmp then os.replace so nobody ever serves half a file."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = tempfile.mkdtemp(prefix="alibi-reel-")
-    try:
-        for i, f in enumerate(frames):
-            f.save(f"{tmp}/{i:05d}.jpg", quality=90)
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{tmp}/%05d.jpg",
-                        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out_path)],
-                       check=True)
-    finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+    with _lock_for(out_path.stem):
+        tmp = tempfile.mkdtemp(prefix="alibi-reel-")
+        part = out_path.with_name(out_path.stem + ".part.mp4")
+        try:
+            for i, f in enumerate(frames):
+                f.save(f"{tmp}/{i:05d}.jpg", quality=90)
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", f"{tmp}/%05d.jpg",
+                            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(part)],
+                           check=True)
+            os.replace(part, out_path)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+            part.unlink(missing_ok=True)
     return str(out_path)
 
 
@@ -85,7 +103,10 @@ def session_reel(con, session_id: int) -> str | None:
 
 
 def day_reel(con, day: str) -> str | None:
-    d0 = dt.datetime.fromisoformat(day).timestamp()
+    try:
+        d0 = dt.datetime.strptime(day, "%Y-%m-%d").timestamp()
+    except (TypeError, ValueError):
+        raise ValueError("date must be YYYY-MM-DD")
     ss = con.execute("SELECT * FROM sessions WHERE started_at BETWEEN ? AND ? AND modality!='digital' ORDER BY started_at",
                      (d0, d0 + 86400)).fetchall()
     frames = [_card([(f"{dt.datetime.fromisoformat(day):%A %d %B}", 72, evidence.INK),

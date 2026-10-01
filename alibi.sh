@@ -22,7 +22,8 @@ case "${1:-help}" in
   up)
     alive && { echo "Alibi is already running."; exit 0; }
     [ -d .venv ] || bash scripts/setup.sh
-    [ -x bin/alibi-island ] && [ -d Alibi.app ] || bash scripts/build_native.sh
+    { [ -x bin/alibi-island ] && [ -d Alibi.app ] && ! [ native/Island.swift -nt Alibi.app/Contents/MacOS/Alibi ] \
+      && ! [ native/witness.swift -nt bin/alibi-witness ]; } || bash scripts/build_native.sh
     if [ "$(uname)" = Darwin ] && [ -d Alibi.app ]; then open -g Alibi.app; else nohup scripts/launch.sh >/dev/null 2>&1 & fi
     printf "Starting Alibi"; for _ in $(seq 120); do up_api && break; printf "."; sleep 0.5; done; echo
     up_api && echo "Alibi is up — hover the notch or press ⌥⌘A · http://127.0.0.1:$PORT" \

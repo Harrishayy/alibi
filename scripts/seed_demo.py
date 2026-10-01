@@ -12,6 +12,8 @@ from alibi import config, db, evidence, report, verifier
 random.seed(7)
 TINT = {"on_task": (95, 150, 90), "phone": (70, 80, 210), "idle": (60, 150, 215), "absent": (18, 18, 18),
         "off_task": (60, 60, 170)}
+NOTES = {"on_task": "hands on the work", "phone": "phone in hand", "idle": "at the desk, hands still",
+         "absent": "nobody at the desk", "off_task": "something else on the desk"}
 HABIT_LOOK = {"drawing": "pen on paper", "building": "hands on robot", "math": "notebook + equations"}
 
 
@@ -38,7 +40,7 @@ def session(con, habit, minutes, start, mix):
             ts = start + i * 60
             p = config.FRAMES_DIR / str(sid) / f"{int(ts)}.jpg"
             frame(p, l, habit, ts)
-            db.add_event(con, "camera", "label", {"label": l, "note": f"seeded {l}", "frame": str(p),
+            db.add_event(con, "camera", "label", {"label": l, "note": NOTES[l], "frame": str(p),
                                                   "reused": False, "backend": "apple"}, session_id=sid, ts=ts)
     if h["modality"] in ("digital", "hybrid"):
         on = {"cpp": [("Visual Studio Code", "main.cpp — learncpp"), ("Google Chrome", "std::vector - cppreference.com")],

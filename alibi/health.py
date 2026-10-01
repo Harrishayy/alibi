@@ -4,6 +4,9 @@ import yaml
 from . import config, db, witness
 
 
+CLIENT_SEEN: dict[str, float] = {}     # R9: clients send X-Alibi-Client (island | dashboard) when they poll
+
+
 def _check(key, label, ok, detail, fix=""):
     return {"key": key, "label": label, "ok": bool(ok), "detail": detail, "fix": "" if ok else fix}
 
@@ -32,7 +35,7 @@ def checks() -> dict:
     last = con.execute("SELECT payload, ts FROM events WHERE source='laptop' ORDER BY ts DESC LIMIT 1").fetchone()
     p = json.loads(last["payload"]) if last else {}
     fresh = last and time.time() - last["ts"] < 5 * 60
-    out.append(_check("windows", "Window titles", fresh and p.get("title"),
+    out.append(_check("windows", "Window titles", fresh and p.get("app"),
                       f"last seen: {p.get('app', '?')} — {p.get('title', '')[:40]}" if fresh else "no recent window events",
                       "System Settings → Privacy & Security → Accessibility → turn on Alibi"
                       if fresh else "start Alibi; the logger runs inside the daemon"))
@@ -45,11 +48,27 @@ def checks() -> dict:
                       "add NVIDIA_API_KEY + LLM_MODEL to .env for smarter parsing and summaries"))
     strava = bool(os.getenv("STRAVA_REFRESH_TOKEN"))
     out.append(_check("strava", "Strava", strava, "syncing hourly" if strava else "not connected",
-                      "see PLAN.md P5: one browser approval, then python -m alibi.strava exchange <code>"))
-    island = subprocess.run(["pgrep", "-f", "alibi-island|Alibi.app/Contents/MacOS"], capture_output=True).returncode == 0
-    out.append(_check("island", "Notch island", island, "running — hover the notch or press ⌥⌘A" if island else "not running",
-                      "./alibi.sh up  (or double-click Alibi.app)"))
+                      "Connect Strava once in the browser, then runs are checked hourly"))
+    seen = CLIENT_SEEN.get("island")
+    if seen and time.time() - seen < 10:
+        island, detail = True, f"running — last seen {int(time.time() - seen)} s ago · hover the notch or press ⌥⌘A"
+    else:
+        island = any(subprocess.run(["pgrep", "-x", name], capture_output=True).returncode == 0
+                     for name in ("alibi-island", "Alibi"))
+        detail = ("running — hover the notch or press ⌥⌘A" if island else
+                  f"not seen for {int(time.time() - seen)} s" if seen else "not running")
+    out.append(_check("island", "Notch island", island, detail, "./alibi.sh up  (or double-click Alibi.app)"))
     return {"checks": out, "ok": all(c["ok"] for c in out if c["key"] in ("camera", "windows", "witness", "island"))}
+
+
+def _num(h: dict, field: str, default, cast, key: str):
+    v = h.get(field, default)
+    if v is None or v == "":
+        v = default
+    try:
+        return cast(float(v)) if cast is int else cast(v)
+    except (TypeError, ValueError):
+        raise ValueError(f"{key}: {field} must be a number (got {v!r})")
 
 
 SLUG = re.compile(r"^[a-z][a-z0-9_]{0,23}$")
@@ -57,23 +76,33 @@ SLUG = re.compile(r"^[a-z][a-z0-9_]{0,23}$")
 
 def save_habits(habits: dict) -> dict:
     """Validate and write habits back to habits.yaml, keeping verdict/nudge settings. Returns the new config."""
+    if not isinstance(habits, dict):
+        raise ValueError("habits must be an object of {name: {...}}")
     clean = {}
     for key, h in habits.items():
-        if not SLUG.match(key):
+        if not isinstance(key, str) or not SLUG.match(key):
             raise ValueError(f"habit name {key!r}: lowercase letters, digits, underscores")
+        if not isinstance(h, dict):
+            raise ValueError(f"{key}: expected an object like {{modality: physical, default_min: 25}}")
         if h.get("source") == "strava":
-            clean[key] = {"source": "strava", "weekly_sessions": int(h.get("weekly_sessions", 3)),
-                          "min_km": float(h.get("min_km", 5))}
+            clean[key] = {"source": "strava", "weekly_sessions": _num(h, "weekly_sessions", 3, int, key),
+                          "min_km": _num(h, "min_km", 5, float, key)}
+            if h.get("label"):
+                clean[key]["label"] = str(h["label"])[:24]
             continue
         if h.get("modality") not in ("physical", "digital", "hybrid"):
             raise ValueError(f"{key}: modality must be physical, digital or hybrid")
         aliases = h.get("aliases", [])
         if isinstance(aliases, str):
             aliases = [a.strip() for a in aliases.split(",")]
+        elif not isinstance(aliases, list):
+            aliases = [str(aliases)]
         clean[key] = {"modality": h["modality"], "aliases": [str(a) for a in aliases if str(a).strip()],
-                      "weekly_target_min": max(0, int(h.get("weekly_target_min", 0))),
-                      "default_min": max(1, int(h.get("default_min", 25))),
-                      "on_task_looks_like": str(h.get("on_task_looks_like", key))}
+                      "weekly_target_min": max(0, _num(h, "weekly_target_min", 0, int, key)),
+                      "default_min": min(config.MAX_SESSION_MIN, max(1, _num(h, "default_min", 25, int, key))),
+                      "on_task_looks_like": str(h.get("on_task_looks_like") or key)}
+        if h.get("label"):
+            clean[key]["label"] = str(h["label"])[:24]
     if not clean:
         raise ValueError("need at least one habit")
     cfg = config.habits()

@@ -1,5 +1,5 @@
 """Synthetic desk videos for DoD tests (1 fps). Colour encodes ground truth for the mock witness."""
-import pathlib, cv2, numpy as np
+import os, pathlib, cv2, numpy as np
 
 OUT = pathlib.Path(__file__).parent / "fixtures"
 SCENES = {"on_task": ((95, 150, 90), "drawing"), "phone": ((70, 80, 210), "on phone"),
@@ -8,7 +8,9 @@ SCENES = {"on_task": ((95, 150, 90), "drawing"), "phone": ((70, 80, 210), "on ph
 
 def video(name: str, plan: list[tuple[str, int]]):
     OUT.mkdir(exist_ok=True)
-    w = cv2.VideoWriter(str(OUT / name), cv2.VideoWriter_fourcc(*"mp4v"), 1, (640, 480))
+    final = OUT / name
+    tmp = OUT / f".{name}.{os.getpid()}.mp4"          # write aside, then rename: readers never see a half-written video
+    w = cv2.VideoWriter(str(tmp), cv2.VideoWriter_fourcc(*"mp4v"), 1, (640, 480))
     t = 0
     for label, secs in plan:
         colour, text = SCENES[label]
@@ -17,7 +19,8 @@ def video(name: str, plan: list[tuple[str, int]]):
             cv2.putText(f, f"{text}  t={t}s", (24, 450), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
             w.write(f); t += 1
     w.release()
-    return OUT / name
+    os.replace(tmp, final)
+    return final
 
 
 if __name__ == "__main__":

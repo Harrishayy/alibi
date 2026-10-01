@@ -12,7 +12,7 @@ clock = Clock()
 c = TestClient(api.app)
 r = c.post("/api/say", json={"text": "draw for 10 minutes"}).json()["reply"]
 print("  island ->", r)
-check("drawing" in r, "declared via the island/chat API")
+check("drawing" in r.lower(), "declared via the island/chat API")
 st = c.get("/api/state").json()
 check(st["session"]["habit"] == "drawing" and st["session"]["left_s"] > 590, "state shows live session")
 check(c.get("/").status_code == 200, "dashboard served at /")

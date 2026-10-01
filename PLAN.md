@@ -238,3 +238,7 @@ Same rules: vertical slices, DoD = a command + an output, tag each, `tests/run_a
 - Update submission.md, shotlist, record, submit.
 
 Cut order if behind: P11 → P10 → P9 editor (keep health) → P8 chips (keep hotkey). Never cut P7, P12.
+
+### P13 — Critique → build → review round (multi-agent workflow)
+4 critics (island, dashboard, features vs Opal/Rize/Forest/Beeminder/notch apps, robustness) → backend, island, dashboard builders → adversarial reviewers → fix round.
+Scores: island 5 → 6.5 → fixed; dashboard 6 → 8.2 (ship); backend 4.5 → 7.2 → fixed. Tests: tests/test_robust.py, test_features.py, test_backend_fixes.py.

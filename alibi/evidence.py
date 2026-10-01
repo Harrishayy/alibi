@@ -38,7 +38,7 @@ def contact_sheet(session, label_events: list[dict], ratio: float, verdict: str)
     serif, serif_s, mono = _font("NewYork.ttf", 44), _font("NewYork.ttf", 22), _font("Menlo.ttc", 15)
 
     d.text((pad, pad - 4), "Alibi", font=serif_s, fill=MUTED)
-    d.text((pad, pad + 26), f"{session['habit'].capitalize()}, {session['declared_min']} min", font=serif, fill=INK)
+    d.text((pad, pad + 26), f"{config.display_name(session['habit'])}, {session['declared_min']} min", font=serif, fill=INK)
     vc = VERDICT_COLOUR.get(verdict, INK)
     vtxt = f"{verdict.upper()}  ·  {ratio:.0%} on task"
     vw = d.textlength(vtxt, font=mono)
