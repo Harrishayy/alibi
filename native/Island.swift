@@ -360,6 +360,40 @@ struct IslandView: View {
     }
 }
 
+// MARK: - Daemon ownership (Alibi.app)
+
+final class DaemonOwner {
+    static let shared = DaemonOwner()
+    var proc: Process?
+
+    func start(root: String) {
+        let sem = DispatchSemaphore(value: 0)
+        var up = false
+        URLSession.shared.dataTask(with: URL(string: API + "/api/state")!) { _, r, _ in
+            up = (r as? HTTPURLResponse)?.statusCode == 200; sem.signal()
+        }.resume()
+        _ = sem.wait(timeout: .now() + 1.5)
+        if up { return }
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: root + "/.venv/bin/python")
+        p.arguments = ["-m", "alibi.daemon"]
+        p.currentDirectoryURL = URL(fileURLWithPath: root)
+        try? FileManager.default.createDirectory(atPath: root + "/data/logs", withIntermediateDirectories: true)
+        FileManager.default.createFile(atPath: root + "/data/logs/daemon.log", contents: nil)
+        if let log = FileHandle(forWritingAtPath: root + "/data/logs/daemon.log") {
+            log.seekToEndOfFile(); p.standardOutput = log; p.standardError = log
+        }
+        try? p.run()
+        proc = p
+        for sig in [SIGTERM, SIGINT] {
+            signal(sig) { _ in DaemonOwner.shared.stop(); exit(0) }
+        }
+        atexit { DaemonOwner.shared.stop() }
+    }
+
+    func stop() { proc?.terminate(); proc = nil }
+}
+
 // MARK: - Window
 
 final class Panel: NSPanel {
@@ -455,6 +489,11 @@ if let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count {
     Task { @MainActor in await snapshot(to: dir); exit(0) }
     RunLoop.main.run()
 } else {
+    // Inside Alibi.app: own the daemon's lifetime (start it if nothing answers, stop it when we quit).
+    if let root = Bundle.main.url(forResource: "root", withExtension: "txt")
+        .flatMap({ try? String(contentsOf: $0, encoding: .utf8) })?.trimmingCharacters(in: .whitespacesAndNewlines) {
+        DaemonOwner.shared.start(root: root)
+    }
     let app = NSApplication.shared
     app.setActivationPolicy(.accessory)
     let controller = MainActor.assumeIsolated { Controller() }

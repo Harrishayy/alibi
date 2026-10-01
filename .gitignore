@@ -10,3 +10,6 @@ bin/
 data/demo/
 data/alerts.jsonl
 tests/fixtures/
+Alibi.app/
+data/logs/
+data/alibi.pid
