@@ -1,0 +1,80 @@
+/* shell.css: header (wordmark, state pill, island hint, Setup), hero strip (Pinch, honesty line, streak), section heads,
+   the stable page stack, toast, scrim, footer. One 880px column; the page shape never jumps between states,
+   only the Now card swaps (Surfaces.md "Web dashboard"). Loaded after base.css. */
+
+/* ---------- header (64px) ---------- */
+.hdr{min-height:64px;padding:var(--space-3) 0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-4)}
+.hdr-l,.hdr-r{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2) var(--space-4);min-width:0}
+.wordmark{font-size:13px;line-height:1;font-weight:800;letter-spacing:.13em;color:var(--ink)}
+.statepill{display:inline-flex;align-items:center;gap:var(--space-2);height:28px;max-width:min(420px,calc(100vw - 120px));padding:0 var(--space-3);border-radius:var(--radius-pill);
+  background:var(--surface-1);border:1px solid var(--hairline);font-size:13px;line-height:1;font-weight:600;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:color var(--dur-micro) ease}
+.statepill #conn{overflow:hidden;text-overflow:ellipsis}
+.statepill .pulse{position:relative;display:inline-flex;width:8px;height:8px;flex:none}
+.statepill .pulse .al-dot{position:relative}
+.statepill .ping{position:absolute;inset:0;border-radius:50%;background:var(--on-task);animation:pulse 2s var(--ease-out) infinite}
+.statepill.live{color:var(--ink)}
+.statepill.drift{color:var(--warn-ink)}
+.statepill.brk{color:var(--partial-ink)}
+.statepill.off{color:var(--ink-3)}
+.hdr-hint{display:inline-flex;align-items:center;gap:var(--space-2);font-size:13px;color:var(--ink-3);white-space:nowrap}
+.setupbtn{position:relative}
+.setupbtn .sdot{width:6px;height:6px;border-radius:50%;background:transparent;margin-left:-2px}
+.setupbtn .sdot.ok{background:transparent}
+.setupbtn .sdot.bad{background:var(--warn)}
+.setupbtn .n{color:var(--warn-ink);font-variant-numeric:tabular-nums}
+.setupbtn .n:empty{display:none}
+
+/* ---------- hero strip (≤120px): one number, one sentence ---------- */
+.herostrip{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-4) var(--space-6);padding:var(--space-6) 0 var(--space-12)}
+.pinch-hero{width:64px;height:64px;flex:none}
+.pinch-hero:empty{display:none}
+body.live .pinch-hero,body.verdict .pinch-hero{display:none}
+.hero-txt{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:var(--space-2)}
+.hero-txt h1{margin:0;font-variant-numeric:tabular-nums}
+.hero-sub{margin:0;font-size:13px;line-height:1.45;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.hero-sub:empty{display:none}
+.hero-streak{flex:none}
+.hero-streak:empty{display:none}
+.hero-streak .al-streak .al-icon{color:var(--accent-ink)}
+
+/* ---------- stack: stable DOM order, sections 48px apart ---------- */
+main.stack{display:flex;flex-direction:column;gap:var(--space-12)}
+section.block{display:flex;flex-direction:column;gap:var(--space-4);padding:0;border:0;min-width:0}
+.sechead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--space-2) var(--space-4);margin:0}
+.sechead h2{margin:0;font-size:22px;line-height:1.25;font-weight:600;letter-spacing:-.015em;text-wrap:balance}
+.sechead h2 em{font-style:normal;font-weight:400;color:var(--ink-2)}
+.secmeta{font-size:13px;line-height:1.45;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sacts{display:flex;align-items:center;gap:var(--space-4)}
+
+/* ---------- toast: neutral surface-2, top-right, never a red slab ---------- */
+.toast{position:fixed;right:var(--space-6);top:var(--space-6);width:min(380px,calc(100vw - 32px));z-index:50;display:flex;flex-direction:column;gap:var(--space-3);
+  background:var(--surface-2);color:var(--ink);border-radius:var(--radius-md);box-shadow:var(--shadow-float);padding:var(--space-4);
+  transform:translateY(-12px);opacity:0;pointer-events:none;visibility:hidden;
+  transition:opacity 170ms var(--ease-out),transform 170ms var(--ease-out),visibility 0s linear 170ms}
+.toast.show{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition:opacity var(--dur-medium) var(--ease-out),transform var(--spring-bouncy-dur) var(--spring-bouncy),visibility 0s}
+.toast .k{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:20px;font-size:12px;line-height:1.3;font-weight:600;letter-spacing:.01em;color:var(--ink-2)}
+.toast .k .al-iconbtn{margin:-6px -6px -6px 0}
+.toast .tx{margin:0;font-size:16px;line-height:1.5;white-space:pre-wrap;text-wrap:pretty;font-variant-numeric:tabular-nums}
+.toast img{width:100%;border-radius:var(--radius-sm);border:1px solid var(--hairline-strong)}
+.toast.verdict .k span,.toast.correction .k span{color:var(--ink-2)}
+.tacts{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.tacts:empty{display:none}
+
+/* ---------- scrim, footer ---------- */
+.scrim{position:fixed;inset:0;z-index:60;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity var(--dur-medium) var(--ease-out)}
+.scrim.show{opacity:1;pointer-events:auto}
+.foot{margin-top:var(--space-18);padding:var(--space-6) 0 var(--space-12);border-top:1px solid var(--hairline);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-6);font-size:13px;line-height:1.45;color:var(--ink-3)}
+.foot-privacy{max-width:72ch;text-wrap:pretty}
+.foot-meta{display:inline-flex;gap:var(--space-4);font-variant-numeric:tabular-nums}
+.parking{position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;visibility:hidden}
+
+@media (max-width:600px){
+  .hdr-hint{display:none}
+  .hdr{flex-wrap:nowrap}
+  .hdr-l{flex-wrap:nowrap;min-width:0;gap:var(--space-3)}
+  .statepill{min-width:0;flex:0 1 auto}
+  .setupbtn .lbl{display:none}
+  .herostrip{padding:var(--space-4) 0 var(--space-8);gap:var(--space-3) var(--space-4)}
+  .toast{right:var(--space-4);left:var(--space-4);top:var(--space-4);width:auto}
+}

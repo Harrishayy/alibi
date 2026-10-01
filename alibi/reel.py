@@ -4,21 +4,46 @@
   python -m alibi.reel day 2026-10-01
 """
 import datetime as dt, os, shutil, subprocess, sys, tempfile, threading
+from pathlib import Path
 from PIL import Image, ImageDraw
 from . import config, db, evidence
 
 W, H, FPS = 1280, 720, 6
 REELS_DIR = config.DATA_DIR / "reels"
+PINCH_DIR = Path(__file__).resolve().parents[1] / "docs" / "design" / "demo" / "cards"
+PINCH_FOR = {"done": "celebrate", "partial": "partial", "slacked": "supportive"}   # anything else: hello
+BLACK = "#000000"                                     # the reel plays on the dark stage, like the island
 
 
-def _card(lines: list[tuple[str, int, str]]) -> Image.Image:
-    im = Image.new("RGB", (W, H), evidence.CREAM)
-    d = ImageDraw.Draw(im)
-    y = H // 2 - sum(s for _, s, _ in lines) // 2 - 20
-    for text, size, colour in lines:
-        f = evidence._font("NewYork.ttf", size)
-        d.text(((W - d.textlength(text, font=f)) / 2, y), text, font=f, fill=colour)
-        y += size + 24
+def _pinch(clip: str, size: int) -> Image.Image | None:
+    """A Pinch still (rendered from the rig by lane S, 512px RGBA). The title card is the one raster Pinch."""
+    try:
+        im = Image.open(PINCH_DIR / f"pinch-{clip}-512.png").convert("RGBA")
+    except OSError:
+        return None
+    return im.resize((size, size), Image.LANCZOS)
+
+
+def _card(lines: list[tuple[str, int, str]], clip: str = "hello", verdict: str | None = None,
+          pill: str = "") -> Image.Image:
+    """Title card: Pinch, a sans title, a meta line, then the verdict pill (black text on green for done)."""
+    im = Image.new("RGB", (W, H), BLACK)
+    d = ImageDraw.Draw(im, "RGBA")
+    p, ps = _pinch(clip, 176), 176
+    fonts = [evidence.sans(sz, 600 if i == 0 else 400) for i, (_, sz, _) in enumerate(lines)]
+    block = (ps + 32 if p else 0) + sum(sz + 16 for _, sz, _ in lines) - 16 + (32 + 40 if pill else 0)
+    y = (H - block) // 2
+    if p:
+        im.paste(p, ((W - ps) // 2, y), p)
+        y += ps + 32
+    for (text, size, colour), f in zip(lines, fonts):
+        d.text((W / 2, y), text, font=f, fill=colour, anchor="mt")
+        y += size + 16
+    if pill:
+        f = evidence.sans(17, 600)
+        g = round(17 * 0.8)
+        right = W / 2 + (16 + g + 8 + d.textlength(pill, font=f) + 18) / 2
+        evidence.verdict_pill(d, right, y - 16 + 32 + 20, verdict or "", pill)
     return im
 
 
@@ -26,20 +51,28 @@ def _frame(path: str, ts: float, label: str, note: str, corrected: bool) -> Imag
     try:
         src = Image.open(path).convert("RGB")
     except OSError:
-        src = Image.new("RGB", (512, 288), evidence.RULE)
+        src = Image.new("RGB", (512, 288), evidence.SURFACE_2)
     scale = max(W / src.width, H / src.height)
     src = src.resize((int(src.width * scale), int(src.height * scale)))
     left, top = (src.width - W) // 2, (src.height - H) // 2
     im = src.crop((left, top, left + W, top + H))
     d = ImageDraw.Draw(im, "RGBA")
-    col = evidence.COLOURS.get(label, evidence.INK)
-    d.rectangle([0, H - 14, W, H], fill=col)
-    mono = evidence._font("Menlo.ttc", 26)
-    tag = f"{dt.datetime.fromtimestamp(ts):%H:%M}  {label.replace('_', ' ')}" + ("  (corrected)" if corrected else "")
-    tw = d.textlength(tag, font=mono)
-    d.rounded_rectangle([28, H - 84, 28 + tw + 40, H - 34], radius=25, fill=(20, 20, 18, 190))
-    d.ellipse([44, H - 66, 58, H - 52], fill=col)
-    d.text((66, H - 75), tag, font=mono, fill="white")
+    # Bottom edge: the sample's status colour (off_task keeps its hatch). No Pinch on evidence frames.
+    if label == "off_task":
+        im.paste(evidence._hatch(W, 8, evidence.COLOURS["off_task"], evidence.WASH["off_task"], 12, 3), (0, H - 8))
+    else:
+        d.rectangle([0, H - 8, W, H], fill=evidence.COLOURS.get(label, evidence.INK_2))
+    f, fw = evidence.sans(24, 600), evidence.sans(24)
+    t, word = f"{dt.datetime.fromtimestamp(ts):%H:%M}", evidence.LABEL_WORD.get(label, label.replace("_", " "))
+    word += "  ·  corrected" if corrected else ""
+    tw = d.textlength(t, font=f) + 12 + d.textlength(word, font=fw)
+    x0, y0, h = 32, H - 32 - 8 - 56, 56
+    d.rounded_rectangle([x0, y0, x0 + 24 + 20 + 12 + tw + 24, y0 + h], radius=h / 2, fill=(0, 0, 0, 184))
+    m = evidence.mark(label, 20)
+    im.paste(m, (x0 + 24, y0 + (h - 20) // 2), m)
+    d.text((x0 + 24 + 20 + 12, y0 + h / 2), t, font=f, fill=evidence.INK, anchor="lm")
+    d.text((x0 + 24 + 20 + 12 + d.textlength(t, font=f) + 12, y0 + h / 2), word, font=fw, fill=evidence.INK_2,
+           anchor="lm")
     return im
 
 
@@ -48,10 +81,13 @@ def _session_frames(con, s) -> list[Image.Image]:
     labels = verifier.camera_labels(con, s)
     out = []
     ratio = s["on_task_ratio"]
-    sub = (f"{s['verdict'].upper()} · {ratio:.0%} on task" if s["verdict"] else "in progress")
-    card = _card([(config.display_name(s["habit"]), 84, evidence.INK),
-                  (f"{dt.datetime.fromtimestamp(s['started_at']):%a %d %b, %H:%M} · {s['declared_min']} min", 30, evidence.MUTED),
-                  (sub, 30, evidence.VERDICT_COLOUR.get(s["verdict"], evidence.MUTED))])
+    v = s["verdict"]
+    pill = f"{evidence.VERDICT_WORD.get(v, str(v).capitalize())} · {ratio:.0%} on task" if v else ""
+    lines = [(config.display_name(s["habit"]), 64, evidence.INK),
+             (f"{dt.datetime.fromtimestamp(s['started_at']):%a %d %b, %H:%M} · {s['declared_min']} min", 28, evidence.INK_2)]
+    if not v:
+        lines.append(("In progress", 28, evidence.INK_2))
+    card = _card(lines, PINCH_FOR.get(v, "hello"), v, pill)
     out += [card] * (FPS * 2)
     for e in labels:
         p = e["payload"]
@@ -109,8 +145,9 @@ def day_reel(con, day: str) -> str | None:
         raise ValueError("date must be YYYY-MM-DD")
     ss = con.execute("SELECT * FROM sessions WHERE started_at BETWEEN ? AND ? AND modality!='digital' ORDER BY started_at",
                      (d0, d0 + 86400)).fetchall()
-    frames = [_card([(f"{dt.datetime.fromisoformat(day):%A %d %B}", 72, evidence.INK),
-                     (f"{len(ss)} session{'s' * (len(ss) != 1)}, as the witness saw them", 30, evidence.MUTED)])] * (FPS * 2)
+    frames = [_card([(f"{dt.datetime.fromisoformat(day):%A %d %B}", 64, evidence.INK),
+                     (f"{len(ss)} session{'s' * (len(ss) != 1)}, as the witness saw them", 28, evidence.INK_2)],
+                    "hello")] * (FPS * 2)
     for s in ss:
         frames += _session_frames(con, s)
     if len(frames) <= FPS * 2:

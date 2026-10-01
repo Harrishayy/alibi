@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alibi app icon</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="cards.css">
+<script src="pinch-data.js"></script>
+<script src="../../pinch/rig.js"></script>
+<script src="card.js"></script>
+</head>
+<body>
+<main class="solo" id="pinch"></main>
+<script>
+/* App icon: Pinch at rest on the black ground, sized to the viewport (render at 1024x1024, --scale 1).
+   78% of the square keeps the claws clear of the iOS corner mask. ?pose=NAME picks another mood or clip key pose. */
+var q = new URLSearchParams(location.search);
+var side = Math.min(innerWidth, innerHeight), size = Math.round(side * 0.78);
+Card.init({ duration: 1 });
+var pose = q.get('pose');
+var P = window.PINCH_DATA.clips;
+Card.pinch(document.getElementById('pinch'), P.clips[pose]
+  ? { size: size, mood: 'idle', cues: [{ clip: pose, at: -P.clips[pose].key }] }
+  : { size: size, mood: P.moods[pose] ? pose : 'idle' });
+Card.ready = true;
+</script>
+</body>
+</html>

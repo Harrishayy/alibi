@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>iPhone Health sync</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/alibi/components/bundle.css">
+<script src="ds/alibi/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--accent-ink)}a:hover{color:var(--ink)}
+@keyframes ph-rise{from{opacity:0;transform:translateY(8px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@keyframes ph-swap{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:none}}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--bg); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased;">
+
+<div style="position: absolute; top: 59px; left: 0; right: 0; height: 44px; box-sizing: border-box; padding: 0 8px; display: flex; align-items: center; justify-content: flex-end;">
+<x-import component-from-global-scope="Alibi.IconButton" icon="settings" sc-camel-aria-label="Settings" size="lg"></x-import>
+</div>
+
+<main style="position: absolute; top: 103px; left: 0; right: 0; bottom: 0; box-sizing: border-box; padding: 0 20px 120px; display: flex; flex-direction: column;">
+
+<header style="animation: ph-rise var(--dur-medium) var(--ease-out) both;">
+<h1 style="margin: 0; font-size: 34px; line-height: 41px; font-weight: 600; letter-spacing: 0;">Health</h1>
+<p style="margin: 2px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2);">Daily totals from this iPhone, sent to your Mac</p>
+</header>
+
+<section aria-label="Sync status" style="margin-top: 16px; box-sizing: border-box; padding: 16px; border-radius: var(--radius-md); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--hairline); display: flex; flex-direction: column; gap: 14px; animation: ph-rise var(--dur-medium) var(--ease-out) 40ms both;">
+<div style="display: flex; align-items: center; gap: 12px;">
+<span style="width: 44px; height: 44px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--ink);"><x-import component-from-global-scope="Alibi.Icon" name="laptop" size="{{ icon24 }}"></x-import></span>
+<div style="flex: 1; min-width: 0;">
+<div style="font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: 0;">Harrish&#39;s MacBook Pro</div>
+<div style="margin-top: 2px; display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: var(--ink-2);">
+<x-import component-from-global-scope="Alibi.StatusDot" label="on_task" size="{{ dot }}"></x-import>
+<span>Connected over Tailscale</span>
+</div>
+</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 24px; padding-top: 12px; border-top: 1px solid var(--hairline);">
+<span aria-live="polite" style="display: inline-flex; align-items: center; gap: 8px; font-size: 15px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums;">
+<sc-if value="{{ synced }}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; width: 20px; height: 20px; animation: ph-swap var(--dur-medium) var(--ease-out) both;"><x-import component-from-global-scope="Alibi.Pinch" mood="idle" play="connected" size="{{ pinch20 }}" theme="{{ theme }}"></x-import></span>
+</sc-if>
+<span>{{ status }}</span>
+</span>
+<span style="font-size: 13px; line-height: 18px; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ next }}</span>
+</div>
+<div style="display: flex; flex-direction: column;">
+<x-import component-from-global-scope="Alibi.Button" variant="secondary" size="lg" icon="arrow-up" on-click="{{ sync }}" disabled="{{ busy }}" style="display: flex; flex-direction: column;">{{ label }}</x-import>
+</div>
+</section>
+
+<section aria-labelledby="days-h" style="margin-top: 16px; animation: ph-rise var(--dur-medium) var(--ease-out) 80ms both;">
+<h2 id="days-h" style="margin: 0 0 8px; font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: 0;">Last 7 days</h2>
+<div style="box-sizing: border-box; padding: 4px 16px 6px; border-radius: var(--radius-md); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--hairline);">
+<div style="display: grid; grid-template-columns: minmax(0, 1.1fr) repeat(4, minmax(0, 1fr)); column-gap: 6px; align-items: end; padding: 10px 0 8px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink-2);">
+<span>Day</span>
+<span style="text-align: right;">Steps</span>
+<span style="text-align: right;">Sleep</span>
+<span style="text-align: right;">Mindful</span>
+<span style="text-align: right;">Exercise</span>
+</div>
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+<div style="display: grid; grid-template-columns: minmax(0, 1.1fr) repeat(4, minmax(0, 1fr)); column-gap: 6px; align-items: center; height: 30px; border-top: {{ d.rule }}; font-size: 15px; line-height: 20px; font-variant-numeric: tabular-nums;">
+<span style="font-weight: {{ d.weight }}; color: var(--ink);">{{ d.day }}</span>
+<span style="text-align: right;">{{ d.steps }}</span>
+<span style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 5px; color: {{ d.sleepInk }};"><sc-if value="{{ d.short }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="Under 7 hours" style="position: relative; width: 9px; height: 9px; box-sizing: border-box; border-radius: var(--radius-pill); border: 1.5px solid var(--partial); overflow: hidden;"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: var(--partial);"></span></span></sc-if>{{ d.sleep }}</span>
+<span style="text-align: right;">{{ d.calm }}</span>
+<span style="text-align: right;">{{ d.move }}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<p style="margin: 10px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); text-wrap: pretty; animation: ph-rise var(--dur-medium) var(--ease-out) 120ms both;">Sleep in hours, mindful and exercise in minutes. Only these totals leave this phone, and they go to your Mac. Alibi never writes to Health.</p>
+
+</main>
+
+<nav aria-label="Alibi tabs" style="position: absolute; left: 24px; right: 24px; bottom: 24px; height: 64px; box-sizing: border-box; padding: 5px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; border-radius: var(--radius-pill); background: var(--surface-1); box-shadow: var(--shadow-float), inset 0 0 0 1px var(--hairline);">
+<a href="Phone-Today-Live.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; border-radius: var(--radius-pill); color: var(--ink-2); text-decoration: none;">
+<x-import component-from-global-scope="Alibi.Icon" name="clock" size="{{ tabIcon }}"></x-import>
+<span style="font-size: 11px; line-height: 13px; font-weight: 600;">Today</span>
+</a>
+<a href="Phone-Week.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; border-radius: var(--radius-pill); color: var(--ink-2); text-decoration: none;">
+<x-import component-from-global-scope="Alibi.Icon" name="calendar" size="{{ tabIcon }}"></x-import>
+<span style="font-size: 11px; line-height: 13px; font-weight: 600;">Week</span>
+</a>
+<a href="Phone-Health.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; border-radius: var(--radius-pill); background: var(--surface-3); color: var(--accent-ink); text-decoration: none;">
+<x-import component-from-global-scope="Alibi.Icon" name="heart" size="{{ tabIcon }}"></x-import>
+<span style="font-size: 11px; line-height: 13px; font-weight: 600;">Health</span>
+</a>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Look"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentWillUnmount() { clearTimeout(this.t); }
+  renderVals() {
+    const phase = (this.state && this.state.phase) || 'idle';
+    const rows = [
+      { day: 'Today', steps: 9120, sleep: 7.4, calm: 5, move: 31 },
+      { day: 'Wed 30', steps: 7655, sleep: 7.0, calm: 10, move: 22 },
+      { day: 'Tue 29', steps: 12410, sleep: 6.2, calm: 5, move: 38 },
+      { day: 'Mon 28', steps: 9874, sleep: 7.1, calm: 10, move: 18 },
+      { day: 'Sun 27', steps: 6930, sleep: 7.6, calm: 15, move: 41 },
+      { day: 'Sat 26', steps: 11206, sleep: 8.1, calm: 0, move: 12 },
+      { day: 'Fri 25', steps: 8412, sleep: 7.2, calm: 10, move: 34 }
+    ];
+    return {
+      theme: this.props.theme ?? 'dark',
+      status: phase === 'syncing' ? 'Sending 7 days…' : phase === 'done' ? 'Synced just now' : 'Synced 2 min ago',
+      next: phase === 'done' ? 'Next in 15 min' : 'Next in 13 min',
+      label: phase === 'syncing' ? 'Syncing…' : 'Sync now',
+      busy: phase === 'syncing',
+      synced: phase === 'done',
+      sync: () => {
+        if (phase === 'syncing') return;
+        this.setState({ phase: 'syncing' });
+        clearTimeout(this.t);
+        this.t = setTimeout(() => this.setState({ phase: 'done' }), 1200);
+      },
+      days: rows.map((r, i) => ({
+        day: r.day,
+        steps: r.steps.toLocaleString('en-GB'),
+        sleep: r.sleep.toFixed(1),
+        calm: String(r.calm),
+        move: String(r.move),
+        weight: i === 0 ? 600 : 400,
+        sleepInk: r.sleep < 7 ? 'var(--partial-ink)' : 'var(--ink)',
+        short: r.sleep < 7,
+        rule: '1px solid var(--hairline)'
+      })),
+      icon24: 24,
+      pinch20: 20,
+      dot: 8,
+      tabIcon: 24
+    };
+  }
+}
+</script>
+</body>
+</html>

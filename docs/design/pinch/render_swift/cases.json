@@ -1,0 +1,306 @@
+[
+ {
+  "id": "idle-160-dark",
+  "mood": "idle",
+  "clip": null,
+  "ms": 0,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "celebrate380-160-dark",
+  "mood": "idle",
+  "clip": "celebrate",
+  "ms": 380,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "sideeye600-160-dark",
+  "mood": "idle",
+  "clip": "sideeye",
+  "ms": 600,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "supportive700-160-dark",
+  "mood": "idle",
+  "clip": "supportive",
+  "ms": 700,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "celebrate60-160-dark",
+  "mood": "idle",
+  "clip": "celebrate",
+  "ms": 60,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "hello420-160-dark",
+  "mood": "idle",
+  "clip": "hello",
+  "ms": 420,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "connected420-160-dark",
+  "mood": "idle",
+  "clip": "connected",
+  "ms": 420,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "surprise260-160-dark",
+  "mood": "idle",
+  "clip": "surprise",
+  "ms": 260,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "partial380-160-dark",
+  "mood": "idle",
+  "clip": "partial",
+  "ms": 380,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "focused-160-dark",
+  "mood": "focused",
+  "clip": null,
+  "ms": 0,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "listening-160-dark",
+  "mood": "listening",
+  "clip": null,
+  "ms": 0,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "thinking-160-dark",
+  "mood": "thinking",
+  "clip": null,
+  "ms": 150,
+  "size": 160,
+  "theme": "dark"
+ },
+ {
+  "id": "sleepy-96-dark",
+  "mood": "sleepy",
+  "clip": null,
+  "ms": 1250,
+  "size": 96,
+  "theme": "dark"
+ },
+ {
+  "id": "reading-96-dark",
+  "mood": "reading",
+  "clip": null,
+  "ms": 300,
+  "size": 96,
+  "theme": "dark"
+ },
+ {
+  "id": "nudge330-56-dark",
+  "mood": "idle",
+  "clip": "nudge",
+  "ms": 330,
+  "size": 56,
+  "theme": "dark"
+ },
+ {
+  "id": "idle-28-dark",
+  "mood": "idle",
+  "clip": null,
+  "ms": 0,
+  "size": 28,
+  "theme": "dark"
+ },
+ {
+  "id": "idle-20-dark",
+  "mood": "idle",
+  "clip": null,
+  "ms": 0,
+  "size": 20,
+  "theme": "dark"
+ },
+ {
+  "id": "idle-16-dark",
+  "mood": "idle",
+  "clip": null,
+  "ms": 0,
+  "size": 16,
+  "theme": "dark"
+ },
+ {
+  "id": "focused-16-dark",
+  "mood": "focused",
+  "clip": null,
+  "ms": 0,
+  "size": 16,
+  "theme": "dark"
+ },
+ {
+  "id": "idle-160-light",
+  "mood": "idle",
+  "clip": null,
+  "ms": 0,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "celebrate380-160-light",
+  "mood": "idle",
+  "clip": "celebrate",
+  "ms": 380,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "sideeye600-160-light",
+  "mood": "idle",
+  "clip": "sideeye",
+  "ms": 600,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "supportive700-160-light",
+  "mood": "idle",
+  "clip": "supportive",
+  "ms": 700,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "celebrate60-160-light",
+  "mood": "idle",
+  "clip": "celebrate",
+  "ms": 60,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "hello420-160-light",
+  "mood": "idle",
+  "clip": "hello",
+  "ms": 420,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "connected420-160-light",
+  "mood": "idle",
+  "clip": "connected",
+  "ms": 420,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "surprise260-160-light",
+  "mood": "idle",
+  "clip": "surprise",
+  "ms": 260,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "partial380-160-light",
+  "mood": "idle",
+  "clip": "partial",
+  "ms": 380,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "focused-160-light",
+  "mood": "focused",
+  "clip": null,
+  "ms": 0,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "listening-160-light",
+  "mood": "listening",
+  "clip": null,
+  "ms": 0,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "thinking-160-light",
+  "mood": "thinking",
+  "clip": null,
+  "ms": 150,
+  "size": 160,
+  "theme": "light"
+ },
+ {
+  "id": "sleepy-96-light",
+  "mood": "sleepy",
+  "clip": null,
+  "ms": 1250,
+  "size": 96,
+  "theme": "light"
+ },
+ {
+  "id": "reading-96-light",
+  "mood": "reading",
+  "clip": null,
+  "ms": 300,
+  "size": 96,
+  "theme": "light"
+ },
+ {
+  "id": "nudge330-56-light",
+  "mood": "idle",
+  "clip": "nudge",
+  "ms": 330,
+  "size": 56,
+  "theme": "light"
+ },
+ {
+  "id": "idle-28-light",
+  "mood": "idle",
+  "clip": null,
+  "ms": 0,
+  "size": 28,
+  "theme": "light"
+ },
+ {
+  "id": "idle-20-light",
+  "mood": "idle",
+  "clip": null,
+  "ms": 0,
+  "size": 20,
+  "theme": "light"
+ },
+ {
+  "id": "idle-16-light",
+  "mood": "idle",
+  "clip": null,
+  "ms": 0,
+  "size": 16,
+  "theme": "light"
+ },
+ {
+  "id": "focused-16-light",
+  "mood": "focused",
+  "clip": null,
+  "ms": 0,
+  "size": 16,
+  "theme": "light"
+ }
+]

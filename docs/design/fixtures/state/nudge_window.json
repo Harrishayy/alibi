@@ -1,0 +1,162 @@
+{
+ "now": 1790880063.0,
+ "session": {
+  "id": 12,
+  "habit": "cpp",
+  "modality": "digital",
+  "declared_min": 30,
+  "started_at": 1790879400.0,
+  "ends_at": 1790881200.0,
+  "ended_at": null,
+  "status": "active",
+  "on_task_ratio": null,
+  "verdict": null,
+  "evidence_path": null,
+  "artefact": null,
+  "label": "C++",
+  "evidence_url": null,
+  "labels": [],
+  "reel_url": null,
+  "on_task_so_far": 0.59,
+  "day": "2026-10-01",
+  "windows": [
+   {
+    "title": "Xcode — sorting.cpp",
+    "share": 0.46,
+    "label": "on_task"
+   },
+   {
+    "title": "Google Chrome — std::sort - cppreference.com",
+    "share": 0.13,
+    "label": "on_task"
+   },
+   {
+    "title": "Google Chrome — Lofi beats to code to - YouTube",
+    "share": 0.41,
+    "label": "off_task"
+   }
+  ],
+  "left_s": 1137.0,
+  "progress": 0.36833333333333335,
+  "last_frame_url": null,
+  "samples": 22,
+  "warming_up": false,
+  "recent": [
+   "off_task",
+   "off_task",
+   "off_task"
+  ],
+  "recent_on_task": 0.0,
+  "last_seen": {
+   "label": "off_task",
+   "label_text": "YouTube",
+   "note": "YouTube",
+   "source": "screen",
+   "ago_s": 23,
+   "text": "Screen · 23 s ago · YouTube"
+  },
+  "drifting": {
+   "label": "off_task",
+   "label_text": "YouTube",
+   "since_s": 263,
+   "samples": 9
+  },
+  "on_break": null,
+  "breaks_taken": 0,
+  "nudges": 1,
+  "strikes": 0
+ },
+ "alert": {
+  "id": 1790880060000000000,
+  "ts": 1790880060.0,
+  "kind": "nudge",
+  "text": "You said C++. That's been YouTube for 4 minutes.",
+  "image": null,
+  "session_id": 12,
+  "habit": "cpp",
+  "habit_label": "C++",
+  "label": "off_task",
+  "strike": false,
+  "actions": [
+   {
+    "label": "Back to it",
+    "say": "back"
+   },
+   {
+    "label": "This counts",
+    "say": "it's on task"
+   },
+   {
+    "label": "Quiet 5 min",
+    "say": "snooze 5"
+   }
+  ],
+  "image_url": null
+ },
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790872200.0
+ },
+ "today": {
+  "sessions": 2,
+  "verified_min": 73,
+  "declared_min": 75,
+  "habits_done": 2,
+  "habits_total": 5,
+  "tally": "2/5",
+  "verdicts": {
+   "done": 2,
+   "partial": 0,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Drifting · YouTube · C++ 18:57",
+ "pinch": {
+  "mood": "thinking",
+  "event": "nudge",
+  "seq": 1790880060000,
+  "age_s": 3.0,
+  "line": "You said C++. That's been YouTube for 4 minutes."
+ }
+}

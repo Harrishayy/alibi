@@ -1,0 +1,31 @@
+<!-- @dsCard group="Surfaces" height=312 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Card — preview</title>
+<style>
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-6); padding: var(--space-4); align-items: start; }
+  .grid p, .grid h3 { margin: 0 0 var(--space-2); }
+  .ink2 { color: var(--ink-2); }
+  .al-card--warn p { margin-bottom: var(--space-3); }
+</style>
+</head>
+<body>
+<div id="root" class="grid"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(A.Card, null,
+      h('p', { className: 't-label ink2' }, 'Latest verdict'),
+      h('h3', { className: 't-h3' }, 'Drawing, 18:04 to 18:29'),
+      h('p', { className: 't-small ink2' }, 'Claimed 25 min. Seen 25 min at the desk.')),
+    h(A.Card, { tone: 'raised', padding: 'sm' },
+      h(A.Stat, { value: '1h 52m', label: 'Seen today', sub: 'Claimed 2h 10m' })),
+    h(A.Card, { tone: 'accent' },
+      h('p', { className: 't-voice' }, 'A week of alibis that checked out.')),
+    h(A.Card, { tone: 'warn', padding: 'sm' },
+      h('p', { className: 't-small' }, 'The desk camera stopped answering at 18:12.'),
+      h(A.Button, { variant: 'secondary', size: 'sm', icon: 'camera' }, 'Check the camera'))));
+</script>
+</body>
+</html>

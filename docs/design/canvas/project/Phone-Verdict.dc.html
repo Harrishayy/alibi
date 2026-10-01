@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>iPhone verdict, done</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/alibi/components/bundle.css">
+<script src="ds/alibi/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--accent-ink)}a:hover{color:var(--ink)}
+@keyframes ph-rise{from{opacity:0;transform:translateY(8px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@keyframes ph-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes ph-pop{0%{opacity:0;transform:scale(0.94);filter:blur(4px)}100%{opacity:1;transform:none;filter:none}}
+@keyframes ph-dot{from{opacity:0;transform:scale(0.6)}to{opacity:1;transform:none}}
+@keyframes ph-bloom{from{opacity:0;transform:scale(0.7)}to{opacity:1;transform:none}}
+@keyframes ph-confetti{0%{opacity:0;transform:translate(0,0) rotate(0deg) scale(0.6)}8%{opacity:1}45%{transform:translate(var(--dx),var(--h)) rotate(var(--r1)) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(var(--dx2),var(--g)) rotate(var(--r)) scale(0.9)}}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--bg); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased;">
+
+<div style="position: absolute; top: 59px; left: 0; right: 0; height: 44px; box-sizing: border-box; padding: 0 8px; display: flex; align-items: center; justify-content: space-between; z-index: 2;">
+<button type="button" onClick="{{ replay }}" aria-label="Replay the verdict" style="height: 44px; min-width: 44px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--ink-2); font: 600 15px/20px var(--font-sans); cursor: pointer;">
+<x-import component-from-global-scope="Alibi.Icon" name="undo" size="{{ icon20 }}"></x-import>
+<span>Replay</span>
+</button>
+<x-import component-from-global-scope="Alibi.IconButton" icon="settings" sc-camel-aria-label="Settings" size="lg"></x-import>
+</div>
+
+<sc-if value="{{ shown }}" hint-placeholder-val="{{ true }}">
+<main style="position: absolute; top: 103px; left: 0; right: 0; bottom: 0; box-sizing: border-box; padding: 0 20px; display: flex; flex-direction: column;">
+
+<header style="animation: ph-rise var(--dur-medium) var(--ease-out) both;">
+<h1 style="margin: 0; font-size: 34px; line-height: 41px; font-weight: 600; letter-spacing: 0;">Today</h1>
+<p style="margin: 2px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); font-variant-numeric: tabular-nums;">Drawing · 19:21 to 19:46 · just now</p>
+</header>
+
+<section aria-label="Verdict" style="position: relative; margin-top: 4px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+<sc-if value="{{ fx }}" hint-placeholder-val="{{ true }}">
+<div class="al-bloom" aria-hidden="true" style="position: absolute; top: -48px; left: 50%; width: 256px; height: 256px; margin-left: -128px; border-radius: var(--radius-pill); background: radial-gradient(closest-side, var(--bloom), transparent); animation: ph-bloom var(--dur-medium) var(--ease-out) 1000ms both; pointer-events: none;"></div>
+</sc-if>
+<div style="position: relative;">
+<x-import component-from-global-scope="Alibi.Pinch" mood="idle" play="{{ clip }}" play-key="{{ run }}" force="{{ yes }}" size="{{ pinchSize }}" theme="{{ theme }}"></x-import>
+</div>
+<sc-if value="{{ fx }}" hint-placeholder-val="{{ true }}">
+<div class="al-confetti" aria-hidden="true" style="position: absolute; top: 76px; left: 50%; width: 0; height: 0; pointer-events: none;">
+<sc-for list="{{ confetti }}" as="p" hint-placeholder-count="18">
+<span style="position: absolute; left: {{ p.ox }}; top: 0; display: block; color: {{ p.color }}; --dx: {{ p.dx }}; --dx2: {{ p.dx2 }}; --h: {{ p.h }}; --g: {{ p.g }}; --r: {{ p.r }}; --r1: {{ p.r1 }}; animation: ph-confetti {{ p.dur }} var(--ease-out) {{ p.delay }} both;">
+<sc-if value="{{ p.spark }}" hint-placeholder-val="{{ true }}">
+<svg width="10" height="10" viewBox="0 0 10 10" style="display: block; margin: -5px 0 0 -5px;"><path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor"></path></svg>
+</sc-if>
+<sc-if value="{{ p.dot }}" hint-placeholder-val="{{ false }}">
+<span style="display: block; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: var(--radius-pill); background: currentColor;"></span>
+</sc-if>
+<sc-if value="{{ p.claw }}" hint-placeholder-val="{{ false }}">
+<span style="display: block; margin: -7px 0 0 -7px;"><x-import component-from-global-scope="Alibi.Icon" name="claw" size="{{ icon14 }}"></x-import></span>
+</sc-if>
+</span>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="position: relative; margin-top: 8px; display: flex; align-items: center; gap: 8px; animation: ph-pop var(--spring-bouncy-dur) var(--spring-bouncy) 270ms both;">
+<x-import component-from-global-scope="Alibi.VerdictPill" verdict="done"></x-import>
+<x-import component-from-global-scope="Alibi.StreakBadge" days="{{ streak }}"></x-import>
+</div>
+<p style="position: relative; margin: 14px 0 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: 0; font-variant-numeric: tabular-nums; text-wrap: balance; animation: ph-up var(--dur-medium) var(--ease-out) 1000ms both;">23 of 25 minutes seen.</p>
+<p style="position: relative; margin: 4px 0 0; max-width: 320px; font-size: 17px; line-height: 22px; color: var(--ink-2); font-variant-numeric: tabular-nums; text-wrap: balance; animation: ph-up var(--dur-medium) var(--ease-out) 1040ms both;">Pencil in hand most of the way. Two quiet minutes at 19:38.</p>
+</section>
+
+<section aria-label="On task" style="margin-top: 16px; display: flex; align-items: center; gap: 16px; animation: ph-up var(--dur-medium) var(--ease-out) 420ms both;">
+<div style="flex: 1; min-width: 0; min-height: 12px;">
+<sc-if value="{{ meterOn }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="Alibi.Meter" value="{{ meter }}" part-at="{{ partAt }}" done-at="{{ doneAt }}"></x-import>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end;">
+<span style="font-family: var(--font-rounded); font-size: 28px; line-height: 30px; font-weight: 600; letter-spacing: 0; font-variant-numeric: tabular-nums; min-width: 64px; text-align: right;">{{ pct }}</span>
+<span style="font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink-2);">on task</span>
+</div>
+</section>
+
+<section aria-labelledby="proof-h" style="margin-top: 16px; box-sizing: border-box; padding: 14px 16px 12px; border-radius: var(--radius-md); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--hairline); display: flex; flex-direction: column; gap: 10px; animation: ph-up var(--dur-medium) var(--ease-out) 560ms both;">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+<h2 id="proof-h" style="margin: 0; font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: 0;">What I saw</h2>
+<span style="font-size: 13px; line-height: 18px; color: var(--ink-2); font-variant-numeric: tabular-nums;">One look a minute</span>
+</div>
+<div role="img" aria-label="25 looks: on task every minute except two idle minutes at 19:38 and 19:39" style="display: grid; grid-template-columns: repeat(25, minmax(0, 1fr)); align-items: center; justify-items: center; height: 16px;">
+<sc-for list="{{ looks }}" as="l" hint-placeholder-count="25">
+<span style="display: inline-flex; animation: ph-dot var(--spring-snappy-dur) var(--spring-snappy) {{ l.delay }} both;"><x-import component-from-global-scope="Alibi.StatusDot" label="{{ l.label }}" size="{{ lookDot }}"></x-import></span>
+</sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13px; line-height: 18px; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+<span>19:21</span>
+<span style="display: inline-flex; align-items: center; gap: 12px;"><x-import component-from-global-scope="Alibi.StatusDot" label="on_task" size="{{ dot }}" text="{{ yes }}"></x-import><x-import component-from-global-scope="Alibi.StatusDot" label="idle" size="{{ dot }}" text="{{ yes }}"></x-import></span>
+<span>19:46</span>
+</div>
+<p style="margin: 0; padding-top: 10px; border-top: 1px solid var(--hairline); font-size: 13px; line-height: 18px; color: var(--ink-2);">The proof is on your Mac: all 25 frames, and a way to fix a moment.</p>
+</section>
+
+<div style="margin-top: 4px; display: flex; justify-content: center; animation: ph-up var(--dur-medium) var(--ease-out) 1040ms both;">
+<x-import component-from-global-scope="Alibi.Button" variant="quiet" size="lg" icon="flag">Something&#39;s wrong?</x-import>
+</div>
+
+</main>
+</sc-if>
+
+<nav aria-label="Alibi tabs" style="position: absolute; left: 24px; right: 24px; bottom: 24px; height: 64px; box-sizing: border-box; padding: 5px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; border-radius: var(--radius-pill); background: var(--surface-1); box-shadow: var(--shadow-float), inset 0 0 0 1px var(--hairline);">
+<a href="Phone-Today-Live.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; border-radius: var(--radius-pill); background: var(--surface-3); color: var(--accent-ink); text-decoration: none;">
+<x-import component-from-global-scope="Alibi.Icon" name="clock" size="{{ tabIcon }}"></x-import>
+<span style="font-size: 11px; line-height: 13px; font-weight: 600;">Today</span>
+</a>
+<a href="Phone-Week.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; border-radius: var(--radius-pill); color: var(--ink-2); text-decoration: none;">
+<x-import component-from-global-scope="Alibi.Icon" name="calendar" size="{{ tabIcon }}"></x-import>
+<span style="font-size: 11px; line-height: 13px; font-weight: 600;">Week</span>
+</a>
+<a href="Phone-Health.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; border-radius: var(--radius-pill); color: var(--ink-2); text-decoration: none;">
+<x-import component-from-global-scope="Alibi.Icon" name="heart" size="{{ tabIcon }}"></x-import>
+<span style="font-size: 11px; line-height: 13px; font-weight: 600;">Health</span>
+</a>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Look"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentDidMount() { this.start(); }
+  componentWillUnmount() { this.stop(); }
+  stop() {
+    (this.timers || []).forEach(clearTimeout);
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.timers = [];
+  }
+  start() {
+    this.stop();
+    const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const target = 0.92;
+    if (reduce) { this.setState({ ratio: target, clip: 'celebrate', meterOn: true }); return; }
+    this.setState({ ratio: 0, clip: null, meterOn: false });
+    this.timers.push(setTimeout(() => {
+      this.setState({ meterOn: true });
+      const t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / 900);
+        const eased = 1 - Math.pow(1 - k, 3);
+        this.setState({ ratio: target * eased });
+        if (k < 1) this.raf = requestAnimationFrame(step);
+      };
+      this.raf = requestAnimationFrame(step);
+    }, 420));
+    this.timers.push(setTimeout(() => this.setState({ clip: 'celebrate' }), 1000));
+  }
+  renderVals() {
+    const s = this.state || {};
+    const ratio = s.ratio != null ? s.ratio : 0.92;
+    const run = s.run || 0;
+    const palette = ['var(--accent)', 'var(--accent)', 'var(--accent-ink)', 'var(--pinch-shine)', 'var(--accent)', 'var(--partial)', 'var(--accent-ink)', 'var(--accent)', 'var(--pinch-shine)', 'var(--accent)'];
+    const confetti = [];
+    for (let i = 0; i < 18; i++) {
+      const side = i % 2 ? 1 : -1;
+      const spread = side * (10 + ((i * 7) % 30));
+      const a = (spread + ((i * 37) % 9) - 4) * Math.PI / 180;
+      const dist = 54 + ((i * 53) % 36);
+      const dx = Math.sin(a) * dist;
+      const h = -Math.cos(a) * dist;
+      const kind = i % 3;
+      const rot = (i % 2 ? 1 : -1) * (120 + (i * 29) % 120);
+      confetti.push({
+        color: palette[i % palette.length],
+        ox: (side * 44) + 'px',
+        dx: dx.toFixed(1) + 'px',
+        dx2: (dx * 1.4).toFixed(1) + 'px',
+        h: h.toFixed(1) + 'px',
+        g: (40 + (i * 17) % 50) + 'px',
+        r: rot + 'deg',
+        r1: Math.round(rot / 2) + 'deg',
+        dur: (1100 + (i * 83) % 500) + 'ms',
+        delay: (1000 + (i % 6) * 18) + 'ms',
+        spark: kind === 0,
+        dot: kind === 1,
+        claw: kind === 2
+      });
+    }
+    return {
+      theme: this.props.theme ?? 'dark',
+      shown: !s.hidden,
+      fx: !(typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
+      run: run,
+      clip: s.clip === undefined ? 'celebrate' : s.clip,
+      replay: () => {
+        this.setState({ hidden: true });
+        setTimeout(() => { this.setState({ hidden: false, run: run + 1 }); this.start(); }, 40);
+      },
+      confetti: confetti,
+      meter: 0.92,
+      meterOn: s.meterOn !== false,
+      pct: Math.round(ratio * 100) + '%',
+      partAt: 0.4,
+      doneAt: 0.7,
+      looks: Array.from({ length: 25 }, (_, i) => ({
+        label: i === 17 || i === 18 ? 'idle' : 'on_task',
+        delay: (600 + i * 16) + 'ms'
+      })),
+      lookDot: 10,
+      streak: 7,
+      yes: true,
+      pinchSize: 160,
+      icon14: 14,
+      icon20: 20,
+      dot: 8,
+      tabIcon: 24
+    };
+  }
+}
+</script>
+</body>
+</html>

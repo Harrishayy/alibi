@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Alibi dashboard</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/alibi/components/bundle.css">
+<script src="ds/alibi/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--accent-ink)}a:hover{color:var(--ink)}
+@keyframes dash-in{from{opacity:0;transform:translateY(6px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@keyframes dash-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes dash-pop{from{opacity:0;transform:scale(0.94);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@keyframes dash-toast{from{opacity:0;transform:translateY(-12px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@keyframes dash-confetti-a{0%{opacity:0;transform:translate(0,0) rotate(0deg) scale(0.6)}8%{opacity:1}45%{opacity:1;transform:translate(var(--dx),var(--dy)) rotate(var(--r1)) scale(1)}100%{opacity:0;transform:translate(var(--dx2),var(--dg)) rotate(var(--r2)) scale(0.9)}}
+@keyframes dash-pulse{0%{transform:scale(1);opacity:0.55}70%{transform:scale(2.4);opacity:0}100%{transform:scale(2.4);opacity:0}}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: var(--body-lh); letter-spacing: var(--body-ls); -webkit-font-smoothing: antialiased;">
+<div style="position: relative; max-width: 880px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 48px) 48px;">
+
+  <header style="min-height: 64px; box-sizing: border-box; padding: 12px 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-width: 0;">
+      <span style="font-size: 13px; line-height: 1; font-weight: 800; letter-spacing: 0.13em;">ALIBI</span>
+      <span role="status" style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: var(--radius-pill); background: var(--surface-1); border: 1px solid var(--hairline); font-size: 13px; line-height: 1; font-weight: 600; color: var(--ink-2); white-space: nowrap;">
+        <span style="position: relative; display: inline-flex; width: 8px; height: 8px;">
+          <sc-if value="{{ isLive }}" hint-placeholder-val="{{ true }}">
+            <span aria-hidden="true" style="position: absolute; inset: 0; border-radius: 50%; background: var(--on-task); animation: dash-pulse 2s var(--ease-out) infinite;"></span>
+          </sc-if>
+          <x-import component-from-global-scope="Alibi.StatusDot" label="{{ pillDot }}" size="{{ px8 }}" style="display: flex;"></x-import>
+        </span>
+        <span>{{ pillText }}</span>
+      </span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); white-space: nowrap;">
+        <x-import component-from-global-scope="Alibi.Kbd" style="display: flex;">⌥⌘A</x-import>
+        <span>Island</span>
+      </span>
+      <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="sm" icon="settings" style="display: flex;">Setup</x-import>
+    </div>
+  </header>
+
+  <section aria-label="This week at a glance" style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; padding: 24px 0 48px;">
+    <sc-if value="{{ isIdle }}" hint-placeholder-val="{{ false }}">
+      <x-import component-from-global-scope="Alibi.Pinch" mood="idle" size="{{ px64 }}" theme="{{ theme }}" style="display: flex; width: 64px; height: 64px; flex: none;"></x-import>
+    </sc-if>
+    <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+      <h1 style="margin: 0; font-size: 32px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; text-wrap: balance;">Claimed {{ claimed }} this week. Seen {{ seen }}.</h1>
+      <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ heroSub }}</p>
+    </div>
+    <div style="flex: none;">
+      <x-import component-from-global-scope="Alibi.StreakBadge" days="{{ streak }}" freezes="{{ freezes }}" style="display: flex;"></x-import>
+    </div>
+  </section>
+
+  <sc-if value="{{ showToast }}" hint-placeholder-val="{{ true }}">
+    <div style="position: fixed; top: 24px; right: 24px; z-index: 5; width: min(380px, calc(100% - 32px)); animation: dash-toast var(--spring-bouncy-dur) var(--spring-bouncy) both;">
+      <x-import component-from-global-scope="Alibi.Toast" kind="nudge" title="Drawing · 19:31" mood="focused" actions="{{ toastActions }}" on-close="{{ dismissToast }}">You said drawing. I've seen your <span class="al-cause">phone</span> for 3 minutes.</x-import>
+    </div>
+  </sc-if>
+
+  <main style="display: flex; flex-direction: column; gap: 48px;">
+
+      <section aria-labelledby="now-h" style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+          <h2 id="now-h" style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em;">Now</h2>
+          <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ nowMeta }}</span>
+        </div>
+
+        <sc-if value="{{ isIdle }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 12px; animation: dash-in var(--dur-medium) var(--ease-out) both;">
+            <x-import component-from-global-scope="Alibi.Composer" placeholder="What are you about to do?" chips="{{ habitChips }}" on-submit="{{ startSession }}"></x-import>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 0 4px; font-size: 13px; line-height: 1.45; color: var(--ink-2);">
+              <span style="display: inline-flex; align-items: center; gap: 8px;">
+                <x-import component-from-global-scope="Alibi.Icon" name="calendar" size="{{ px16 }}" style="display: flex;"></x-import>
+                <span>Next up: Internship apps at 20:30, from your calendar</span>
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3);">
+                <x-import component-from-global-scope="Alibi.Kbd" style="display: flex;">/</x-import>
+                <span>to type,</span>
+                <x-import component-from-global-scope="Alibi.Kbd" style="display: flex;">↵</x-import>
+                <span>to start</span>
+              </span>
+            </div>
+            <div style="margin-top: 12px; box-sizing: border-box; padding: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md);">
+              <div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+                <span style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">Latest verdict</span>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;">
+                  <x-import component-from-global-scope="Alibi.VerdictPill" verdict="done" style="display: flex;"></x-import>
+                  <span style="font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;">Drawing, {{ seenOf }}</span>
+                </div>
+                <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ latestLine }}</span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <sc-for list="{{ miniFrames }}" as="m" hint-placeholder-count="3">
+                  <span role="img" aria-label="{{ m.aria }}" style="position: relative; width: 96px; height: 54px; box-sizing: border-box; overflow: hidden; border-radius: var(--radius-xs); background: var(--surface-2); border: 1px solid var(--hairline-strong); color: var(--ink-3);">
+                    <sc-if value="{{ m.isPhone }}" hint-placeholder-val="{{ false }}">
+                      <svg aria-hidden="true" viewBox="0 0 160 90" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; inset: 0;"><rect x="34" y="18" width="64" height="48" rx="3" transform="rotate(-6 66 42)" opacity="0.5"></rect><rect x="98" y="16" width="24" height="44" rx="5"></rect><path d="M106 22h8"></path><ellipse cx="110" cy="64" rx="16" ry="9"></ellipse></svg>
+                    </sc-if>
+                    <sc-if value="{{ m.isDesk }}" hint-placeholder-val="{{ true }}">
+                      <svg aria-hidden="true" viewBox="0 0 160 90" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; inset: 0;"><rect x="40" y="16" width="64" height="48" rx="3" transform="rotate(-6 72 40)"></rect><path d="M54 36c7-7 12 3 19-2s11 6 17 0"></path><path d="M56 50h22"></path><path d="M100 58l20-20"></path><ellipse cx="114" cy="64" rx="13" ry="8"></ellipse></svg>
+                    </sc-if>
+                    <span style="position: absolute; top: 5px; right: 5px; display: flex;"><x-import component-from-global-scope="Alibi.StatusDot" label="{{ m.label }}" size="{{ px8 }}" style="display: flex;"></x-import></span>
+                    <span style="position: absolute; left: 4px; bottom: 4px; padding: 0 4px; border-radius: 4px; background: var(--surface-1); box-shadow: 0 0 0 1px var(--hairline); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums;">{{ m.time }}</span>
+                  </span>
+                </sc-for>
+              </div>
+              <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="sm" icon="eye" on-click="{{ seeProof }}" style="display: flex;">See proof</x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isLive }}" hint-placeholder-val="{{ true }}">
+          <div style="box-sizing: border-box; padding: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px 32px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md); box-shadow: 0 0 0 2px var(--accent-wash); animation: dash-in var(--dur-medium) var(--ease-out) both;">
+            <x-import component-from-global-scope="Alibi.RingTimer" progress="{{ ringProgress }}" value="{{ ringValue }}" caption="left of 25 min" size="{{ px160 }}" style="display: flex; width: 160px; height: 160px; flex: none;"></x-import>
+            <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <h3 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em;">Drawing</h3>
+                  <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">Started 19:16 · desk camera and window titles</span>
+                </div>
+                <x-import component-from-global-scope="Alibi.Pinch" mood="focused" play="sideeye" play-key="{{ nudgeKey }}" size="{{ px96 }}" theme="{{ theme }}" style="display: flex; width: 96px; height: 96px; flex: none; margin: -12px -8px -24px 0;"></x-import>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 32px;">
+                <x-import component-from-global-scope="Alibi.Stat" value="79%" label="on task" sub="11 of 14 min seen" style="display: flex;"></x-import>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <x-import component-from-global-scope="Alibi.SampleStrip" labels="{{ liveStrip }}" develop="{{ yes }}" style="display: flex;"></x-import>
+                  <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">Last 6 samples, one a minute</span>
+                </div>
+              </div>
+              <p style="margin: 0; font-size: 20px; line-height: 1.45; font-weight: 500; letter-spacing: -0.01em; text-wrap: pretty;"><span class="al-cause">Phone</span> in hand since 19:28. The sketchbook's still open.</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="md" icon="cup" style="display: flex;">Break</x-import>
+                <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="md" icon="plus" style="display: flex;">10 min</x-import>
+                <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="md" icon="stop" on-click="{{ finish }}" style="display: flex;">Finish</x-import>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isVerdict }}" hint-placeholder-val="{{ false }}">
+          <div role="status" aria-live="polite" style="box-sizing: border-box; padding: 24px; display: flex; flex-direction: column; gap: 24px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md); animation: dash-rise var(--spring-smooth-dur) var(--spring-smooth) 120ms both;">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px;">
+              <div style="position: relative; flex: none; width: 96px; height: 96px;">
+                <x-import component-from-global-scope="Alibi.Pinch" mood="idle" play="{{ verdictClip }}" play-key="{{ verdictKey }}" force="{{ yes }}" size="{{ px96 }}" theme="{{ theme }}" style="display: flex; width: 96px; height: 96px;"></x-import>
+                <sc-if value="{{ showConfetti }}" hint-placeholder-val="{{ false }}">
+                  <div class="al-confetti" aria-hidden="true" style="position: absolute; left: 48px; top: 30px; width: 0; height: 0; pointer-events: none;">
+                    <sc-for list="{{ confetti }}" as="c" hint-placeholder-count="28">
+                      <span style="position: absolute; left: {{ c.x }}px; top: 0; width: {{ c.w }}px; height: {{ c.h }}px; border-radius: {{ c.radius }}; background: {{ c.color }}; opacity: 0; --dx: {{ c.dx }}px; --dy: {{ c.dy }}px; --dx2: {{ c.dx2 }}px; --dg: {{ c.dg }}px; --r1: {{ c.r1 }}deg; --r2: {{ c.r2 }}deg; animation: {{ c.anim }};"></span>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 12px;">
+                <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">Drawing · 19:16 to 19:41 · 25 min claimed</span>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; animation: dash-pop var(--spring-bouncy-dur) var(--spring-bouncy) 270ms both;">
+                  <x-import component-from-global-scope="Alibi.VerdictPill" verdict="done" style="display: flex;"></x-import>
+                  <span style="font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;">{{ seenOf }}</span>
+                </div>
+                <div style="max-width: 420px;">
+                  <x-import component-from-global-scope="Alibi.Meter" value="{{ meter }}" part-at="{{ partAt }}" done-at="{{ doneAt }}"></x-import>
+                </div>
+              </div>
+              <div style="flex: none; text-align: right;">
+                <x-import component-from-global-scope="Alibi.Stat" value="{{ pctText }}" label="on task" style="display: flex;"></x-import>
+              </div>
+            </div>
+            <p style="margin: 0; max-width: 62ch; font-size: 20px; line-height: 1.45; font-weight: 500; letter-spacing: -0.01em; text-wrap: pretty; animation: dash-in var(--dur-medium) var(--ease-out) 1000ms both;">{{ verdictText }}</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px;">
+                <span style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">Proof, 6 of 25 frames</span>
+                <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3);">{{ proofHint }}</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(max(140px, calc((100% - 16px) / 3)), 1fr)); gap: 8px;">
+                <sc-for list="{{ frames }}" as="f" hint-placeholder-count="6">
+                  <button type="button" aria-label="{{ f.aria }}" onClick="{{ f.fix }}" style="position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; padding: 0; overflow: hidden; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--hairline-strong); color: var(--ink-3); cursor: pointer; font: inherit; animation: dash-in var(--dur-medium) var(--ease-out) both; animation-delay: {{ f.delay }};">
+                    <sc-if value="{{ f.isPhone }}" hint-placeholder-val="{{ false }}">
+                      <svg aria-hidden="true" viewBox="0 0 160 90" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; inset: 0;"><rect x="34" y="18" width="64" height="48" rx="3" transform="rotate(-6 66 42)" opacity="0.5"></rect><rect x="98" y="16" width="24" height="44" rx="5"></rect><path d="M106 22h8"></path><ellipse cx="110" cy="64" rx="16" ry="9"></ellipse><path d="M10 82h140" opacity="0.4"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{ f.isDesk }}" hint-placeholder-val="{{ true }}">
+                      <svg aria-hidden="true" viewBox="0 0 160 90" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; inset: 0;"><rect x="40" y="16" width="64" height="48" rx="3" transform="rotate(-6 72 40)"></rect><path d="M54 36c7-7 12 3 19-2s11 6 17 0"></path><path d="M56 50h22"></path><path d="M100 58l20-20"></path><ellipse cx="114" cy="64" rx="13" ry="8"></ellipse><path d="M10 82h140" opacity="0.4"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{ f.showWord }}" hint-placeholder-val="{{ false }}">
+                      <span style="position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 8px; height: 20px; box-sizing: border-box; padding: 0 8px 0 6px; border-radius: var(--radius-pill); background: var(--surface-1); box-shadow: 0 0 0 1px var(--hairline); font-size: 12px; line-height: 1.3; font-weight: 600; color: var(--warn-ink);">
+                        <x-import component-from-global-scope="Alibi.StatusDot" label="{{ f.label }}" size="{{ px8 }}" style="display: flex;"></x-import>
+                        <span>{{ f.word }}</span>
+                      </span>
+                    </sc-if>
+                    <sc-if value="{{ f.dotOnly }}" hint-placeholder-val="{{ true }}">
+                      <span style="position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-pill); background: var(--surface-1); box-shadow: 0 0 0 1px var(--hairline);">
+                        <x-import component-from-global-scope="Alibi.StatusDot" label="{{ f.label }}" size="{{ px8 }}" style="display: flex;"></x-import>
+                      </span>
+                    </sc-if>
+                    <span style="position: absolute; left: 8px; bottom: 8px; padding: 2px 6px; border-radius: var(--radius-xs); background: var(--surface-1); box-shadow: 0 0 0 1px var(--hairline); font-size: 12px; line-height: 1.3; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums;">{{ f.time }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; animation: dash-in var(--dur-medium) var(--ease-out) 1000ms both;">
+              <x-import component-from-global-scope="Alibi.Button" variant="primary" size="md" on-click="{{ goAgain }}" style="display: flex;">Go again</x-import>
+              <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="md" icon="film" style="display: flex;">Watch reel</x-import>
+              <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="md" on-click="{{ wrong }}" style="display: flex;">Fix a moment</x-import>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+
+      <section aria-labelledby="today-h" style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+          <h2 id="today-h" style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em;">Today</h2>
+          <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ todayMeta }}</span>
+        </div>
+        <ol style="margin: 0; padding: 24px; list-style: none; display: flex; flex-direction: column; gap: 8px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md);">
+          <sc-for list="{{ timeline }}" as="t" hint-placeholder-count="6">
+            <li style="display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 16px;">
+              <span style="font-size: 13px; line-height: 1.45; font-variant-numeric: tabular-nums; color: {{ t.timeInk }}; font-weight: {{ t.timeWeight }};">{{ t.time }}</span>
+              <sc-if value="{{ t.isNow }}" hint-placeholder-val="{{ false }}">
+                <span role="separator" aria-label="Now" style="position: relative; display: block; height: 2px; border-radius: 1px; background: var(--accent);"><span style="position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent);"></span></span>
+              </sc-if>
+              <sc-if value="{{ t.isBlock }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-sm); background: var(--surface-2); box-shadow: {{ t.ring }};">
+                  <span style="display: inline-flex; color: {{ t.iconInk }};"><x-import component-from-global-scope="Alibi.Icon" name="{{ t.icon }}" size="{{ px20 }}" style="display: flex;"></x-import></span>
+                  <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;">
+                    <span style="font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em;">{{ t.title }}</span>
+                    <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ t.meta }}</span>
+                  </span>
+                  <sc-if value="{{ t.hasVerdict }}" hint-placeholder-val="{{ true }}">
+                    <span role="img" aria-label="Verdict: done" style="flex: none; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent-wash); color: var(--accent-ink);"><x-import component-from-global-scope="Alibi.Icon" name="check" size="{{ px16 }}" style="display: flex;"></x-import></span>
+                  </sc-if>
+                  <sc-if value="{{ t.isLive }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size: 13px; line-height: 1; font-weight: 600; color: var(--accent-ink);">Live</span>
+                  </sc-if>
+                  <sc-if value="{{ t.isPlanned }}" hint-placeholder-val="{{ false }}">
+                    <x-import component-from-global-scope="Alibi.IconButton" icon="play" sc-camel-aria-label="Start {{ t.title }} now" size="sm" style="display: flex;"></x-import>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </li>
+          </sc-for>
+        </ol>
+      </section>
+
+      <section aria-labelledby="week-h" style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+          <h2 id="week-h" style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em;">This week</h2>
+          <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">28 Sep to 4 Oct</span>
+        </div>
+        <div style="box-sizing: border-box; padding: 24px; display: flex; flex-direction: column; gap: 24px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md);">
+          <div style="display: flex; flex-wrap: wrap; gap: 32px 48px;">
+            <div role="table" aria-label="Habits by day this week" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+              <div role="row" style="display: grid; grid-template-columns: minmax(136px, 1.8fr) repeat(7, minmax(24px, 1fr)); align-items: center; height: 24px;">
+                <span role="columnheader" style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-3);">Habit</span>
+                <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+                  <span role="columnheader" aria-label="{{ d.full }}" style="text-align: center; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: {{ d.ink }};">{{ d.short }}</span>
+                </sc-for>
+              </div>
+              <sc-for list="{{ grid }}" as="row" hint-placeholder-count="5">
+                <div role="row" style="display: grid; grid-template-columns: minmax(136px, 1.8fr) repeat(7, minmax(24px, 1fr)); align-items: center; height: 32px; border-top: 1px solid var(--hairline);">
+                  <span role="rowheader" style="display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; line-height: 1.3; font-weight: 600; color: var(--ink); white-space: nowrap;">
+                    <span style="display: inline-flex; color: var(--ink-3);"><x-import component-from-global-scope="Alibi.Icon" name="{{ row.icon }}" size="{{ px16 }}" style="display: flex;"></x-import></span>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">{{ row.name }}</span>
+                  </span>
+                  <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="7">
+                    <span role="cell" aria-label="{{ c.aria }}" style="height: 32px; display: flex; align-items: center; justify-content: center; background: {{ c.bg }};">
+                      <sc-if value="{{ c.done }}" hint-placeholder-val="{{ true }}"><span style="width: 12px; height: 12px; border-radius: 50%; background: var(--on-task-ink);"></span></sc-if>
+                      <sc-if value="{{ c.partial }}" hint-placeholder-val="{{ false }}"><span style="position: relative; width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--partial-ink); overflow: hidden;"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: var(--partial-ink);"></span></span></sc-if>
+                      <sc-if value="{{ c.rest }}" hint-placeholder-val="{{ false }}"><span style="width: 8px; height: 2px; border-radius: 1px; background: var(--ink-3);"></span></sc-if>
+                      <sc-if value="{{ c.notyet }}" hint-placeholder-val="{{ false }}"><span style="width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; border: 1.5px dashed var(--absent);"></span></sc-if>
+                      <sc-if value="{{ c.live }}" hint-placeholder-val="{{ false }}"><span style="position: relative; width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--accent);"><span aria-hidden="true" style="position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--accent); animation: dash-pulse 2s var(--ease-out) infinite;"></span></span></sc-if>
+                    </span>
+                  </sc-for>
+                </div>
+              </sc-for>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 8px; font-size: 12px; line-height: 1.3; color: var(--ink-3);">
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--on-task-ink);"></span>Done</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="position: relative; width: 8px; height: 8px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--partial-ink); overflow: hidden;"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: var(--partial-ink);"></span></span>Partly</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 2px; border-radius: 1px; background: var(--ink-3);"></span>Rest</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; box-sizing: border-box; border-radius: 50%; border: 1.5px dashed var(--absent);"></span>Not yet</span>
+              </div>
+            </div>
+            <figure aria-label="{{ chartSummary }}" style="flex: 1 1 280px; min-width: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;">
+                <figcaption style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">Claimed and seen, minutes</figcaption>
+                <span style="display: inline-flex; gap: 12px; font-size: 12px; line-height: 1.3; color: var(--ink-3);">
+                  <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 2px; border: 1.5px solid var(--hairline-strong);"></span>Claimed</span>
+                  <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: var(--accent);"></span>Seen</span>
+                </span>
+              </div>
+              <div aria-hidden="true" style="height: 120px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; border-bottom: 1px solid var(--hairline-strong);">
+                <sc-for list="{{ bars }}" as="b" hint-placeholder-count="7">
+                  <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px;">
+                    <span style="font-size: 12px; line-height: 1.3; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ b.top }}</span>
+                    <div style="display: flex; align-items: flex-end; gap: 3px; height: {{ b.claimedH }}px;">
+                      <span style="width: 10px; height: {{ b.claimedH }}px; box-sizing: border-box; border: 1.5px solid var(--hairline-strong); border-bottom: 0; border-radius: 3px 3px 0 0;"></span>
+                      <span style="width: 10px; height: {{ b.seenH }}px; border-radius: 3px 3px 0 0; background: var(--accent);"></span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px;">
+                <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+                  <span style="text-align: center; font-size: 12px; line-height: 1.3; font-weight: 600; color: {{ d.ink }};">{{ d.short }}</span>
+                </sc-for>
+              </div>
+            </figure>
+          </div>
+          <div style="padding-top: 20px; border-top: 1px solid var(--hairline);">
+            <x-import component-from-global-scope="Alibi.PinchLine" mood="reading">{{ reportLine }}</x-import>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="sessions-h" style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+          <h2 id="sessions-h" style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em;">Sessions</h2>
+          <a href="#sessions-h" style="font-size: 13px; line-height: 1.45; font-weight: 600; text-decoration: none;">All sessions</a>
+        </div>
+        <ul style="margin: 0; padding: 0 24px; list-style: none; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md);">
+          <sc-for list="{{ sessions }}" as="s" hint-placeholder-count="5">
+            <li style="display: flex; align-items: flex-start; gap: 16px; padding: 16px 0; border-top: {{ s.rule }};">
+              <span style="flex: none; width: 88px; padding-top: 2px; white-space: nowrap; font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ s.when }}</span>
+              <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;">
+                  <span style="font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em;">{{ s.habit }}</span>
+                  <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ s.meta }}</span>
+                </div>
+                <span role="img" aria-label="{{ s.dotsAria }}" style="display: flex; flex-wrap: wrap; gap: 4px;">
+                  <sc-for list="{{ s.dots }}" as="dot" hint-placeholder-count="25">
+                    <x-import component-from-global-scope="Alibi.StatusDot" label="{{ dot }}" size="{{ px8 }}" style="display: flex;"></x-import>
+                  </sc-for>
+                </span>
+              </div>
+              <span style="flex: none; display: flex; justify-content: flex-end;">
+                <sc-if value="{{ s.isLive }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; font-size: 13px; line-height: 1; font-weight: 600; color: var(--accent-ink);">
+                    <span style="position: relative; display: inline-flex; width: 8px; height: 8px;"><span aria-hidden="true" style="position: absolute; inset: 0; border-radius: 50%; background: var(--on-task); animation: dash-pulse 2s var(--ease-out) infinite;"></span><x-import component-from-global-scope="Alibi.StatusDot" label="on_task" size="{{ px8 }}" style="display: flex;"></x-import></span>
+                    Live
+                  </span>
+                </sc-if>
+                <sc-if value="{{ s.hasVerdict }}" hint-placeholder-val="{{ true }}">
+                  <x-import component-from-global-scope="Alibi.VerdictPill" verdict="{{ s.verdict }}" style="display: flex;"></x-import>
+                </sc-if>
+              </span>
+            </li>
+          </sc-for>
+        </ul>
+      </section>
+
+      <section aria-labelledby="ev-h" style="display: flex; flex-direction: column; gap: 16px;">
+        <h2 id="ev-h" style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em;">Witnesses</h2>
+        <ul style="margin: 0; padding: 0 24px; list-style: none; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md);">
+          <sc-for list="{{ witnesses }}" as="w" hint-placeholder-count="4">
+            <li style="display: flex; align-items: center; gap: 16px; padding: 16px 0; border-top: {{ w.rule }};">
+              <span style="display: inline-flex; color: var(--ink-2);"><x-import component-from-global-scope="Alibi.Icon" name="{{ w.icon }}" size="{{ px20 }}" style="display: flex;"></x-import></span>
+              <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;">
+                <span style="font-size: 16px; line-height: 1.4; font-weight: 400;">{{ w.name }}</span>
+                <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2);">{{ w.meta }}</span>
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1; font-weight: 600; color: {{ w.stateInk }};">
+                <x-import component-from-global-scope="Alibi.StatusDot" label="{{ w.dot }}" size="{{ px8 }}" style="display: flex;"></x-import>
+                {{ w.state }}
+              </span>
+            </li>
+          </sc-for>
+        </ul>
+      </section>
+  </main>
+
+  <footer style="margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--hairline); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; font-size: 13px; line-height: 1.45; color: var(--ink-3);">
+    <span style="max-width: 72ch;">Frames are judged on this Mac by Apple Vision and deleted after 7 days. The camera is off whenever no session runs.</span>
+    <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 500;">127.0.0.1:8765</span>
+  </footer>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["idle","live","verdict"],"default":"verdict","section":"Preview"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Preview"},"$preview":{"width":1440,"height":2905}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: null, toast: true, fixed: false, hint: false, pct: null, verdictKey: 0, nudgeKey: 0, left: 642 };
+    this.timers = [];
+  }
+  componentDidMount() {
+    this.tick = setInterval(() => {
+      if (this.view() === 'live') this.setState((s) => ({ left: s.left > 0 ? s.left - 1 : 0 }));
+    }, 1000);
+    this.enter(this.view());
+  }
+  componentWillUnmount() {
+    clearInterval(this.tick);
+    this.clear();
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.state !== this.props.state) { this.setState({ view: null, toast: true }); this.enter(this.props.state || 'verdict'); }
+  }
+  clear() {
+    this.timers.forEach((t) => clearTimeout(t));
+    this.timers = [];
+  }
+  view() {
+    return this.state.view || this.props.state || 'verdict';
+  }
+  enter(v) {
+    this.clear();
+    if (v === 'verdict') {
+      const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const target = this.state.fixed ? 96 : 92;
+      if (reduce) { this.setState({ pct: target }); return; }
+      this.setState({ pct: 0 });
+      this.timers.push(setTimeout(() => this.setState({ pct: target }), 420));
+      this.timers.push(setTimeout(() => this.setState((s) => ({ verdictKey: s.verdictKey + 1 })), 1000));
+    }
+    if (v === 'live') {
+      this.timers.push(setTimeout(() => this.setState((s) => ({ nudgeKey: s.nudgeKey + 1 })), 120));
+    }
+  }
+  go(v) {
+    this.setState({ view: v, toast: true, hint: false, left: 642 });
+    this.enter(v);
+  }
+  renderVals() {
+    const v = this.view();
+    const theme = this.props.theme || 'dark';
+    const isIdle = v === 'idle', isLive = v === 'live', isVerdict = v === 'verdict';
+    const fixed = this.state.fixed;
+    const pct = this.state.pct == null ? (fixed ? 96 : 92) : this.state.pct;
+    const mm = Math.floor(this.state.left / 60), ss = String(this.state.left % 60).padStart(2, '0');
+
+    const dayNames = [['M', 'Monday 28'], ['T', 'Tuesday 29'], ['W', 'Wednesday 30'], ['T', 'Thursday 1, today'], ['F', 'Friday 2'], ['S', 'Saturday 3'], ['S', 'Sunday 4']];
+    const days = dayNames.map((d, i) => ({ short: d[0], full: d[1], ink: i === 3 ? 'var(--ink)' : 'var(--ink-3)' }));
+
+    const thu = isLive ? 'live' : 'done';
+    const rows = [
+      ['Drawing', 'camera', ['done', 'rest', 'rest', thu, 'notyet', 'notyet', 'notyet']],
+      ['C++', 'laptop', ['rest', 'done', 'rest', 'done', 'notyet', 'notyet', 'notyet']],
+      ['Internship apps', 'flag', ['rest', 'rest', 'partial', 'notyet', 'notyet', 'notyet', 'notyet']],
+      ['Running 5k', 'run', ['done', 'rest', 'done', 'done', 'notyet', 'notyet', 'notyet']],
+      ['Sleep 7h', 'moon', ['done', 'done', 'partial', 'done', 'notyet', 'notyet', 'notyet']],
+    ];
+    const word = { done: 'done', partial: 'partly', rest: 'rest day', notyet: 'not yet', live: 'live now' };
+    const grid = rows.map((r) => ({
+      name: r[0], icon: r[1],
+      cells: r[2].map((k, i) => ({
+        done: k === 'done', partial: k === 'partial', rest: k === 'rest', notyet: k === 'notyet', live: k === 'live',
+        bg: i === 3 ? 'var(--surface-2)' : 'transparent',
+        aria: dayNames[i][1] + ': ' + word[k],
+      })),
+    }));
+
+    const claimedMin = [25, 30, 20, isLive ? 30 : 55, 0, 0, 0];
+    const seenMin = [23, 25, 12, isLive ? 29 : (fixed ? 53 : 52), 0, 0, 0];
+    const scale = 88 / 55;
+    const bars = claimedMin.map((c, i) => ({
+      claimedH: Math.round(c * scale), seenH: Math.round(seenMin[i] * scale),
+      top: c ? String(seenMin[i]) : '',
+    }));
+
+    const mk = (n, marks) => Array.from({ length: n }, (_, i) => marks[i] || 'on_task');
+    const drawingToday = mk(25, fixed ? { 12: 'phone' } : { 12: 'phone', 13: 'phone' });
+    const liveDots = mk(14, { 11: 'phone', 12: 'phone', 13: 'phone' });
+    const sessionsAll = [
+      { when: 'Today 19:16', habit: 'Drawing', meta: fixed ? '24 of 25 min seen' : '23 of 25 min seen', dots: drawingToday, verdict: 'done' },
+      { when: 'Today 13:02', habit: 'C++', meta: '29 of 30 min seen', dots: mk(30, { 17: 'idle' }), verdict: 'done' },
+      { when: 'Wed 18:40', habit: 'Internship apps', meta: '12 of 20 min seen', dots: mk(20, { 6: 'off_task', 7: 'off_task', 8: 'off_task', 9: 'off_task', 10: 'off_task', 17: 'absent', 18: 'absent', 19: 'absent' }), verdict: 'partial' },
+      { when: 'Tue 21:05', habit: 'C++', meta: '25 of 30 min seen', dots: mk(30, { 14: 'off_task', 15: 'off_task', 16: 'off_task', 25: 'idle', 26: 'idle' }), verdict: 'done' },
+      { when: 'Mon 19:30', habit: 'Drawing', meta: '23 of 25 min seen', dots: mk(25, { 8: 'absent', 9: 'absent' }), verdict: 'done' },
+    ];
+    let sessions = sessionsAll.slice();
+    if (isLive) sessions[0] = { when: 'Now', habit: 'Drawing', meta: '11 of 14 min seen so far', dots: liveDots, live: true };
+    sessions = sessions.map((s, i) => {
+      const counts = {};
+      s.dots.forEach((d) => { counts[d] = (counts[d] || 0) + 1; });
+      const parts = Object.keys(counts).map((k) => counts[k] + ' ' + k.replace('_', ' '));
+      return {
+        ...s, isLive: !!s.live, hasVerdict: !s.live, verdict: s.verdict || 'done',
+        rule: i === 0 ? '0' : '1px solid var(--hairline)',
+        dotsAria: 'One mark per minute: ' + parts.join(', '),
+      };
+    });
+
+    const tl = [
+      { time: 'Night', title: 'Sleep', meta: '7h 20m · Health', icon: 'moon', verdict: 'done' },
+      { time: '07:30', title: 'Running 5k', meta: '5.2 km · 28 min · Strava', icon: 'run', verdict: 'done' },
+      { time: '13:00', title: 'C++', meta: '29 of 30 min seen', icon: 'laptop', verdict: 'done' },
+    ];
+    if (isLive) {
+      tl.push({ time: '19:16', title: 'Drawing', meta: ss ? mm + ':' + ss + ' left of 25 min' : '', icon: 'camera', live: true });
+      tl.push({ time: '19:31', now: true });
+    } else {
+      tl.push({ time: '19:16', title: 'Drawing', meta: (fixed ? '24' : '23') + ' of 25 min seen', icon: 'camera', verdict: 'done' });
+      tl.push({ time: '19:42', now: true });
+    }
+    tl.push({ time: '20:30', title: 'Internship apps', meta: '45 min · Calendar', icon: 'calendar', planned: true });
+    const timeline = tl.map((t) => ({
+      ...t,
+      isNow: !!t.now, isBlock: !t.now, isLive: !!t.live, isPlanned: !!t.planned, hasVerdict: !!t.verdict,
+      timeInk: t.now ? 'var(--accent-ink)' : 'var(--ink-3)', timeWeight: t.now ? '600' : '400',
+      iconInk: t.live ? 'var(--accent-ink)' : 'var(--ink-2)',
+      ring: t.live ? '0 0 0 2px var(--accent)' : 'none',
+    }));
+
+    const witnesses = [
+      { icon: 'camera', name: 'Desk camera', meta: isLive ? 'Apple Vision, on this Mac · last frame 19:31' : 'Apple Vision, on this Mac', state: isLive ? 'On' : 'Off', dot: isLive ? 'on_task' : 'absent' },
+      { icon: 'laptop', name: 'Window titles', meta: isLive ? 'Procreate Dreams, then Safari' : 'Read only while a session runs', state: isLive ? 'On' : 'Off', dot: isLive ? 'on_task' : 'absent' },
+      { icon: 'run', name: 'Strava', meta: 'Synced 07:58 · 5.2 km run', state: 'Linked', dot: 'on_task' },
+      { icon: 'heart', name: 'iPhone Health', meta: 'Synced 2 min ago over Tailscale', state: 'Linked', dot: 'on_task' },
+    ].map((w, i) => ({ ...w, rule: i === 0 ? '0' : '1px solid var(--hairline)', stateInk: w.dot === 'on_task' ? 'var(--ink)' : 'var(--ink-3)' }));
+
+    const frameData = [
+      ['19:18', 'on_task', 'M54 36c7-7 12 3 19-2s11 6 17 0'],
+      ['19:23', 'on_task', 'M54 34c6-4 10 6 17 1s12 2 18-3'],
+      ['19:29', fixed ? 'on_task' : 'phone', 'M54 36c7-7 12 3 19-2s11 6 17 0'],
+      ['19:32', 'on_task', 'M52 38c8-8 14 4 20-3s10 7 18 1'],
+      ['19:36', 'on_task', 'M54 35c5-6 11 5 18-1s12 4 18-1'],
+      ['19:40', 'on_task', 'M53 37c7-5 13 2 19-3s10 6 18 1'],
+    ];
+    const words = { on_task: 'On task', phone: 'Phone' };
+    const frames = frameData.map((f, i) => {
+      const isPhone = f[1] === 'phone';
+      return {
+        time: f[0], label: f[1], word: words[f[1]], sketch: f[2], isPhone, isDesk: !isPhone,
+        showWord: f[1] !== 'on_task', dotOnly: f[1] === 'on_task',
+        delay: (560 + 40 * i) + 'ms',
+        aria: 'Frame at ' + f[0] + ', ' + words[f[1]].toLowerCase() + (isPhone ? '. Mark it as on task' : ''),
+        fix: isPhone ? () => { this.setState((s) => ({ fixed: true, hint: false, pct: 96, verdictKey: s.verdictKey + 1 })); } : () => {},
+      };
+    });
+
+    const palette = ['var(--accent)', 'var(--green-300)', 'var(--accent)', 'var(--pinch-spark)', 'var(--accent)', 'var(--green-300)', 'var(--accent-ink)', 'var(--pinch-shine)', 'var(--accent)', 'var(--pinch-spark)'];
+    const rnd = (k) => { const x = Math.sin(k * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+    const kName = 'dash-confetti-a';
+    const confetti = Array.from({ length: 28 }, (_, k) => {
+      const ang = (-90 + (rnd(k) * 60 - 30)) * Math.PI / 180;
+      const dist = 70 + rnd(k + 40) * 80;
+      const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist;
+      const kind = k % 3;
+      const dur = 1100 + Math.round(rnd(k + 90) * 500);
+      return {
+        x: Math.round((rnd(k + 7) - 0.5) * 40),
+        w: kind === 0 ? 3 : (kind === 1 ? 6 : 4), h: kind === 0 ? 3 : (kind === 1 ? 6 : 9),
+        radius: kind === 0 ? '50%' : (kind === 1 ? '1px' : '2px'),
+        color: palette[k % palette.length],
+        dx: Math.round(dx), dy: Math.round(dy), dx2: Math.round(dx * 1.4), dg: Math.round(dy + 90 + rnd(k + 3) * 40),
+        r1: Math.round((rnd(k + 5) - 0.5) * 240), r2: Math.round((rnd(k + 6) - 0.5) * 480),
+        anim: kName + ' ' + dur + 'ms var(--ease-out) ' + (1000 + (k % 6) * 12) + 'ms both',
+      };
+    });
+    const verdictText = fixed
+      ? 'Fair. I’ve changed that one. 24 of 25 minutes at the desk now. The phone had one, at 19:28.'
+      : 'Done. 23 of 25 minutes at the desk, pencil in hand. The phone had two, around 19:29. Tap that frame if I got it wrong.';
+
+    return {
+      theme, yes: true,
+      px8: 8, px16: 16, px20: 20, px64: 64, px96: 96, px160: 160, partAt: 0.4, doneAt: 0.7,
+      isIdle, isLive, isVerdict,
+      pillText: isLive ? 'Watching · Drawing' : (isVerdict ? 'Verdict ready · camera off' : 'Camera off'),
+      pillDot: isLive ? 'on_task' : 'absent',
+      claimed: isLive ? '1h 45m' : '2h 10m', seen: isLive ? '1h 29m' : (fixed ? '1h 53m' : '1h 52m'),
+      heroSub: isLive ? 'Finished sessions only. Drawing joins the count at 19:41.' : (fixed ? '87% of claimed time seen. Five sessions, none slacked.' : '86% of claimed time seen. Five sessions, none slacked.'),
+      streak: 6, freezes: 1,
+      nowMeta: isIdle ? 'Thu 1 Oct · 19:42' : (isLive ? 'Thu 1 Oct · 19:31' : 'Finished 19:41'),
+      habitChips: ['Drawing 25 min', 'C++ 30 min', 'Internship apps 45 min'],
+      ringProgress: (1500 - this.state.left) / 1500, ringValue: mm + ':' + ss,
+      liveStrip: ['on_task', 'on_task', 'on_task', 'phone', 'phone', 'phone'],
+      nudgeKey: this.state.nudgeKey,
+      showToast: isLive && this.state.toast,
+      toastActions: [
+        { label: 'Back to it', variant: 'primary', onClick: () => this.setState({ toast: false }) },
+        { label: 'This counts', variant: 'secondary', onClick: () => this.setState({ toast: false }) },
+      ],
+      dismissToast: () => this.setState({ toast: false }),
+      goAgain: () => this.go('idle'),
+      finish: () => this.go('verdict'),
+      wrong: () => this.setState({ hint: true }),
+      confetti, showConfetti: isVerdict && !fixed,
+      latestLine: fixed ? 'Finished 19:41. You marked 19:29 as on task.' : 'Finished 19:41. The phone had two minutes, around 19:29.',
+      verdictClip: fixed ? 'surprise' : 'celebrate', verdictKey: this.state.verdictKey,
+      seenOf: (fixed ? '24' : '23') + ' of 25 min',
+      meter: (fixed ? 96 : 92) / 100, pctText: pct + '%',
+      verdictText,
+      proofHint: this.state.hint ? 'Tap the frame that’s wrong. It changes at once.' : 'Tap any frame to fix it',
+      frames,
+      days, grid, bars,
+      chartSummary: isLive ? 'Claimed 1h 45m, seen 1h 29m this week, Monday to Thursday.' : (fixed ? 'Claimed 2h 10m, seen 1h 53m this week. Thursday had the most: 55 claimed, 53 seen.' : 'Claimed 2h 10m, seen 1h 52m this week. Thursday had the most: 55 claimed, 52 seen.'),
+      reportLine: isLive ? 'C++ carried the week so far. Internship apps slipped on Wednesday.' : (fixed ? 'Thursday carried it: 53 of 55 minutes. Internship apps slipped Wednesday.' : 'Thursday carried it: 52 of 55 minutes. Internship apps slipped Wednesday.'),
+      miniFrames: [['19:23', 'on_task'], ['19:29', fixed ? 'on_task' : 'phone'], ['19:40', 'on_task']].map((f) => ({ time: f[0], label: f[1], isPhone: f[1] === 'phone', isDesk: f[1] !== 'phone', aria: 'Frame at ' + f[0] + ', ' + (f[1] === 'phone' ? 'phone' : 'on task') })),
+      seeProof: () => this.go('verdict'),
+      startSession: () => this.go('live'),
+      sessions, timeline, witnesses,
+      todayMeta: isLive ? '3 of 5 done · 19:31' : '4 of 5 done · 19:42',
+    };
+  }
+}
+</script>
+</body>
+</html>

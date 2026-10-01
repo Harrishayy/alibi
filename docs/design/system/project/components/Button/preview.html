@@ -1,0 +1,26 @@
+<!-- @dsCard group="Actions" height=128 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Button — preview</title>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, ['div', { style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-3)' } }].concat([].slice.call(arguments))); };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    row(
+      h(A.Button, { variant: 'primary', icon: 'play' }, 'Start session'),
+      h(A.Button, { variant: 'secondary' }, 'Fix a moment'),
+      h(A.Button, { variant: 'ghost', icon: 'film' }, 'See proof'),
+      h(A.Button, { variant: 'quiet' }, 'Quiet 5 min')),
+    row(
+      h(A.Button, { variant: 'secondary', size: 'sm', icon: 'plus' }, '10 min'),
+      h(A.Button, { variant: 'secondary', size: 'md', icon: 'cup' }, 'Break'),
+      h(A.Button, { variant: 'secondary', size: 'lg', icon: 'stop' }, 'Finish'),
+      h(A.Button, { variant: 'ghost', icon: 'settings', iconOnly: true, ariaLabel: 'Open setup' }),
+      h(A.Button, { variant: 'primary', disabled: true }, 'Go again'))));
+</script>
+</body>
+</html>

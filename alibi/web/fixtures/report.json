@@ -1,0 +1,79 @@
+{
+ "now": 1790884803.0,
+ "session": null,
+ "alert": {
+  "id": 1790884800000000000,
+  "ts": 1790884800.0,
+  "kind": "report",
+  "text": "You claimed three hours. I saw two and a half. Drawing carried the day.",
+  "image": null,
+  "day": "2026-10-01",
+  "image_url": null
+ },
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790872200.0
+ },
+ "today": {
+  "sessions": 3,
+  "verified_min": 91,
+  "declared_min": 105,
+  "habits_done": 3,
+  "habits_total": 5,
+  "tally": "3/5",
+  "verdicts": {
+   "done": 2,
+   "partial": 1,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Idle — nothing declared",
+ "pinch": {
+  "mood": "reading",
+  "event": null,
+  "seq": 0,
+  "age_s": null,
+  "line": "Reading tonight's report."
+ }
+}

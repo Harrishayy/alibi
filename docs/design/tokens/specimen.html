@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alibi tokens</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .page { max-width: 1120px; margin: 0 auto; padding: var(--space-12) var(--space-6) var(--space-18); }
+  header.top { display: grid; grid-template-columns: 1fr auto; gap: var(--space-6); align-items: end; padding-bottom: var(--space-8); border-bottom: 1px solid var(--hairline); }
+  .mark { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); }
+  .wordmark { font: 800 12px/1 var(--font-sans); letter-spacing: 1.6px; color: var(--ink); }
+  .mark .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .top h1 { margin: 0 0 var(--space-3); }
+  .top .t-voice { margin: 0; color: var(--ink-2); max-width: 46ch; }
+  .meta { margin-top: var(--space-4); color: var(--ink-3); }
+  .seg { justify-self: start; display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--radius-pill); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--hairline); }
+  .seg button { appearance: none; border: 0; background: transparent; color: var(--ink-2); font: 600 12px/1 var(--font-sans); letter-spacing: 0.01em;
+    padding: 8px 14px; border-radius: var(--radius-pill); cursor: pointer; transition: background-color var(--dur-small) var(--ease-out), color var(--dur-small) var(--ease-out); }
+  .seg button[aria-pressed="true"] { background: var(--surface-3); color: var(--ink); }
+  @media (hover: hover) and (pointer: fine) { .seg button:hover { color: var(--ink); } }
+  nav.toc { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-6) 0 0; }
+  nav.toc a { color: var(--ink-2); text-decoration: none; padding: 6px 12px; border-radius: var(--radius-pill); box-shadow: inset 0 0 0 1px var(--hairline); }
+  nav.toc a:hover { color: var(--ink); }
+  section.block { padding-top: var(--space-12); }
+  section.block > h2 { margin: 0 0 var(--space-2); }
+  section.block > p.lede { margin: 0 0 var(--space-6); color: var(--ink-2); max-width: 62ch; }
+  .group { margin-top: var(--space-8); }
+  .group h3 { margin: 0; }
+  .group p { margin: var(--space-1) 0 var(--space-4); color: var(--ink-2); }
+
+  /* colour table: name | dark | light */
+  .ctable { border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 0 0 1px var(--hairline); }
+  .crow { display: grid; grid-template-columns: minmax(220px, 1.1fr) 1fr 1fr; }
+  .crow + .crow > * { border-top: 1px solid var(--hairline); }
+  .chead { background: var(--surface-1); }
+  .chead > div { padding: var(--space-2) var(--space-4); color: var(--ink-2); background: var(--surface-1); }
+  .cname { padding: var(--space-4); background: var(--surface-1); }
+  .cname code { font: 500 13px/1.3 var(--font-mono); color: var(--ink); }
+  .cname .use { margin-top: var(--space-1); color: var(--ink-2); }
+  .cell { padding: var(--space-4); background: var(--surface-1); color: var(--ink); display: grid; grid-template-columns: 48px 1fr; gap: var(--space-3); align-items: start; border-left: 1px solid var(--hairline); }
+  .cell .sw { width: 48px; height: 48px; border-radius: var(--radius-sm); display: grid; place-items: center; position: relative; }
+  .sw.flat { box-shadow: inset 0 0 0 1px var(--hairline); }
+  .sw .aa { font: 600 20px/1 var(--font-sans); letter-spacing: -0.01em; }
+  .hex { font: 500 12px/1.4 var(--font-mono); color: var(--ink); }
+  .ratios { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px 10px; font: 500 12px/1.4 var(--font-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .ratios .r b { font-weight: 600; color: var(--ink); }
+  .verdict { margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; font: 600 12px/1.3 var(--font-sans); letter-spacing: 0.01em; }
+  .verdict.ok { color: var(--accent-ink); }
+  .verdict.no { color: var(--warn-ink); }
+  .verdict.na { color: var(--ink-3); font-weight: 500; }
+  /* status shapes */
+  .shape { width: 22px; height: 22px; }
+  .s-dot { border-radius: 50%; }
+  .s-ring { border-radius: 50%; border: 3px solid; background: transparent !important; }
+  .s-square { border-radius: 5px; }
+  .s-hatch { border-radius: 5px; }
+  .s-dash { border-radius: 50%; border: 2px dashed; background: transparent !important; }
+  .s-half { border-radius: 50%; border: 2px solid; background: linear-gradient(90deg, currentColor 50%, transparent 50%) !important; }
+  .s-focus { width: 30px; height: 22px; border-radius: 6px; background: var(--surface-2) !important; outline: 2px solid; outline-offset: 2px; }
+  .s-line { width: 34px; height: 22px; border-radius: 6px; border: 1px solid; background: transparent !important; }
+  .s-bloom { width: 48px; height: 48px; border-radius: 50%; }
+
+  /* type */
+  .trow { display: grid; grid-template-columns: 260px 1fr; gap: var(--space-6); padding: var(--space-6) 0; border-top: 1px solid var(--hairline); align-items: baseline; }
+  .trow:first-of-type { border-top: 0; }
+  .tmeta code { font: 500 13px/1.3 var(--font-mono); color: var(--ink); }
+  .tmeta .spec { margin-top: var(--space-1); color: var(--ink-2); font: 500 12px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tmeta .use { margin-top: var(--space-2); color: var(--ink-3); }
+  .tsample { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+  .t-mono.tsample { justify-self: start; display: inline-block; padding: 2px 8px; border-radius: var(--radius-xs); background: var(--surface-3); }
+  .card { background: var(--surface-1); border-radius: var(--radius-md); box-shadow: 0 0 0 1px var(--hairline); padding: var(--space-6); }
+  .atable { width: 100%; border-collapse: collapse; }
+  .atable th { text-align: left; color: var(--ink-2); font: 600 12px/1.3 var(--font-sans); letter-spacing: 0.01em; padding: 0 var(--space-3) var(--space-3) 0; }
+  .atable td { padding: var(--space-3) var(--space-3) var(--space-3) 0; border-top: 1px solid var(--hairline); vertical-align: baseline; }
+  .atable td.n { font: 500 12px/1.4 var(--font-mono); color: var(--ink-2); white-space: nowrap; }
+  .atable td.g { color: var(--ink-3); white-space: nowrap; }
+  .island-pane { background: var(--island); color: #fff; }
+  .island-pane .atable td.n, .island-pane .atable th { color: rgba(255,255,255,0.6); }
+  .island-pane .atable td.g { color: rgba(255,255,255,0.6); }
+  .island-pane .atable td { border-top-color: rgba(255,255,255,0.08); }
+
+  /* spacing, radius, motion */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+  .srow { display: grid; grid-template-columns: 90px 44px 1fr; align-items: center; gap: var(--space-3); padding: 6px 0; }
+  .srow code, .mrow code { font: 500 12px/1.4 var(--font-mono); color: var(--ink); }
+  .srow .v { color: var(--ink-2); font: 500 12px/1.4 var(--font-mono); font-variant-numeric: tabular-nums; }
+  .bar { height: 12px; border-radius: 3px; background: var(--surface-3); }
+  .radii { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+  .radii figure { margin: 0; text-align: center; }
+  .radii .box { width: 72px; height: 72px; background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+  .radii figcaption { margin-top: var(--space-2); font: 500 12px/1.4 var(--font-mono); color: var(--ink-2); }
+  .mrow { display: grid; grid-template-columns: 240px 1fr 88px; gap: var(--space-4); align-items: center; padding: var(--space-3) 0; border-top: 1px solid var(--hairline); }
+  .mrow:first-child { border-top: 0; }
+  .mrow .use { color: var(--ink-2); }
+  .track { position: relative; height: 28px; border-radius: var(--radius-pill); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline); }
+  .puck { position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); }
+  .track.go .puck { transform: translateX(calc(var(--run) - 28px)); }
+  .btn { appearance: none; border: 0; cursor: pointer; font: 600 13px/1 var(--font-sans); padding: 10px 14px; border-radius: var(--radius-sm);
+    background: var(--surface-3); color: var(--ink); transition: transform var(--dur-micro) var(--ease-out), background-color var(--dur-small) var(--ease-out); }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { background: var(--accent); color: var(--on-accent); }
+  @media (hover: hover) and (pointer: fine) { .btn.primary:hover { background: var(--accent-hover); } }
+  .btn.primary:active { background: var(--accent-press); }
+  .mhead { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); margin-bottom: var(--space-3); }
+
+  @media (max-width: 760px) {
+    .page { padding: var(--space-8) var(--space-4) var(--space-12); }
+    header.top { grid-template-columns: 1fr; }
+    .crow { grid-template-columns: 1fr 1fr; }
+    .crow .cname { grid-column: 1 / -1; }
+    .chead > div:first-child { display: none; }
+    .cell { grid-template-columns: 40px 1fr; padding: var(--space-3); }
+    .cell .sw { width: 40px; height: 40px; }
+    .cell:nth-child(2) { border-left: 0; }
+    .trow { grid-template-columns: 1fr; gap: var(--space-2); }
+    .grid2 { grid-template-columns: 1fr; }
+    .mrow { grid-template-columns: 1fr 72px; }
+    .mrow .use { grid-column: 1 / -1; }
+    .t-display.tsample { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <div class="mark"><span class="dot" aria-hidden="true"></span><span class="wordmark">ALIBI</span></div>
+      <h1 class="t-h1">Design tokens</h1>
+      <p class="t-voice">One palette, one sans family, six springs. Dark comes first; light is designed, not inverted.</p>
+      <p class="meta t-small">Every hex and contrast ratio below is read live from <span class="num">tokens.css</span>. Text needs 4.5:1, marks and focus rings 3:1, in both themes.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Page theme">
+      <button type="button" data-set="auto">Auto</button>
+      <button type="button" data-set="dark">Dark</button>
+      <button type="button" data-set="light">Light</button>
+    </div>
+  </header>
+  <nav class="toc t-label" aria-label="Sections">
+    <a href="#colour">Colour</a><a href="#type">Type</a><a href="#apple">Apple surfaces</a><a href="#space">Spacing and radius</a><a href="#motion">Motion</a>
+  </nav>
+
+  <section class="block" id="colour">
+    <h2 class="t-h2">Colour</h2>
+    <p class="lede t-body">Both themes side by side. Neutrals cover at least 85% of any screen; green stays under 5% outside the mascot; bad news is a dot, a word or a wash, never a red slab.</p>
+    <div id="colour-groups"></div>
+  </section>
+
+  <section class="block" id="type">
+    <h2 class="t-h2">Type</h2>
+    <p class="lede t-body">All sans. SF Pro on Apple devices, Onest everywhere else, SF Pro Rounded for big numerals, mono only for keycaps and IDs. Every number uses tabular figures.</p>
+    <div class="card" id="web-type"></div>
+  </section>
+
+  <section class="block" id="apple">
+    <h2 class="t-h2">Apple surfaces</h2>
+    <p class="lede t-body">Island, iPhone and Live Activity styles in points, previewed here at the same size in pixels. The island is always black.</p>
+    <div class="card island-pane" id="apple-type"></div>
+  </section>
+
+  <section class="block" id="space">
+    <h2 class="t-h2">Spacing and radius</h2>
+    <p class="lede t-body">A 4-based ladder and one concentric radius ladder: an inner corner is the outer corner minus the padding.</p>
+    <div class="grid2">
+      <div class="card" id="space-list"></div>
+      <div class="card"><div class="radii" id="radius-list"></div></div>
+    </div>
+  </section>
+
+  <section class="block" id="motion">
+    <h2 class="t-h2">Motion</h2>
+    <p class="lede t-body">Six springs shared by the web, the island and the iPhone. Structure never bounces; only Pinch gets the celebrate spring. Under reduced motion every spring becomes a 150 ms ease.</p>
+    <div class="card">
+      <div class="mhead"><span class="t-h3">Springs</span><button class="btn primary" type="button" id="play">Play all</button></div>
+      <div id="spring-list"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const D = {"colors": [{"name": "bg", "kind": "ground", "grounds": [], "usage": "Page canvas behind every card on the web dashboard and the iPhone app; the window behind the island menu bar. Dark-first: pure black, so the island and the page read as one object."}, {"name": "surface-1", "kind": "ground", "grounds": [], "usage": "Cards on bg: the Now card, latest verdict, today timeline, week, sessions; iPhone grouped rows; the composer at rest. Separate it from bg with hairline, not a shadow."}, {"name": "surface-2", "kind": "ground", "grounds": [], "usage": "Raised or nested layer inside a card: the composer while focused, popovers, the setup drawer, the correction popover, hover state of a row on surface-1."}, {"name": "surface-3", "kind": "ground", "grounds": [], "usage": "Pressed rows, selected chips without colour, meter and ring tracks, the segmented-control thumb rail, keycap (Kbd) fill. Only ink and ink-2 may sit on it; never ink-3."}, {"name": "island", "kind": "ground", "grounds": [], "usage": "The notch island fill on Mac (both themes: it must merge with the hardware notch) and the Live Activity / Dynamic Island backdrop. Solid, no glass, no gradient."}, {"name": "scrim", "kind": "deco", "grounds": [], "usage": "Behind the setup drawer, the lightbox for contact-sheet frames and iPhone sheets. Fades in on dur-medium, out at 0.65x."}, {"name": "ink", "kind": "text", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Primary text: headings, body, voice lines, stats, button labels on neutral fills. Reads on bg, surface-1, surface-2 and surface-3."}, {"name": "ink-2", "kind": "text", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Secondary text: meta lines, timestamps, captions under stats, inactive tab labels, icons beside labels. Reads on bg, surface-1, surface-2 and surface-3."}, {"name": "ink-3", "kind": "text", "grounds": ["bg", "surface-1", "surface-2"], "usage": "Faint text: composer placeholder, disabled labels, keyboard hints, chart axis labels. Reads on bg, surface-1 and surface-2 only (it fails on surface-3; use ink-2 there). Replaces the failing #767676 / #8C8C8C."}, {"name": "ink-inverse", "kind": "text", "grounds": ["ink"], "usage": "Text on an ink fill: tooltips and the snackbar, which invert the theme. Never on green (use on-accent) or red (use on-warn)."}, {"name": "hairline", "kind": "line", "grounds": [], "usage": "Decorative 1px dividers and card edges: card borders on bg, list separators, the today-timeline rules. Depth comes from this, not from shadows. Not a component boundary (see hairline-strong)."}, {"name": "hairline-strong", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "1px boundary of a control that has no fill of its own: unchecked checkbox and radio, the composer outline when it sits directly on bg, the unselected segmented control, the dashed absent ring outline. Meets 3:1 on bg, surface-1, surface-2 and surface-3."}, {"name": "accent", "kind": "fill", "grounds": [], "usage": "NVIDIA green, exact. Fill for the one primary button per view, the send button, the progress ring and meter on dark grounds, the selected tab indicator, the 2px now-line. At most 5% of chrome. Always paired with on-accent text. As a thin mark on light grounds it is only 2.41:1 on white, so light-theme rings and meters use on-task."}, {"name": "accent-hover", "kind": "fill", "grounds": [], "usage": "Hover fill of accent buttons (pointer: fine only). Lighter in dark, deeper in light; on-accent still reads on it."}, {"name": "accent-press", "kind": "fill", "grounds": [], "usage": "Pressed fill of accent buttons, together with scale 0.97 on dur-micro."}, {"name": "on-accent", "kind": "text", "grounds": ["accent", "accent-hover", "accent-press"], "usage": "Text and icons on any green fill: primary button label, send arrow, the Done verdict pill, the contact-sheet badge. Always black, never white."}, {"name": "accent-ink", "kind": "text", "grounds": ["bg", "surface-1", "surface-2", "surface-3", "accent-wash"], "usage": "Green text: links, 'On task 92%' figures, the active chip label, the honesty line's 'seen' number. Reads on bg, surface-1, surface-2, surface-3 and accent-wash. Light uses #477200 (green-700) because #4E7A00 fails on the wash (4.48)."}, {"name": "accent-wash", "kind": "ground", "grounds": [], "usage": "Tinted ground for a selected chip, the on-task streak pill, ::selection, the focused composer's send-area halo. Text on it is accent-ink or ink."}, {"name": "focus-ring", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "2px :focus-visible outline with 2px offset on every focusable element, web and iPhone. Light uses green-600 because #76B900 is only 2.15:1 on the light page. Meets 3:1 on bg, surface-1, surface-2 and surface-3."}, {"name": "green-100", "kind": "deco", "grounds": [], "usage": "Lightest green: celebration particles on dark, the bloom's hot centre in the reel title card. Never text."}, {"name": "green-200", "kind": "deco", "grounds": [], "usage": "Pinch sparkles on dark grounds, confetti highlight. Never text."}, {"name": "green-300", "kind": "deco", "grounds": [], "usage": "Pinch belly and highlight. Never text."}, {"name": "green-500", "kind": "deco", "grounds": [], "usage": "Ramp anchor, identical to accent: Pinch body, claimed-vs-seen 'seen' bars on dark."}, {"name": "green-600", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2"], "usage": "Pinch shade; light-theme focus ring; 'seen' bars on light. A 3:1 mark on light grounds only."}, {"name": "green-700", "kind": "text", "grounds": [], "usage": "Green text on light grounds and washes (same value as light accent-ink)."}, {"name": "green-800", "kind": "deco", "grounds": [], "usage": "Pinch outline on light grounds; dark lines inside the mascot (mouth, antennae)."}, {"name": "on-task", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Sample dot: filled circle. Also the session ring and meter fill, and 'seen' bars. Shape-coded: green and amber are identical under protanopia, so the circle shape carries the meaning."}, {"name": "on-task-ink", "kind": "text", "grounds": ["bg", "surface-1", "surface-2", "surface-3", "accent-wash"], "usage": "Text naming on-task time: 'On task 92%', '1h 52m seen'. Reads on bg, surface-1, surface-2, surface-3 and accent-wash."}, {"name": "partial", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Partial verdict mark: the half-filled circle glyph, meter fill between partAt and doneAt, amber ring for breaks. Light uses a deeper amber so the mark meets 3:1."}, {"name": "partial-ink", "kind": "text", "grounds": ["bg", "surface-1", "surface-2", "surface-3", "partial-wash"], "usage": "Text for partial, idle and break states: 'Partly', 'Idle 4 min', the break countdown label. Reads on bg, surface-1, surface-2, surface-3 and partial-wash."}, {"name": "partial-wash", "kind": "ground", "grounds": [], "usage": "Tinted ground for the Partly verdict pill and the break banner. Text on it is partial-ink or ink."}, {"name": "warn", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Red mark: phone and off-task dots, slacked meter fill, error icons. Never the accent, never a full red card. Text on a red fill is on-warn."}, {"name": "warn-ink", "kind": "text", "grounds": ["bg", "surface-1", "surface-2", "surface-3", "warn-wash"], "usage": "Red text: the noun in a nudge ('your phone'), error messages, 'Slacked'. Reads on bg, surface-1, surface-2, surface-3 and warn-wash."}, {"name": "warn-wash", "kind": "ground", "grounds": [], "usage": "10% red tint behind the Slacked pill and an error row. Text on it is warn-ink or ink."}, {"name": "on-warn", "kind": "text", "grounds": ["warn"], "usage": "Text on a solid red fill (destructive button, phone badge). Black, because white is 3.91:1."}, {"name": "idle", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Idle sample: hollow amber ring (2px). Same hue as partial; the ring shape tells them apart."}, {"name": "idle-ink", "kind": "text", "grounds": ["bg", "surface-1", "surface-2", "surface-3", "partial-wash"], "usage": "Text for idle: 'Idle 3 min', 'On a break'. Same values as partial-ink."}, {"name": "phone", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Phone sample: filled red rounded square. Same red as warn; the square shape carries it."}, {"name": "off-task", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Off-task sample: red square with a 45 degree hatch (repeating-linear-gradient 2px/2px). Replaces the retired #C8362B, which was indistinguishable from phone red."}, {"name": "absent", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Absent sample: 1.5px dashed grey ring; island wing when nobody is at the desk. Must be #A6A6A6 in the island."}, {"name": "absent-ink", "kind": "text", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Text for absent: 'Away 6 min', 'No frames'. Reads on bg, surface-1, surface-2 and surface-3."}, {"name": "done", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Verdict alias: Done. The pill reads '✓ Done' as on-accent on accent, or on-task-ink on accent-wash; the mark (meter, dot) uses this."}, {"name": "partly", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Verdict alias: Partly. Pill '◐ Partly' in partial-ink on partial-wash."}, {"name": "slacked", "kind": "mark", "grounds": ["bg", "surface-1", "surface-2", "surface-3"], "usage": "Verdict alias: Slacked. Pill '✕ Slacked' in warn-ink on warn-wash. Pinch stays green and supportive."}, {"name": "pinch-body", "kind": "deco", "grounds": [], "usage": "Pinch's body and claws at every size from the 16pt wing to the 160pt celebration."}, {"name": "pinch-belly", "kind": "deco", "grounds": [], "usage": "Belly patch and claw-tip highlight, 24pt and up."}, {"name": "pinch-shade", "kind": "deco", "grounds": [], "usage": "Underside shade, inner claw, tail fan; 24pt and up."}, {"name": "pinch-outline", "kind": "mark", "grounds": ["bg", "surface-1"], "usage": "1.5px outline at 24pt and up: a bright rim on dark grounds, a deep outline on light grounds. Off at 16pt (silhouette only)."}, {"name": "pinch-eye", "kind": "mark", "grounds": ["pinch-body"], "usage": "Dot eyes and pupils (black on green body). One white highlight per eye in pinch-shine."}, {"name": "pinch-shine", "kind": "deco", "grounds": [], "usage": "Eye highlight dot; lens glass glint."}, {"name": "pinch-blush", "kind": "deco", "grounds": [], "usage": "Cheek blush on celebrate and hello. Amber at 40%, never red."}, {"name": "pinch-spark", "kind": "deco", "grounds": [], "usage": "Sparkles around Pinch on celebrate and connected; deeper on light so they stay visible on white."}, {"name": "pinch-lens", "kind": "mark", "grounds": ["bg", "surface-1"], "usage": "Rim and handle of Pinch's detective magnifying lens."}, {"name": "pinch-lens-glow", "kind": "deco", "grounds": [], "usage": "Lens glass while the camera is sampling (the lens is the camera-on indicator). Off = empty glass in the ground colour."}, {"name": "bloom", "kind": "deco", "grounds": [], "usage": "Centre stop of the one allowed gradient, the celebration bloom: radial-gradient(closest-side, var(--bloom), transparent) at 1.6x Pinch's size, behind the verdict reveal and streak moments only."}], "groups": [{"title": "Surfaces", "lede": "Canvas, cards and the layers above them. Depth comes from hairlines, not shadows.", "tokens": ["bg", "surface-1", "surface-2", "surface-3", "island", "scrim"]}, {"title": "Ink", "lede": "Three steps of text plus the inverse for tooltips.", "tokens": ["ink", "ink-2", "ink-3", "ink-inverse"]}, {"title": "Lines", "lede": "A decorative hairline and a 3:1 boundary for controls without a fill.", "tokens": ["hairline", "hairline-strong"]}, {"title": "Accent", "lede": "NVIDIA green, at most 5% of chrome. Text on a green fill is always black.", "tokens": ["accent", "accent-hover", "accent-press", "on-accent", "accent-ink", "accent-wash", "focus-ring"]}, {"title": "Green ramp", "lede": "Mascot and data only; hue held at 130.8 degrees.", "tokens": ["green-100", "green-200", "green-300", "green-500", "green-600", "green-700", "green-800"]}, {"title": "Status", "lede": "Every status colour ships with a shape: dot, ring, square, hatch, dashed ring.", "tokens": ["on-task", "on-task-ink", "partial", "partial-ink", "partial-wash", "warn", "warn-ink", "warn-wash", "on-warn", "idle", "idle-ink", "phone", "off-task", "absent", "absent-ink"]}, {"title": "Verdict", "lede": "Aliases for the three verdicts.", "tokens": ["done", "partly", "slacked"]}, {"title": "Pinch", "lede": "The detective lobster's paint. Exempt from the green budget.", "tokens": ["pinch-body", "pinch-belly", "pinch-shade", "pinch-outline", "pinch-eye", "pinch-shine", "pinch-blush", "pinch-spark", "pinch-lens", "pinch-lens-glow"]}, {"title": "Bloom", "lede": "The one gradient: the celebration bloom.", "tokens": ["bloom"]}], "web": [{"name": "display", "family": "rounded", "size": 56, "lh": 1.0, "w": 600, "ls": "-0.025em", "tnum": true, "sample": "24:07", "usage": "The live session timer in the Now card and the verdict reveal's count-up. Rounded numerals, tabular."}, {"name": "h1", "family": "sans", "size": 32, "lh": 1.15, "w": 600, "ls": "-0.02em", "tnum": false, "sample": "Claimed 2h 10m. Seen 1h 52m.", "usage": "One per page: the dashboard honesty line in the hero strip, onboarding titles."}, {"name": "h2", "family": "sans", "size": 22, "lh": 1.25, "w": 600, "ls": "-0.015em", "tnum": false, "sample": "Latest verdict", "usage": "Section titles in sentence case: Now, Latest verdict, Today, This week, Sessions."}, {"name": "h3", "family": "sans", "size": 17, "lh": 1.35, "w": 600, "ls": "-0.01em", "tnum": false, "sample": "Drawing · 25 min", "usage": "Card and row titles: the session name, a plan block, a setup group."}, {"name": "voice", "family": "sans", "size": 20, "lh": 1.45, "w": 500, "ls": "-0.01em", "tnum": false, "sample": "You said drawing. I've seen your phone for 3 minutes.", "usage": "Alibi's voice: Pinch's lines, the verdict sentence, the nightly report sentences. Same family as the UI; weight and size make it the voice."}, {"name": "body", "family": "sans", "size": 16, "lh": 1.55, "w": 400, "ls": "0em", "tnum": false, "sample": "Twenty-five minutes at the desk, camera on, laptop on Procreate the whole time.", "usage": "Default reading text. In dark: line-height 1.6 and +0.01em tracking (tokens.css swaps --body-lh / --body-ls). Prose capped at 62ch."}, {"name": "small", "family": "sans", "size": 13, "lh": 1.45, "w": 400, "ls": "0em", "tnum": false, "sample": "Sampled every 30 s · last frame 14:32", "usage": "Meta lines, timestamps, captions under stats, helper text. Usually in ink-2."}, {"name": "label", "family": "sans", "size": 12, "lh": 1.3, "w": 600, "ls": "0.01em", "tnum": false, "sample": "On task", "usage": "Chips, field labels, pill text, tab labels. Sentence case only, never uppercase eyebrows. The web floor."}, {"name": "stat", "family": "rounded", "size": 32, "lh": 1.0, "w": 600, "ls": "-0.02em", "tnum": true, "sample": "92%", "usage": "Single stats: on-task %, seen minutes, streak days. Rounded, tabular."}, {"name": "mono", "family": "mono", "size": 12, "lh": 1.4, "w": 500, "ls": "0em", "tnum": true, "sample": "⌥⌘A", "usage": "Keycaps (Kbd) and IDs only: session ids, file paths in setup. Never for labels or eyebrows."}], "apple": [{"group": "Mac island", "name": "island-wordmark", "family": "sans", "size": 12, "w": 800, "ls": "1.6px", "sample": "ALIBI"}, {"group": "Mac island", "name": "island-wing", "family": "rounded", "size": 13, "w": 600, "ls": "0px", "sample": "24m"}, {"group": "Mac island", "name": "island-timer", "family": "rounded", "size": 34, "w": 600, "ls": "-0.5px", "sample": "24:07"}, {"group": "Mac island", "name": "island-title", "family": "sans", "size": 17, "w": 600, "ls": "0px", "sample": "Drawing"}, {"group": "Mac island", "name": "island-voice", "family": "sans", "size": 15, "w": 500, "ls": "0px", "sample": "You said drawing. I've seen your phone for 3 minutes."}, {"group": "Mac island", "name": "island-body", "family": "sans", "size": 14, "w": 400, "ls": "0px", "sample": "What are you about to do?"}, {"group": "Mac island", "name": "island-secondary", "family": "sans", "size": 12, "w": 400, "ls": "0px", "sample": "Next up · Run at 18:00"}, {"group": "iPhone", "name": "ios-largetitle", "family": "sans", "size": 34, "w": 600, "ls": "0px", "sample": "Today"}, {"group": "iPhone", "name": "ios-title", "family": "sans", "size": 22, "w": 600, "ls": "0px", "sample": "This week"}, {"group": "iPhone", "name": "ios-headline", "family": "sans", "size": 17, "w": 600, "ls": "0px", "sample": "Drawing · 25 min"}, {"group": "iPhone", "name": "ios-body", "family": "sans", "size": 17, "w": 400, "ls": "0px", "sample": "Synced from your Mac 2 min ago."}, {"group": "iPhone", "name": "ios-footnote", "family": "sans", "size": 13, "w": 400, "ls": "0px", "sample": "Steps from Apple Health · updated 09:41"}, {"group": "iPhone", "name": "ios-caption", "family": "sans", "size": 12, "w": 600, "ls": "0px", "sample": "Last 7 days"}, {"group": "iPhone", "name": "ios-stat", "family": "rounded", "size": 28, "w": 600, "ls": "0px", "sample": "1h 52m"}, {"group": "iPhone", "name": "ios-timer", "family": "rounded", "size": 56, "w": 600, "ls": "0px", "sample": "18:42"}, {"group": "Live Activity", "name": "la-title", "family": "sans", "size": 15, "w": 600, "ls": "0px", "sample": "Drawing"}, {"group": "Live Activity", "name": "la-timer", "family": "rounded", "size": 34, "w": 600, "ls": "0px", "sample": "18:42"}, {"group": "Live Activity", "name": "la-compact", "family": "rounded", "size": 14, "w": 600, "ls": "0px", "sample": "18:42"}, {"group": "Live Activity", "name": "la-expanded-center", "family": "sans", "size": 17, "w": 600, "ls": "0px", "sample": "On task 92%"}], "springs": [{"name": "micro", "d": 0.25, "b": 0.0, "ms": 376, "use": "Toggles, chip select, sample dot recolour."}, {"name": "snappy", "d": 0.35, "b": 0.15, "ms": 484, "use": "Popovers, island wings, inner island content, composer send, digit tickers."}, {"name": "smooth", "d": 0.5, "b": 0.0, "ms": 686, "use": "Every close and collapse, sheets, ring start. No bounce into the notch."}, {"name": "island", "d": 0.45, "b": 0.2, "ms": 619, "use": "Notch to panel open (island bloom)."}, {"name": "bouncy", "d": 0.5, "b": 0.3, "ms": 720, "use": "Nudge alert drop, verdict pill, streak bump, sample dot pop."}, {"name": "celebrate", "d": 0.6, "b": 0.4, "ms": 1003, "use": "Pinch only (hop, clap). Never on UI structure."}], "space": [{"name": "space-1", "v": 4}, {"name": "space-2", "v": 8}, {"name": "space-3", "v": 12}, {"name": "space-4", "v": 16}, {"name": "space-6", "v": 24}, {"name": "space-8", "v": 32}, {"name": "space-12", "v": 48}, {"name": "space-18", "v": 72}], "radius": [{"name": "radius-xs", "v": 6}, {"name": "radius-sm", "v": 10}, {"name": "radius-md", "v": 16}, {"name": "radius-lg", "v": 22}, {"name": "radius-xl", "v": 28}, {"name": "radius-pill", "v": 9999}]};
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+/* ---------- theme switch ---------- */
+const root = document.documentElement;
+function setTheme(t) {
+  if (t === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.set === t)));
+  try { localStorage.setItem('alibi-specimen-theme', t); } catch (e) {}
+}
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setTheme(b.dataset.set)));
+let saved = 'auto'; try { saved = localStorage.getItem('alibi-specimen-theme') || 'auto'; } catch (e) {}
+setTheme(saved);
+
+/* ---------- colour maths (WCAG 2) ---------- */
+function rgba(str) {
+  const m = str.match(/rgba?\(([^)]+)\)/); if (!m) return null;
+  const p = m[1].split(/[\s,\/]+/).filter(Boolean).map(Number);
+  return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+}
+const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+const lum = c => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+const over = (f, b) => ({ r: f.r * f.a + b.r * (1 - f.a), g: f.g * f.a + b.g * (1 - f.a), b: f.b * f.a + b.b * (1 - f.a), a: 1 });
+function contrast(f, b) { const x = lum(over(f, b)), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+const hx = n => Math.round(n).toString(16).padStart(2, '0').toUpperCase();
+const fmt = c => c.a === 1 ? `#${hx(c.r)}${hx(c.g)}${hx(c.b)}` : `#${hx(c.r)}${hx(c.g)}${hx(c.b)} · ${Math.round(c.a * 100)}%`;
+function read(scope, name) {
+  const p = document.createElement('span'); p.style.color = `var(--${name})`; scope.appendChild(p);
+  const c = rgba(getComputedStyle(p).color); p.remove(); return c;
+}
+
+/* ---------- colour table ---------- */
+const byName = Object.fromEntries(D.colors.map(c => [c.name, c]));
+const SHAPES = { 'on-task': 's-dot', done: 's-dot', idle: 's-ring', partial: 's-half', partly: 's-half', phone: 's-square', 'off-task': 's-hatch',
+  warn: 's-square', slacked: 's-square', absent: 's-dash', 'focus-ring': 's-focus', 'hairline-strong': 's-line', hairline: 's-line', 'green-600': 's-dot',
+  'pinch-outline': 's-ring', 'pinch-lens': 's-ring', 'pinch-eye': 's-dot' };
+const SHORT = { bg: 'bg', 'surface-1': 's1', 'surface-2': 's2', 'surface-3': 's3', 'accent-wash': 'wash', 'partial-wash': 'wash', 'warn-wash': 'wash' };
+
+function swatch(cell, tok) {
+  const sw = el('div', 'sw');
+  const name = tok.name;
+  if (tok.kind === 'text') {
+    const g = tok.grounds[0] || 'surface-1';
+    sw.style.background = `var(--${g})`; sw.classList.add('flat');
+    const aa = el('span', 'aa', 'Aa'); aa.style.color = `var(--${name})`; sw.appendChild(aa);
+  } else if (name === 'bloom') {
+    sw.style.background = 'var(--bg)'; sw.classList.add('flat');
+    const b = el('div', 'shape s-bloom'); b.style.background = 'radial-gradient(closest-side, var(--bloom), transparent)'; sw.appendChild(b);
+  } else if (SHAPES[name]) {
+    const g = name === 'pinch-eye' ? 'pinch-body' : (tok.grounds[0] || 'surface-1');
+    sw.style.background = `var(--${g})`; sw.classList.add('flat');
+    const s = el('div', 'shape ' + SHAPES[name]);
+    s.style.color = `var(--${name})`; s.style.borderColor = `var(--${name})`; s.style.outlineColor = `var(--${name})`;
+    if (SHAPES[name] === 's-hatch') s.style.background = `repeating-linear-gradient(45deg, var(--${name}) 0 2px, transparent 2px 4px)`;
+    else if (!/ring|dash|line|focus|half/.test(SHAPES[name])) s.style.background = `var(--${name})`;
+    sw.appendChild(s);
+  } else {
+    sw.style.background = `var(--${name})`;
+    sw.classList.add('flat');
+  }
+  cell.appendChild(sw);
+}
+
+function fillCell(cell, tok) {
+  swatch(cell, tok);
+  const info = el('div');
+  const c = read(cell, tok.name);
+  info.appendChild(el('div', 'hex', fmt(c)));
+  if (tok.grounds.length) {
+    const need = tok.kind === 'text' ? 4.5 : 3;
+    const rs = el('div', 'ratios');
+    let min = Infinity;
+    tok.grounds.forEach(g => {
+      const r = contrast(c, read(cell, g)); min = Math.min(min, r);
+      rs.appendChild(el('span', 'r', `${SHORT[g] || g} <b>${r.toFixed(2)}</b>`));
+    });
+    info.appendChild(rs);
+    const ok = min >= need;
+    info.appendChild(el('div', 'verdict ' + (ok ? 'ok' : 'no'),
+      (ok ? '✓ ' : '✕ ') + (ok ? 'Passes ' : 'Fails ') + (tok.kind === 'text' ? '4.5:1 text' : '3:1 mark')));
+  } else {
+    info.appendChild(el('div', 'verdict na', tok.kind === 'ground' ? 'Ground' : tok.kind === 'fill' ? 'Fill · carries on-accent' : tok.kind === 'line' ? 'Decorative line' : 'Decorative'));
+  }
+  cell.appendChild(info);
+}
+
+const host = $('#colour-groups');
+D.groups.forEach(g => {
+  const wrap = el('div', 'group');
+  wrap.appendChild(el('h3', 't-h3', g.title));
+  wrap.appendChild(el('p', 't-small', g.lede));
+  const table = el('div', 'ctable');
+  const head = el('div', 'crow chead t-label');
+  head.append(el('div', '', 'Token'), el('div', '', 'Dark'), el('div', '', 'Light'));
+  head.children[1].setAttribute('data-theme', 'dark'); head.children[2].setAttribute('data-theme', 'light');
+  table.appendChild(head);
+  g.tokens.forEach(n => {
+    const tok = byName[n];
+    const row = el('div', 'crow');
+    const nm = el('div', 'cname');
+    nm.appendChild(el('code', '', '--' + n));
+    nm.appendChild(el('div', 'use t-small', tok.usage));
+    row.appendChild(nm);
+    ['dark', 'light'].forEach(t => { const c = el('div', 'cell'); c.setAttribute('data-theme', t); row.appendChild(c); });
+    table.appendChild(row);
+    host.appendChild(wrap);
+    wrap.appendChild(table);
+    [...row.querySelectorAll('.cell')].forEach(c => fillCell(c, tok));
+  });
+});
+
+/* ---------- web type ---------- */
+const wt = $('#web-type');
+D.web.forEach(s => {
+  const row = el('div', 'trow');
+  const meta = el('div', 'tmeta');
+  meta.appendChild(el('code', '', '.t-' + s.name));
+  const lh = s.name === 'body' ? '1.55 · dark 1.6' : s.lh;
+  meta.appendChild(el('div', 'spec', `${s.size} / ${lh} · ${s.w} · ${s.ls}${s.tnum ? ' · tnum' : ''}<br>${s.family}`));
+  meta.appendChild(el('div', 'use t-small', s.usage));
+  const smp = el(/^h[123]$/.test(s.name) ? s.name : 'p', 't-' + s.name + ' tsample', s.sample);
+  if (/^h[123]$/.test(s.name)) smp.style.margin = '0';
+  row.append(meta, smp);
+  wt.appendChild(row);
+});
+
+/* ---------- Apple ---------- */
+const at = $('#apple-type');
+const tbl = el('table', 'atable');
+tbl.innerHTML = '<thead><tr><th>Style</th><th>Surface</th><th>Spec (pt)</th><th>Sample</th></tr></thead>';
+const tb = el('tbody');
+D.apple.forEach(s => {
+  const tr = el('tr');
+  const fam = s.family === 'rounded' ? 'var(--font-rounded)' : 'var(--font-sans)';
+  const tn = s.family === 'rounded' ? 'font-variant-numeric:tabular-nums;' : '';
+  tr.innerHTML = `<td class="n">${s.name}</td><td class="g t-small">${s.group}</td><td class="n">${s.size} · ${s.w}${s.ls !== '0px' ? ' · ' + s.ls : ''}</td>` +
+    `<td><span style="font-family:${fam};font-size:${s.size}px;font-weight:${s.w};letter-spacing:${s.ls};line-height:1.2;${tn}">${s.sample}</span></td>`;
+  tb.appendChild(tr);
+});
+tbl.appendChild(tb); at.appendChild(tbl);
+
+/* ---------- spacing + radius ---------- */
+const sl = $('#space-list');
+D.space.forEach(s => {
+  const r = el('div', 'srow');
+  r.append(el('code', '', '--' + s.name), el('span', 'v', s.v + 'px'));
+  const bar = el('div'); const b = el('div', 'bar'); b.style.width = s.v * 3 + 'px'; bar.appendChild(b); r.appendChild(bar);
+  sl.appendChild(r);
+});
+const rl = $('#radius-list');
+D.radius.forEach(s => {
+  const f = el('figure'); const b = el('div', 'box'); b.style.borderRadius = `var(--${s.name})`;
+  f.append(b, el('figcaption', '', `${s.name.replace('radius-', '')} · ${s.v}`)); rl.appendChild(f);
+});
+
+/* ---------- motion ---------- */
+const ml = $('#spring-list');
+D.springs.forEach(s => {
+  const r = el('div', 'mrow');
+  const left = el('div'); left.append(el('code', '', '--spring-' + s.name), el('div', 'use t-small', s.use));
+  const tr = el('div', 'track'); const p = el('div', 'puck'); tr.appendChild(p);
+  p.style.transition = `transform var(--spring-${s.name}-dur) var(--spring-${s.name})`;
+  const btn = el('button', 'btn', 'Play'); btn.type = 'button';
+  btn.addEventListener('click', () => play(tr));
+  r.append(left, tr, btn); ml.appendChild(r);
+});
+function play(tr) {
+  tr.style.setProperty('--run', tr.clientWidth + 'px');
+  tr.classList.toggle('go');
+}
+$('#play').addEventListener('click', () => document.querySelectorAll('.track').forEach((t, i) => setTimeout(() => play(t), i * 40)));
+</script>
+</body>
+</html>

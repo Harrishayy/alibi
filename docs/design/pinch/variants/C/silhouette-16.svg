@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="pinch-glyph" role="img" aria-label="Pinch">
+<g id="pinch-root" fill="#76B900">
+<path id="body" fill-rule="evenodd" d="M4.5 9A3.5 3.5 0 0 1 11.5 9V12.9A2.1 2.1 0 0 1 9.4 15H6.6A2.1 2.1 0 0 1 4.5 12.9ZM5.3 9.9a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0ZM8.5 9.9a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0Z"/>
+<path id="claw-l" transform="translate(2.9 8.6) rotate(-6)" d="M-2.2 -2.2A2.2 2.2 0 0 0 2.2 -2.2V-4.6A0.825 0.825 0 0 0 0.55 -4.6V-4.1A0.55 0.55 0 0 1 -0.55 -4.1V-4.6A0.825 0.825 0 0 0 -2.2 -4.6Z"/>
+<path id="claw-r" transform="translate(13.1 8.6) rotate(6)" d="M-2.2 -2.2A2.2 2.2 0 0 0 2.2 -2.2V-4.6A0.825 0.825 0 0 0 0.55 -4.6V-4.1A0.55 0.55 0 0 1 -0.55 -4.1V-4.6A0.825 0.825 0 0 0 -2.2 -4.6Z"/>
+</g></svg>

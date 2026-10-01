@@ -5,6 +5,7 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>app.theultras.alibi.sync</string>
+		<string>app.theultras.alibi.live</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -36,11 +37,19 @@
 		<string>_http._tcp</string>
 	</array>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Alibi reads your steps, sleep, mindful minutes and workouts so it can check your health habits. Nothing leaves your home network except to your own Mac.</string>
+	<string>Alibi reads your activity, sleep, heart rate, mindful minutes, daylight, moods and workouts so it can check your habits. It only goes to the Alibi app on your own Mac.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Alibi never writes to Health.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Alibi sends your daily Health totals to the Alibi app on your Mac.</string>
+	<string>Alibi sends your Health, motion and Focus updates to the Alibi app on your Mac.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>With Always, Alibi can notice when you leave or get home even while it's closed (for walk and gym habits, and away-from-desk checks). Only at home: yes/no is sent to your Mac.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Alibi saves your home as a small circle on this phone. Your Mac only ever learns at home: yes or no, never where you are.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Alibi notices whether you're still, walking or driving, and when you pick up your phone, so it can tell if a focus session really stayed focused.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -48,6 +57,8 @@
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

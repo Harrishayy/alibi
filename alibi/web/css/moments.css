@@ -1,0 +1,63 @@
+/* moments.css: web moments (verdict reveal, nudge card, PinchLine, confetti, big celebration). Lane M.
+   Motion runs on transform and opacity with the token springs (Motion.md); the reveal itself is WAAPI in moments.js. */
+
+/* ---------- Pinch hosts: one Pinch per view ---------- */
+.m-pinch { display: inline-block; flex: none; line-height: 0; transition: opacity var(--dur-small) var(--ease-out); }
+.m-pinch.is-away { display: none; }
+.m-pinch.is-stepped { opacity: 0; }                       /* the big celebration's Pinch stands in */
+#pinch-hero:has(> .m-pinch.is-away:only-child) { display: none; }
+.m-fallback--hero { display: inline-flex; flex: none; margin-right: var(--space-4); vertical-align: middle; }
+.m-fallback--now { display: inline-flex; margin-left: auto; }
+.m-avatar { display: inline-flex; line-height: 0; }
+
+/* ---------- Nudge card: neutral surface, only the noun in warn ink; never a red slab, never a shake ---------- */
+.m-toasts {
+  position: fixed; top: var(--space-6); right: var(--space-6); z-index: 60;
+  display: flex; flex-direction: column; gap: var(--space-2);
+  width: min(380px, calc(100% - 32px)); pointer-events: none;
+}
+.m-toasts > * { pointer-events: auto; }
+.m-nudge { width: 100%; }
+.m-nudge .al-pinchline__text { font-size: 17px; line-height: 1.45; }
+.m-nudge .al-pinchline__avatar { height: 25px; }
+@media (max-width: 520px) { .m-toasts { top: var(--space-4); right: var(--space-4); } }
+
+/* ---------- Confetti: claws, sparks, dots (WAAPI in confetti.js) ---------- */
+.m-confetti { position: fixed; z-index: 70; width: 0; height: 0; pointer-events: none; }
+.m-confetti__p { position: absolute; left: 0; top: 0; display: block; line-height: 0; will-change: transform, opacity; }
+.m-confetti__p > svg { display: block; margin: -5px 0 0 -6px; }
+.m-confetti__p--dot { width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: var(--radius-pill); background: currentColor; }
+
+/* ---------- Big celebration: first win and streak milestones ---------- */
+.m-big {
+  position: fixed; inset: 0; z-index: 80;
+  display: grid; place-content: center; justify-items: center; gap: var(--space-4);
+  background: var(--scrim);
+  animation: m-fade var(--dur-medium) var(--ease-out) both;
+}
+.m-big.is-leaving { opacity: 0; transition: opacity 170ms var(--ease-out); }
+.m-big__stage { position: relative; display: grid; place-items: center; width: 160px; height: 160px; }
+.m-big__pinch { position: relative; line-height: 0; }
+.m-big__bloom {
+  position: absolute; inset: -120px; border-radius: var(--radius-pill);
+  background: radial-gradient(closest-side, var(--bloom), transparent); /* lint-ok: the single celebration bloom (Motion.md) */
+  animation: m-fade var(--dur-medium) var(--ease-out) both, m-fade-out 400ms var(--ease-out) 1200ms forwards;
+}
+.m-big__line {
+  margin: 0; max-width: 32ch; padding: var(--space-2) var(--space-4); text-align: center;
+  border-radius: var(--radius-pill); background: var(--surface-1); box-shadow: 0 0 0 1px var(--hairline);
+  font-family: var(--font-sans); font-size: 20px; font-weight: 500; line-height: 1.45; letter-spacing: -0.01em;
+  color: var(--ink); text-wrap: balance; font-variant-numeric: tabular-nums;
+  animation: m-rise var(--dur-medium) var(--ease-out) 120ms both;
+}
+
+@keyframes m-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-fade-out { to { opacity: 0; } }
+@keyframes m-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Reduced motion: fewer and gentler ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .m-confetti, .m-big__bloom { display: none !important; }
+  .m-big, .m-big__line { animation: m-fade 150ms ease both; }
+  .m-pinch { transition: opacity 150ms ease; }
+}

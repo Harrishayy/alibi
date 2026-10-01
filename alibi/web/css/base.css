@@ -1,0 +1,73 @@
+/* base.css: legacy-name compatibility block (tokens live in tokens.css), page frame, generic controls shared by every
+   area (buttons, inputs, link buttons, keycaps), utilities and gentle reduced motion.
+   Loaded after tokens.css and components.css, then shell, now, week, sessions, setup, moments. */
+:root{
+  /* Compatibility block (p16 foundation): tokens.css owns every colour, font and shadow, in both themes.
+     These aliases map the legacy names the area files still use onto tokens; lanes retire them as they port their files. */
+  --paper:var(--surface-1); --muted:var(--ink-2); --faint:var(--ink-3); --rule:var(--hairline-strong); --rule-2:var(--hairline);
+  --on_task:var(--on-task); --off_task:var(--off-task); --on_task-ink:var(--on-task-ink); --idle-ink:var(--partial-ink);
+  --phone-ink:var(--warn-ink); --sans:var(--font-sans); --mono:var(--font-mono); --shadow:var(--shadow-float);
+  --gutter:clamp(16px, 5vw, 48px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:16px;line-height:var(--body-lh);letter-spacing:var(--body-ls);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  transition:background-color var(--dur-small) ease,color var(--dur-small) ease}
+.wrap{max-width:calc(880px + 2 * var(--gutter));margin:0 auto;padding:0 var(--gutter)}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+/* Section eyebrows are sentence-case labels now (no tracked capitals). */
+.eyebrow{font-family:var(--font-sans);font-size:12px;line-height:1.3;font-weight:600;letter-spacing:.01em;color:var(--ink-2)}
+.meta{font-size:13px;line-height:1.45;color:var(--ink-2);font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--accent-ink)}
+a:hover{color:var(--ink)}
+.skip{position:absolute;left:var(--space-4);top:-48px;z-index:100;padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);background:var(--accent);color:var(--on-accent);font-weight:600;text-decoration:none;transition:transform var(--dur-small) var(--ease-out)}
+.skip:focus-visible{transform:translateY(64px)}
+
+@keyframes pulse{0%{transform:scale(1);opacity:.55}70%{transform:scale(2.4);opacity:0}100%{transform:scale(2.4);opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes blink{50%{opacity:.25}}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flip{0%{transform:scale(.94);opacity:0}100%{transform:none;opacity:1}}
+@keyframes pulsered{0%{opacity:1}50%{opacity:.5}100%{opacity:1}}
+@keyframes cele{0%{transform:scale(.94);opacity:0}100%{transform:none;opacity:1}}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.2}}
+
+.none{color:var(--ink-2);font-size:17px;line-height:1.45}
+.quiet{color:var(--ink-2);font-size:16px;line-height:1.45;padding:var(--space-2) 0}
+.hidden{display:none!important}
+[hidden]{display:none!important}
+
+/* generic controls (setup, onboarding, week, sessions use these) */
+.setupbtn:focus-visible,.ghostbtn:focus-visible,.chip:focus-visible,.primary:focus-visible,.linkbtn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.xbtn{display:inline-grid;place-items:center;border:0;background:transparent;color:var(--ink-2);width:36px;height:36px;border-radius:var(--radius-sm);flex:none;transition:background-color var(--dur-micro) ease,color var(--dur-micro) ease}
+.xbtn:hover{background:var(--surface-2);color:var(--ink)}
+.xbtn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.linkbtn{border:0;background:none;padding:0;font-size:13px;line-height:1.45;font-weight:500;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--hairline-strong);text-underline-offset:3px}
+.linkbtn:hover{color:var(--ink)}
+.fld{width:100%;border:1px solid var(--hairline-strong);background:var(--surface-2);border-radius:var(--radius-sm);padding:var(--space-2) var(--space-3);font-family:var(--font-sans);font-size:14px;line-height:1.35;color:var(--ink);transition:border-color var(--dur-micro) ease,box-shadow var(--dur-micro) ease;appearance:none;-webkit-appearance:none}
+.fld:focus{outline:0;border-color:var(--focus-ring);box-shadow:inset 0 0 0 1px var(--focus-ring)}
+.fld.bad{border-color:var(--warn)}
+.unit .fld{padding-right:44px;font-variant-numeric:tabular-nums}
+textarea.fld{resize:vertical;min-height:58px;font-family:var(--font-sans);font-size:14px;line-height:1.45}
+select.fld{width:auto;padding:6px 10px;font-size:13px;line-height:1.2;appearance:auto;-webkit-appearance:menulist;background-color:var(--surface-2)}
+.primary{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);height:36px;border:0;background:var(--accent);color:var(--on-accent);border-radius:var(--radius-sm);padding:0 var(--space-4);font-family:var(--font-sans);font-size:14px;font-weight:600;line-height:1;transition:transform var(--spring-micro-dur) var(--spring-micro),background-color var(--dur-micro) ease}
+.primary:hover{background:var(--accent-hover)}
+.primary:active{transform:scale(.97);background:var(--accent-press)}
+.primary[disabled]{opacity:.4;cursor:default;transform:none}
+.ghostbtn{display:inline-flex;align-items:center;gap:var(--space-2);height:32px;border:1px solid var(--hairline);background:var(--surface-2);border-radius:var(--radius-sm);padding:0 var(--space-3);font-family:var(--font-sans);font-size:13px;font-weight:500;line-height:1;color:var(--ink);transition:transform var(--spring-micro-dur) var(--spring-micro),background-color var(--dur-micro) ease,border-color var(--dur-micro) ease}
+.ghostbtn:hover{background:var(--surface-3)}
+.ghostbtn:active{transform:scale(.97)}
+.ghostbtn[disabled]{opacity:.6;cursor:progress}
+.ghostbtn .tri{font-size:9px;color:var(--accent-ink)}
+.spin{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid var(--hairline-strong);border-top-color:currentColor;animation:spin .8s linear infinite;vertical-align:-2px}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 var(--space-1);font-family:var(--font-mono);font-size:12px;font-weight:500;line-height:1;border:1px solid var(--hairline-strong);border-radius:var(--radius-xs);color:var(--ink-2);background:var(--surface-2)}
+.spill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;line-height:1;padding:6px 10px;border-radius:var(--radius-pill);white-space:nowrap;color:var(--ink);background:var(--surface-2)}
+.t-mono{font-family:var(--font-mono);font-size:12px;line-height:1.4;font-weight:500}
+
+/* Reduced motion: fewer and gentler, not none (Motion.md). Opacity and colour stay at 150ms; movement goes. */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:150ms!important;transition-delay:0s!important}
+  .skip:focus-visible{transform:none;top:var(--space-4)}
+}

@@ -1,0 +1,71 @@
+{
+ "now": 1790875370.4183722,
+ "session": null,
+ "alert": null,
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790875370.028407
+ },
+ "today": {
+  "sessions": 4,
+  "verified_min": 51,
+  "declared_min": 57,
+  "habits_done": 1,
+  "habits_total": 5,
+  "tally": "1/5",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 3
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Idle — nothing declared",
+ "pinch": {
+  "mood": "idle",
+  "event": null,
+  "seq": 0,
+  "age_s": null,
+  "line": null
+ }
+}

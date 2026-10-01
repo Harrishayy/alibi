@@ -251,7 +251,14 @@ Audit (fresh-install journey 5.2, island 6.2, integrations 3.5) → calendar / s
 - Apple Health: opt-in phone listener + /phone setup page (QR + Shortcut steps); steps/sleep/mindful/workout habits.
 Manual checks only the user can do: Calendar permission prompt, real Strava app, real iPhone Shortcut.
 
-### P15 — Always-on agent on the DGX Spark (NemoClaw) (added 2026-10-01)
+### P15 — Signals: everything the phone and laptop can tell Alibi (multi-agent workflow)
+Contract: docs/SIGNALS.md. iPhone companion streams Health (activity, sleep stages, HR/HRV, mind, daylight, workouts), Watch
+heart rate, motion + pickups, home geofence (in/out only), Screen Time (picked apps, 5-min thresholds) with Opal-style
+shields during sessions, and an "Alibi" Focus filter. Mac: idle/lock, camera+mic in use, media, Focus, notification counts
+(Full Disk Access), app-switch rate, git. Fusion only lowers scores, with a stated reason; signal nudges. Page: /signals.
+Reviews: backend 6.5, iOS 7, UI 6 → all majors fixed in the fix round. 23 test suites green.
+
+### P21 — Always-on agent on the DGX Spark (NemoClaw) (added 2026-10-01)
 Mac stays the hub. The Spark runs OpenClaw in a NemoClaw/OpenShell sandbox on a local vLLM model, reaching the Mac
 over Tailscale only through `alibi/relay.py` (allow-listed API, Mac token kept on the host, 20 s mirror into
 `data/relay/`). Mac API refuses tailnet callers without `ALIBI_REMOTE_TOKEN`. Skill + heartbeat + egress preset live in

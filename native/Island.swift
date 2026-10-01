@@ -1,8 +1,8 @@
 // Alibi Island — a Dynamic-Island-style bar that lives in the MacBook notch.
-// Collapsed: the session on the left wing and a countdown ring on the right. When idle it shows the next planned
-// block ("Drawing 18:00", or "▶ Drawing · now") on the left and a segmented "today" ring on the right.
-// Hover (after a short, still dwell) peeks the panel without stealing focus; click the field or press ⌥⌘A to type.
-// Nudges, planned blocks, synced runs and verdicts expand it on their own, with buttons. Talks to http://127.0.0.1:8765.
+// Idle it is exactly the notch. A live session adds two 46 pt wings: a still 16 pt Pinch on the left, the time left on
+// the right. Hover (after a short, still dwell) blooms it into a 400 pt panel without stealing focus; click the field
+// or press ⌥⌘A to type. Nudges (400 pt, 56 pt Pinch) and verdicts (440 pt, 64 pt Pinch) drop down on their own; a sync
+// only glints the wings. Look and motion come from native/shared/Theme.swift. Talks to http://127.0.0.1:8765.
 import AppKit
 import Carbon.HIToolbox
 import SwiftUI
@@ -73,11 +73,11 @@ struct PlaceStrip: View {
             HStack(spacing: 1.5) {
                 HStack(spacing: 1.5) {
                     ForEach(Array(ps.enumerated()), id: \.offset) { i, p in
-                        Rectangle().fill((palette[p.label] ?? .gray).opacity(i % 2 == 0 ? 1 : 0.7))
+                        Rectangle().fill((palette[p.label] ?? P.absent).opacity(i % 2 == 0 ? 1 : 0.7))
                             .frame(width: max(2, (w - 1.5 * CGFloat(ps.count - 1)) * p.share / total))
                     }
                 }.frame(width: w, alignment: .leading)
-                if rest > 0.01 { Rectangle().fill(Color.white.opacity(0.12)) }
+                if rest > 0.01 { Rectangle().fill(P.surface3) }
             }
             .frame(width: g.size.width, height: height)
             .clipShape(RoundedRectangle(cornerRadius: height / 2))
@@ -129,12 +129,13 @@ struct Today: Decodable { let tally: String?; let habits_done: Int?; let habits_
 struct Verdict: Decodable {
     let id: Int; let habit: String; let label: String?; let verdict: String?; let on_task_ratio: Double?
     let declared_min: Int; let elapsed_min: Int?; let labels: [LabelEv]; let summary: String?; let reel_url: String?
-    let coverage: Double?; let windows: [WindowShare]?; let modality: String?
+    let coverage: Double?; let windows: [WindowShare]?; let modality: String?; let verified_min: Int?
 }
 struct StateResp: Decodable {
     let now: Double?
     let session: Session?; let alert: AlertEv?; let witness: String; let witness_label: String?
     let habits: [HabitRef]?; let today: Today?; let recent_verdict: Verdict?; let status_text: String?
+    let pinch: PinchState?
 }
 /// /api/calendar/plan?days=1 — today's planned blocks (from habits.yaml schedules, calendar connected or not).
 struct PlanBlock: Decodable, Hashable {
@@ -146,7 +147,7 @@ struct PlanBlock: Decodable, Hashable {
 struct PlanResp: Decodable { let now: Double?; let blocks: [PlanBlock]; let next: PlanBlock?; let live: PlanBlock? }
 struct OnboardingResp: Decodable { let needs_onboarding: Bool?; let onboarded: Bool? }
 
-func displayName(_ key: String) -> String { key == "cpp" ? "C++" : key.prefix(1).uppercased() + key.dropFirst() }
+func displayName(_ key: String) -> String { key == "cpp" ? "C++" : key.prefix(1).uppercased() + key.dropFirst() }  // lint-ok: sentence-cases a habit key, not an eyebrow
 let labelCopy = ["on_task": "On task", "phone": "On your phone", "absent": "Away from desk", "idle": "Idle", "off_task": "Off task"]
 func human(_ l: String) -> String { labelCopy[l] ?? l.replacingOccurrences(of: "_", with: " ").capitalized }
 
@@ -192,28 +193,34 @@ let checkCopy = ["camera": "Alibi checks with the camera", "screen": "Alibi chec
 let hhmm: DateFormatter = { let f = DateFormatter(); f.dateFormat = "HH:mm"; return f }()
 func clock(_ t: Double) -> String { hhmm.string(from: Date(timeIntervalSince1970: t)) }
 
-// Colours are NVIDIA (CLAUDE.md "Design system"): green #76B900 on black; text on green is black. Layout and type are Claude-style.
-let palette: [String: Color] = [
-    "on_task": Color(hex: 0x76B900), "phone": Color(hex: 0xE5484D), "off_task": Color(hex: 0xC8362B),
-    "idle": Color(hex: 0xF2A900), "absent": Color(hex: 0x8C8C8C),
-]
-let accent = Color(hex: 0x76B900)
-let cream = Color(hex: 0xEEEEEE)
-let surface = Color(hex: 0x1A1A1A)          // cards and the composer, on the black island
-let hairline = Color.white.opacity(0.09)
-let green = Color(hex: 0x76B900), amber = Color(hex: 0xF2A900), red = Color(hex: 0xE5484D)
-func verdictColour(_ v: String?) -> Color { v == "done" ? green : v == "partial" ? amber : v == "slacked" ? red : accent }
+// MARK: - Tokens
 
-extension Color {
-    init(hex: UInt32) {
-        self.init(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255,
-                  blue: Double(hex & 0xFF) / 255)
-    }
+// Colour, type, spacing and motion all come from native/shared/Theme.swift (`Alibi.*`). The island is always dark.
+let P = Alibi.Palette.dark
+typealias F = Alibi.Fonts
+/// Status marks (fills) and status text (inks), by label. Status always travels with a shape: see StatusDot.
+let palette: [String: Color] = ["on_task": P.onTask, "phone": P.phone, "off_task": P.offTask, "idle": P.idle, "absent": P.absent]
+let statusInk: [String: Color] = ["on_task": P.onTaskInk, "phone": P.warnInk, "off_task": P.warnInk, "idle": P.idleInk,
+                                  "absent": P.absentInk]
+func verdictInk(_ v: String?) -> Color {
+    v == "done" ? P.accentInk : v == "partial" ? P.partialInk : v == "slacked" ? P.warnInk : P.ink2
 }
+func verdictWash(_ v: String?) -> Color {
+    v == "done" ? P.accentWash : v == "partial" ? P.partialWash : v == "slacked" ? P.warnWash : P.surface2
+}
+/// Snapshots render a single frame: entrances start at rest and the composer is drawn as plain text.
+nonisolated(unsafe) var snapshotting = false
 
 // MARK: - Model
 
 enum Mode: Equatable { case collapsed, expanded, alert }
+/// How the island opened. The hotkey moves the shape only: no blur, no stagger (Motion.md, recipe 3).
+enum Via { case hover, key, alert }
+
+/// The server's Pinch rulebook for this moment (`/api/state` → `pinch`; LANES.md). Optional so an older daemon decodes.
+struct PinchState: Decodable, Equatable {
+    let mood: String?; let event: String?; let seq: Double?; let age_s: Double?; let line: String?
+}
 
 @MainActor
 final class Island: ObservableObject {
@@ -221,15 +228,18 @@ final class Island: ObservableObject {
     @Published var online = false
     @Published var connecting = true          // first ~3 s after launch: don't flash "offline"
     @Published var mode: Mode = .collapsed
+    @Published var via: Via = .hover
+    @Published var leaving = false            // closing: the content fades out before the shape folds
     @Published var alert: AlertEv?
     @Published var pending: AlertEv?          // alert queued while the user is typing / pinned
     @Published var reply: String?
     @Published var replyFailed = false
-    @Published var draft = ""
+    @Published var draft = "" { didSet { lastInteraction = Date().timeIntervalSince1970 } }
     @Published var busy = false
     @Published var now = Date().timeIntervalSince1970
     @Published var pinned = false             // opened by hotkey/click: stays open until Esc / send / click elsewhere
     @Published var hovering = false
+    @Published var composing = false          // the composer has focus: Pinch listens
     @Published var measured: CGSize = .zero   // drawn size of the island (drives the hover hit-rect)
     @Published var thumbs: [String: NSImage] = [:]
     @Published var habits: [HabitRef] = []    // cached, so chips survive the daemon going away
@@ -237,7 +247,22 @@ final class Island: ObservableObject {
     @Published var needsSetup = false         // first run: no habits / onboarding not finished
     var setupPath = "/"                       // the dashboard opens its wizard by itself while onboarding is unfinished
     @Published var confirmFinish = false      // [Finish] tapped with time still to go: inline confirm
-    @Published var seenNudges = 0             // nudges the person has seen this session (badge = nudges - seen)
+    @Published var seenNudges = 0             // nudges the person has seen this session
+    // Pinch: one clip at a time, keyed by the server's seq exactly like the web (play only when seq grows).
+    @Published var pinchClip: PinchClip?      // the one-shot playing now; nil = the resting mood
+    @Published var pinchClipID = 0
+    var pinchForce = false
+    @Published var glintUntil: Double = 0     // a quiet "synced": the wings glint and Pinch connects, no panel
+    @Published var glintIcon = "heart.fill"
+    @Published var shakeID = 0                // a phone nudge shakes the shape once
+    @Published var peeking = false            // the pointer rests in the notch, before the 0.35 s dwell opens it
+    @Published var peekSide: Double = 0       // -1 pointer left of centre, 1 right: the wing Pinch tilts toward it
+    var lastSeq: Double?                      // nil until the first state arrives: record it without playing
+    var lastClipAt: Double = 0
+    var clipTask: Task<Void, Never>?
+    var closeTask: Task<Void, Never>?
+    var closedAt: Double = 0
+    var lastInteraction = Date().timeIntervalSince1970
     var seenNudgeSession: Int?
     var lastAlertId: Int64?
     var alertTask: Task<Void, Never>?
@@ -246,6 +271,8 @@ final class Island: ObservableObject {
     let launched = Date().timeIntervalSince1970
     var startingUntil: Double = 0             // [Turn on] pressed: show "Starting…" until online or 20 s
     var starting: Bool { !online && now < startingUntil }
+    var glinting: Bool { now < glintUntil }
+    var reduceMotion: Bool { !snapshotting && NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
     var loading = Set<String>()
 
     init() {
@@ -262,14 +289,88 @@ final class Island: ObservableObject {
         if let n = p.next, ["now", "planned"].contains(n.state) { return n }
         return p.blocks.first { ["now", "planned"].contains($0.state) && $0.end > now }
     }
-    var unseenNudges: Int {
-        guard let s = session else { return 0 }
-        return seenNudgeSession == s.id ? max(0, (s.nudges ?? 0) - seenNudges) : (s.nudges ?? 0)
+    /// The next block that hasn't started yet (shown in the footer, live or not).
+    var nextLater: PlanBlock? {
+        (plan?.blocks ?? []).filter { $0.state == "planned" && $0.start > now }.min { $0.start < $1.start }
     }
     func markNudgesSeen() {
         guard let s = session else { return }
         seenNudgeSession = s.id; seenNudges = s.nudges ?? 0
     }
+
+    // MARK: Shape changes (every open and close goes through here, so they all use the Theme springs)
+
+    func setMode(_ new: Mode, via v: Via = .hover) {
+        lastInteraction = Date().timeIntervalSince1970
+        let reduce = reduceMotion
+        if new == .collapsed {
+            guard mode != .collapsed else { return }
+            composing = false
+            // Content leaves first (opacity + blur 4, 100 ms ease-out), then the shape folds on `smooth`: no bounce
+            // into the hardware notch.
+            withAnimation(Alibi.Motion.adaptive(Alibi.Motion.exit(0.15), reduceMotion: reduce)) { leaving = true }
+            closeTask?.cancel()
+            closeTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                guard !Task.isCancelled else { return }
+                closedAt = Date().timeIntervalSince1970
+                withAnimation(Alibi.Motion.adaptive(Alibi.Motion.smooth, reduceMotion: reduce)) { mode = .collapsed; leaving = false }
+            }
+            return
+        }
+        closeTask?.cancel()
+        leaving = false
+        via = v
+        let a = v == .key ? Alibi.Motion.key : new == .alert ? Alibi.Motion.bouncy : Alibi.Motion.island
+        withAnimation(Alibi.Motion.adaptive(a, reduceMotion: reduce)) { mode = new }
+    }
+
+    // MARK: Pinch
+
+    static let clipLength: [PinchClip: Double] = [.hello: 1.4, .connected: 1.0, .surprise: 0.7, .sideeye: 1.3, .nudge: 0.9,
+                                                  .celebrate: 1.6, .partial: 1.0, .supportive: 1.4]
+    static let verdictClip: [String: PinchClip] = ["done": .celebrate, "partial": .partial, "slacked": .supportive]
+
+    /// Same rule as the web: play `event` once when `seq` grows and the moment is under 15 s old; on the first state
+    /// only record `seq`, so a relaunch never replays an old event.
+    func pinchFrom(_ p: PinchState?) {
+        guard let p, let seq = p.seq else { return }
+        defer { lastSeq = max(lastSeq ?? 0, seq) }
+        guard let last = lastSeq, seq > last, (p.age_s ?? 0) < 15,
+              let e = p.event, let clip = PinchClip(rawValue: e) else { return }
+        switch clip {
+        case .sideeye, .nudge: play(.sideeye, force: true)     // one one-shot: the rig chains side-eye into nudge
+        case .celebrate, .partial, .supportive: play(clip, force: true, after: 0.3)   // after the shape has dropped
+        default: play(clip)
+        }
+    }
+
+    /// Hover peek (Motion.md recipe 3): the closed shape grows 12 pt wider and 4 pt taller on `snappy`.
+    func setPeek(_ on: Bool, side: Double) {
+        guard on != peeking || (on && side != peekSide) else { return }
+        withAnimation(Alibi.Motion.adaptive(Alibi.Motion.snappy, reduceMotion: reduceMotion)) { peeking = on; peekSide = side }
+    }
+
+    /// Hands a one-shot to the rig (which keeps the 90 s cooldown and chains side-eye into nudge). `force` is for
+    /// verdicts and nudges, which ride the server's own cooldowns. `pinchClip` stays set while the clip plays, so the
+    /// bloom can follow it.
+    func play(_ clip: PinchClip, force: Bool = false, after delay: Double = 0) {
+        let t = Date().timeIntervalSince1970
+        if !force && t - lastClipAt < 90 { return }
+        lastClipAt = t
+        if clip == .connected { glintUntil = t + 3 }
+        clipTask?.cancel()
+        clipTask = Task { @MainActor in
+            if delay > 0 { try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000)) }
+            guard !Task.isCancelled else { return }
+            pinchForce = force; pinchClip = clip; pinchClipID += 1
+            let len = (Island.clipLength[clip] ?? 1) + (clip == .sideeye ? Island.clipLength[.nudge] ?? 0 : 0)
+            try? await Task.sleep(nanoseconds: UInt64(len * 1_000_000_000))
+            if !Task.isCancelled { pinchClip = nil }
+        }
+    }
+
+    // MARK: Polling
 
     func poll() async {
         while true {
@@ -284,6 +385,7 @@ final class Island: ObservableObject {
             online = true; connecting = false; startingUntil = 0
             let hadSession = state?.session?.id
             state = s
+            pinchFrom(s.pinch)
             if let h = s.habits, h != habits {
                 habits = h
                 if let d = try? JSONEncoder().encode(h) { UserDefaults.standard.set(d, forKey: "alibi.habits") }
@@ -342,7 +444,14 @@ final class Island: ObservableObject {
     }
 
     func show(alert a: AlertEv) {
-        // Don't yank the island out from under someone typing: queue it as a pulsing edge instead.
+        // A sync is good news that needs nothing from you: a wing glint and Pinch `connected`, never a panel.
+        if isSynced(a) && (a.actions ?? []).isEmpty {
+            glintIcon = a.text.hasPrefix("Strava") || a.title?.contains("Strava") == true ? "figure.run" : "heart.fill"
+            glintUntil = Date().timeIntervalSince1970 + 3
+            if state?.pinch == nil { play(.connected) }
+            return
+        }
+        // Don't yank the island out from under someone typing: queue it as an edge line instead.
         if (pinned || !draft.isEmpty) && mode == .expanded {
             pending = a
             return
@@ -351,11 +460,22 @@ final class Island: ObservableObject {
         alert = a
         alertShownAt = Date().timeIntervalSince1970
         if a.kind == "nudge" { markNudgesSeen() }
-        withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) { mode = .alert }
-        let sound: String? = switch a.kind {
-            case "nudge": "Funk"; case "planned": "Purr"; case "verdict": "Glass"
-            default: isSynced(a) ? nil : "Tink" }
-        if let sound { NSSound(named: sound)?.play() }
+        setMode(.alert, via: .alert)
+        if state?.pinch == nil {      // an older daemon: pick the clip from the alert itself
+            if a.kind == "nudge" { play(.sideeye, force: true) }
+            else if a.kind == "verdict", let c = Island.verdictClip[a.verdict ?? ""] { play(c, force: true, after: 0.3) }
+        }
+        // A phone nudge shakes once at +680 ms; soft drift never does.
+        if a.kind == "nudge" && (a.label ?? session?.drifting?.label) == "phone" && !reduceMotion {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 680_000_000)
+                if mode == .alert { shakeID += 1 }
+            }
+        }
+        // The Mac is silent by default (Mascot.md). Opt-in: `defaults write <app> alibi.sound -bool YES`, wins only.
+        if a.kind == "verdict" && a.verdict == "done" && UserDefaults.standard.bool(forKey: "alibi.sound") {
+            let pop = NSSound(named: "Pop"); pop?.volume = 0.3; pop?.play()
+        }
         alertTask?.cancel()
         if !hovering, let s = dismissAfter(a) { scheduleDismiss(after: s) }
     }
@@ -379,7 +499,7 @@ final class Island: ObservableObject {
 
     func dismissAlert() {
         alertTask?.cancel()
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { mode = .collapsed }
+        setMode(.collapsed)
     }
 
     func act(_ a: AlertAction) {
@@ -422,7 +542,7 @@ final class Island: ObservableObject {
         guard pinned else { return }
         Task {
             try? await Task.sleep(nanoseconds: 2_500_000_000)
-            if pinned && draft.isEmpty { pinned = false; withAnimation { mode = .collapsed } }
+            if pinned && draft.isEmpty { pinned = false; setMode(.collapsed) }
         }
     }
 
@@ -486,6 +606,50 @@ final class Island: ObservableObject {
     }
 }
 
+// MARK: - Alert buttons
+
+/// A button on an alert: the island's label for it, plus the server's action (posted unchanged).
+struct AlertButton { let title: String; let action: AlertAction; var icon: String? = nil }
+
+/// Server actions with the island's plainer labels. The payload never changes, only the words on the button.
+func alertButtons(_ a: AlertEv) -> [AlertButton] {
+    var xs = a.actions ?? []
+    if xs.isEmpty {
+        switch a.kind {
+        case "nudge": xs = [AlertAction("Back to it", say: "back"), AlertAction("This counts", say: "it's on task"),
+                            AlertAction("Quiet 5 min", say: "snooze 5")]
+        case "verdict":
+            if let id = a.session_id {
+                xs = [AlertAction("See proof", url: "/#session-\(id)"), AlertAction("Fix a moment", url: "/#session-\(id)")]
+            } else { xs = [AlertAction("OK", dismiss: true)] }
+        default: xs = [AlertAction("OK", dismiss: true)]
+        }
+    }
+    return xs.map { x in
+        let l: String = switch (x.say ?? "", x.label) {
+            case ("back", _): "Back to it"
+            case ("it's on task", _): "This counts"
+            case (let s, _) where s.hasPrefix("snooze"): "Quiet \(s.split(separator: " ").last.map(String.init) ?? "5") min"
+            case (_, "Watch reel"): "Watch replay"
+            case (_, "Fix samples"), (_, "Something's wrong?"): "Fix a moment"
+            case (_, let t) where t.hasSuffix("m") && t.hasPrefix("Start "): t.dropLast() + " min"
+            case (_, let t) where t.hasPrefix("Again ") && t.hasSuffix("m"): "Again · " + t.dropFirst(6).dropLast() + " min"
+            default: x.label
+        }
+        return AlertButton(title: l, action: x, icon: l == "See proof" ? "eye" : l == "Watch replay" ? "film" : nil)
+    }
+}
+
+/// Every name `--act` accepts for a button: the label on screen, the server's label, and the pre-redesign label.
+func actLabels(_ b: AlertButton) -> [String] {
+    var names = [b.title, b.action.label]
+    let say = b.action.say ?? ""
+    if say == "back" { names.append("I'm back") }
+    if say == "it's on task" { names.append("It's on task") }
+    if say.hasPrefix("snooze") { names.append("Snooze \(say.split(separator: " ").last.map(String.init) ?? "5")m") }
+    return names
+}
+
 // MARK: - Geometry
 
 struct Notch {
@@ -500,16 +664,21 @@ struct Notch {
 
 // Only the width is per mode; the height comes from the measured content.
 // Closed, the island is the camera housing itself: idle it is exactly the notch, so nothing shows. A live session
-// (or a planned-now block / fresh reply) adds two compact wings, like an iPhone Live Activity.
+// (or a planned-now block / fresh reply / a quiet sync glint) adds two 46 pt wings, like an iPhone Live Activity.
 let wing: CGFloat = 46
 @MainActor func hasWings(_ island: Island) -> Bool {
-    island.session != nil || island.reply != nil || (island.online && island.upNext?.state == "now")
+    island.session != nil || island.reply != nil || island.glinting || (island.online && island.upNext?.state == "now")
+}
+/// Top flare and bottom radius (Surfaces.md): idle hugs the hardware (6/10), wings 6/12, open 12/radius-xl.
+@MainActor func corners(_ mode: Mode, _ island: Island) -> (flare: CGFloat, bottom: CGFloat) {
+    mode == .collapsed ? (6, island.peeking ? 14 : hasWings(island) ? 12 : 10) : (12, Alibi.Radius.xl)
 }
 @MainActor func width(for mode: Mode, notch: Notch, island: Island) -> CGFloat {
     switch mode {
-    case .collapsed: return notch.width + (hasWings(island) ? 2 * wing : 0)
-    case .expanded: return 400
-    case .alert: return island.alert?.kind == "verdict" ? 440 : 400
+    case .collapsed:   // wings: a notch + 92 body plus 6 pt flares; a peek adds 12
+        return notch.width + (hasWings(island) ? 2 * (wing + 6) : 0) + (island.peeking ? 12 : 0)
+    case .expanded: return 400 + 24                                        // a 400 pt body plus two 12 pt flares
+    case .alert: return (island.alert?.kind == "verdict" ? 440 : 400) + 24
     }
 }
 
@@ -520,6 +689,7 @@ struct SizeKey: PreferenceKey {
 
 // MARK: - Shape
 
+/// One shape whose size and radii animate (never two crossfading shapes). The top corners flare out into the menu bar.
 struct NotchShape: Shape {
     var top: CGFloat = 8, bottom: CGFloat = 22
     var animatableData: AnimatablePair<CGFloat, CGFloat> {
@@ -541,6 +711,75 @@ struct NotchShape: Shape {
     }
 }
 
+// MARK: - Motion modifiers
+
+/// Content in (Motion.md): opacity, blur 8 → 0 and scale 0.96 from the top, 30 ms per tier (three tiers at most),
+/// starting 60 ms after the shape. The hotkey path is a 120 ms fade with no blur or stagger; reduced motion fades only.
+struct Tier: ViewModifier {
+    let index: Int; var lift = false; var plain = false
+    @Environment(\.accessibilityReduceMotion) private var reduce
+    @State private var shown = snapshotting
+    func body(content: Content) -> some View {
+        let rest = shown || reduce || plain
+        content
+            .opacity(shown ? 1 : 0)
+            .blur(radius: rest ? 0 : 8)
+            .scaleEffect(rest ? 1 : 0.96, anchor: .top)
+            .offset(y: rest || !lift ? 0 : 6)
+            .onAppear {
+                guard !shown else { return }
+                let a = plain ? Alibi.Motion.easeOut(Alibi.Motion.durMicro)
+                    : Alibi.Motion.snappy.delay(0.06 + Alibi.Motion.islandStagger * Double(min(index, 2)))
+                withAnimation(Alibi.Motion.adaptive(a, reduceMotion: reduce)) { shown = true }
+            }
+    }
+}
+
+/// Wings slide out from the camera: x ±24 → 0 with opacity on `snappy`; the right wing follows 60 ms later.
+struct WingIn: ViewModifier {
+    let dx: CGFloat; let delay: Double
+    @Environment(\.accessibilityReduceMotion) private var reduce
+    @State private var shown = snapshotting
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(x: shown || reduce ? 0 : dx)
+            .onAppear {
+                guard !shown else { return }
+                withAnimation(Alibi.Motion.adaptive(Alibi.Motion.snappy.delay(delay), reduceMotion: reduce)) { shown = true }
+            }
+    }
+}
+
+/// One 360 ms shake for a phone nudge: 0, −6, 5, −3, 2, 0 pt (ease-out keyframes).
+struct Shake: ViewModifier {
+    let trigger: Int
+    func body(content: Content) -> some View {
+        content.keyframeAnimator(initialValue: CGFloat(0), trigger: trigger) { view, x in
+            view.offset(x: x)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-6, duration: 0.072)
+                CubicKeyframe(5, duration: 0.072)
+                CubicKeyframe(-3, duration: 0.072)
+                CubicKeyframe(2, duration: 0.072)
+                CubicKeyframe(0, duration: 0.072)
+            }
+        }
+    }
+}
+
+extension View {
+    func tier(_ i: Int, lift: Bool = false, plain: Bool = false) -> some View { modifier(Tier(index: i, lift: lift, plain: plain)) }
+}
+
+extension AnyTransition {
+    /// Content leaves fast (120 ms, ease-out, no bounce); the shape has its own spring.
+    static var exitFade: AnyTransition {
+        .asymmetric(insertion: .identity, removal: .opacity.animation(Alibi.Motion.easeOut(Alibi.Motion.durMicro)))
+    }
+}
+
 // MARK: - Small views
 
 func mmss(_ s: Double) -> String {
@@ -549,161 +788,234 @@ func mmss(_ s: Double) -> String {
                      : String(format: "%d:%02d", s / 60, s % 60)
 }
 
-func rounded(_ size: CGFloat, _ w: Font.Weight = .semibold) -> Font { .system(size: size, weight: w, design: .rounded) }
-
 struct Ring: View {
-    let progress: Double; let colour: Color; var width: CGFloat = 2.5
+    let progress: Double; let colour: Color; var width: CGFloat = 4
     var body: some View {
         ZStack {
-            Circle().stroke(Color.white.opacity(0.14), lineWidth: width)
+            Circle().stroke(P.surface3, lineWidth: width)
             Circle().trim(from: 0, to: progress).stroke(colour, style: StrokeStyle(lineWidth: width, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }
     }
 }
 
-/// Apple-Activity-style segmented ring: one segment per habit, green when it counted today.
-struct TodayRing: View {
-    let done: Int; let total: Int; var width: CGFloat = 2.5
+/// The system spinner; snapshots draw a still ring (ImageRenderer can't draw ProgressView).
+struct Spinner: View {
+    var size: CGFloat = 12
     var body: some View {
-        let n = max(1, total)
-        let gap = n > 1 ? 0.035 : 0
-        ZStack {
-            ForEach(0..<n, id: \.self) { i in
-                Circle().trim(from: Double(i) / Double(n) + gap / 2, to: Double(i + 1) / Double(n) - gap / 2)
-                    .stroke(i < done ? green : Color.white.opacity(0.18), style: StrokeStyle(lineWidth: width, lineCap: .butt))
-                    .rotationEffect(.degrees(-90))
-            }
+        if snapshotting {
+            Circle().trim(from: 0, to: 0.7).stroke(P.ink2, style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                .frame(width: size, height: size)
+        } else {
+            ProgressView().controlSize(.mini).tint(P.ink2).frame(width: size, height: size)
         }
     }
 }
 
-struct Pulse: View {
-    let colour: Color; var size: CGFloat = 7
-    @State private var on = false
+/// Status is colour plus shape: ● on task, ○ idle, ■ phone, ▨ off task, ◌ absent (README "Colour").
+struct StatusDot: View {
+    let label: String; var size: CGFloat = 8
     var body: some View {
-        Circle().fill(colour).frame(width: size, height: size)
-            .background(Circle().fill(colour.opacity(0.45)).scaleEffect(on ? 2.4 : 1).opacity(on ? 0 : 1))
-            .onAppear { withAnimation(.easeOut(duration: 1.6).repeatForever(autoreverses: false)) { on = true } }
+        let c = palette[label] ?? P.absent
+        Group {
+            switch label {
+            case "on_task": Circle().fill(c)
+            case "idle": Circle().strokeBorder(c, lineWidth: 2)
+            case "phone": RoundedRectangle(cornerRadius: size * 0.25, style: .continuous).fill(c)
+            case "off_task": Circle().fill(c).overlay(Hatch().stroke(P.island, lineWidth: max(1, size / 8))).clipShape(Circle())
+            default: Circle().strokeBorder(c, style: StrokeStyle(lineWidth: 1.5, dash: [2, 1.6]))
+            }
+        }
+        .frame(width: size, height: size)
+        .accessibilityLabel(human(label))
     }
 }
 
-struct Glow: View {   // slow pulsing inner edge: drifting (red), a queued alert or a planned block (accent)
-    let colour: Color; let top: CGFloat; let bottom: CGFloat
-    @State private var on = false
+struct Hatch: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        for i in stride(from: -r.height, through: r.width, by: max(2, r.width / 2.5)) {
+            p.move(to: CGPoint(x: r.minX + i, y: r.maxY)); p.addLine(to: CGPoint(x: r.minX + i + r.height, y: r.minY))
+        }
+        return p
+    }
+}
+
+/// ✓ Done, ◐ Partly, ✕ Slacked on a 10% wash: a glyph and a word, never a slab (VerdictPill).
+struct VerdictPill: View {
+    let verdict: String?; var ratio: Double? = nil
     var body: some View {
-        NotchShape(top: top, bottom: bottom).stroke(colour.opacity(on ? 0.85 : 0.3), lineWidth: 1.2)
-            .onAppear { withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) { on = true } }
+        let (glyph, word): (String, String) = switch verdict {
+            case "done": ("checkmark", "Done"); case "partial": ("circle.lefthalf.filled", "Partly")
+            case "slacked": ("xmark", "Slacked"); default: ("circle.dashed", "Ended") }
+        HStack(spacing: Alibi.Space.s1) {
+            Image(systemName: glyph).font(F.sans(11, .bold))
+            Text(word).font(F.sans(13, .semibold))
+            if let r = ratio {
+                Text("·").font(F.sans(13, .medium)).opacity(0.7)
+                Text("\(Int((r * 100).rounded()))%").font(F.sans(13, .medium)).monospacedDigit()
+            }
+        }
+        .foregroundStyle(verdictInk(verdict))
+        .padding(.leading, Alibi.Space.s2).padding(.trailing, Alibi.Space.s3).frame(height: 28)
+        .background(Capsule().fill(verdictWash(verdict)))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Verdict: \(word.lowercased())\(ratio.map { ", \(Int(($0 * 100).rounded()))%" } ?? "")")
     }
 }
 
 struct Keycap: View {
     let text: String
     var body: some View {
-        Text(text).font(.system(size: 10, weight: .medium)).foregroundStyle(.white.opacity(0.55))
-            .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.08)))
-            .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Color.white.opacity(0.14), lineWidth: 0.5))
+        Text(text).font(F.mono(11)).foregroundStyle(P.ink2)
+            .padding(.horizontal, 6).frame(height: 20)
+            .background(RoundedRectangle(cornerRadius: Alibi.Radius.xs, style: .continuous).fill(P.surface2))
+            .overlay(RoundedRectangle(cornerRadius: Alibi.Radius.xs, style: .continuous).strokeBorder(P.hairlineStrong, lineWidth: 0.5))
     }
 }
 
-/// Every pressable thing: a hover wash and a 0.97 press, so clicks feel heard.
+/// Every pressable thing: a 0.97 press, so clicks feel heard. Reduced motion keeps the click and drops the scale.
 struct Pressable: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .opacity(configuration.isPressed ? 0.85 : 1)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    func makeBody(configuration: Configuration) -> some View { PressBody(configuration: configuration) }
+    struct PressBody: View {
+        let configuration: Configuration
+        @Environment(\.accessibilityReduceMotion) private var reduce
+        var body: some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed && !reduce ? 0.97 : 1)
+                .animation(Alibi.Motion.easeOut(Alibi.Motion.durMicro), value: configuration.isPressed)
+        }
     }
 }
 
-/// Claude-style button: soft rounded rectangle. Primary is NVIDIA green with black text; secondary is a quiet fill.
-struct PillButton: View {
-    let title: String; var primary = false; var tint: Color = accent; var icon: String? = nil; var small = false
+/// The island's buttons (Alibi.Button): primary is green with black text (one per view), secondary a raised surface
+/// with a hairline, quiet a bare label that lifts on hover.
+struct IslandButton: View {
+    enum Variant { case primary, secondary, quiet }
+    let title: String; var variant: Variant = .secondary; var icon: String? = nil; var small = false
     let action: () -> Void
     @State private var hover = false
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Alibi.Radius.sm, style: .continuous)
         Button(action: action) {
-            HStack(spacing: 6) {
-                if let icon { Image(systemName: icon).font(.system(size: small ? 10 : 11, weight: .semibold)) }
-                Text(title).font(.system(size: small ? 12 : 12.5, weight: .medium)).lineLimit(1).fixedSize()
+            HStack(spacing: Alibi.Space.s2) {
+                if let icon { Image(systemName: icon).font(F.sans(12, .semibold)) }
+                Text(title).font(F.sans(small ? 12 : 14, variant == .primary ? .semibold : .medium)).lineLimit(1).fixedSize()
             }
-            .padding(.horizontal, small ? 10 : 12).frame(height: small ? 28 : 32)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(primary ? tint.opacity(hover ? 0.88 : 1) : Color.white.opacity(hover ? 0.12 : 0.07)))
-            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(primary ? .clear : hairline))
-            .foregroundStyle(primary ? Color.black : cream.opacity(0.92))
-            .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .padding(.horizontal, small ? Alibi.Space.s3 : Alibi.Space.s4).frame(height: small ? 28 : 36)
+            .foregroundStyle(foreground)
+            .background(shape.fill(background))
+            .overlay(shape.strokeBorder(variant == .secondary ? P.hairline : .clear, lineWidth: 1))
+            .contentShape(shape)
         }
         .buttonStyle(Pressable())
         .onHover { hover = $0 }
     }
+    var background: Color {
+        switch variant {
+        case .primary: return hover ? P.accentHover : P.accent
+        case .secondary: return hover ? P.surface3 : P.surface2
+        case .quiet: return hover ? P.surface2 : .clear
+        }
+    }
+    var foreground: Color {
+        switch variant {
+        case .primary: return P.onAccent
+        case .secondary: return P.ink
+        case .quiet: return hover ? P.ink : P.ink2
+        }
+    }
 }
 
-/// Small square icon button (header, dismiss).
+/// Small square icon button (header): 28 pt target, radius-xs.
 struct IconButton: View {
     let icon: String; var help = ""; let action: () -> Void
     @State private var hover = false
     var body: some View {
         Button(action: action) {
-            Image(systemName: icon).font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(cream.opacity(hover ? 0.9 : 0.5))
-                .frame(width: 26, height: 26)
-                .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(hover ? 0.1 : 0)))
+            Image(systemName: icon).font(F.sans(12, .medium))
+                .foregroundStyle(hover ? P.ink : P.ink2)
+                .frame(width: 28, height: 28)
+                .background(RoundedRectangle(cornerRadius: Alibi.Radius.xs, style: .continuous).fill(hover ? P.surface2 : .clear))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(Pressable()).onHover { hover = $0 }.help(help)
+        .buttonStyle(Pressable()).onHover { hover = $0 }.help(help).accessibilityLabel(help)
     }
 }
 
-/// Hover wash + press for suggestion chips.
+/// Suggestion chips (Chip spec: 32 pt, radius-xs): a quiet surface-1 at rest, surface-2 on hover, a press. `quiet`
+/// rests bare (slim rows such as "Finish setup"). The content shape makes the whole chip take the click, not its text.
 struct Chip: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View { ChipBody(configuration: configuration) }
+    var quiet = false
+    func makeBody(configuration: Configuration) -> some View { ChipBody(configuration: configuration, quiet: quiet) }
     struct ChipBody: View {
         let configuration: Configuration
+        let quiet: Bool
+        @Environment(\.accessibilityReduceMotion) private var reduce
         @State private var hover = false
         var body: some View {
+            let shape = RoundedRectangle(cornerRadius: quiet ? Alibi.Radius.sm : Alibi.Radius.xs, style: .continuous)
             configuration.label
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(hover ? 0.07 : 0)))
-                .scaleEffect(configuration.isPressed ? 0.97 : 1)
-                .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+                .background(shape.fill(hover ? P.surface2 : quiet ? .clear : P.surface1))
+                .contentShape(shape)
+                .scaleEffect(configuration.isPressed && !reduce ? 0.97 : 1)
+                .animation(Alibi.Motion.easeOut(Alibi.Motion.durMicro), value: configuration.isPressed)
+                .animation(Alibi.Motion.adaptive(Alibi.Motion.micro, reduceMotion: reduce), value: hover)
                 .onHover { hover = $0 }
         }
     }
 }
 
 extension View {
-    /// The one card surface: #1A1A1A, hairline border, 16 pt continuous corners. `highlight` = green edge.
+    /// The one card surface: surface-1, a hairline edge, radius-md 16 (concentric inside the 28 pt island at a 12 inset).
     func card(highlight: Bool = false) -> some View {
-        background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(surface))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(highlight ? accent.opacity(0.45) : hairline, lineWidth: 1))
+        background(RoundedRectangle(cornerRadius: Alibi.Radius.md, style: .continuous).fill(P.surface1))
+            .overlay(RoundedRectangle(cornerRadius: Alibi.Radius.md, style: .continuous)
+                .strokeBorder(highlight ? P.accent.opacity(0.45) : P.hairline, lineWidth: 1))
     }
 }
 
-// Proportional segmented strip: always fills its width, however many samples there are. `rest` greys out the
-// part of the planned time that never happened (a session stopped early).
-struct Strip: View {
-    let labels: [String]; var height: CGFloat = 8; var rest: Double = 0
+/// The last few samples as status marks, newest on the right (SampleStrip).
+struct SampleDots: View {
+    let labels: [String]
     var body: some View {
-        GeometryReader { g in
-            HStack(spacing: 1.5) {
-                HStack(spacing: labels.count > 40 ? 0.5 : 1.5) {
-                    ForEach(Array(labels.enumerated()), id: \.offset) { _, l in
-                        Rectangle().fill(palette[l] ?? .gray)
-                    }
-                }.frame(width: max(4, g.size.width * (1 - rest)))
-                if rest > 0.01 { Rectangle().fill(Color.white.opacity(0.12)) }
-            }
-            .frame(width: g.size.width, height: height)
-            .clipShape(RoundedRectangle(cornerRadius: height / 2))
-        }.frame(height: height)
+        HStack(spacing: Alibi.Space.s1) {
+            ForEach(Array(labels.enumerated()), id: \.offset) { _, l in StatusDot(label: l, size: 8) }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Last \(labels.count) checks: \(labels.filter { $0 == "on_task" }.count) on task")
     }
 }
 
-// Wrapping row: every habit stays reachable (no prefix(4) cut-off), the panel grows a line if needed.
+/// A verdict frame: 96 × 54, radius-xs, a strong hairline, its status mark and the time it was taken.
+struct FrameThumb: View {
+    let label: LabelEv; let image: NSImage?
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Alibi.Radius.xs, style: .continuous)
+        ZStack {
+            P.surface2
+            if let image { Image(nsImage: image).resizable().aspectRatio(contentMode: .fill) }
+            else { Image(systemName: "camera").font(F.sans(13)).foregroundStyle(P.ink3) }
+        }
+        .frame(width: 96, height: 54).clipShape(shape)
+        .overlay(shape.strokeBorder(P.hairlineStrong, lineWidth: 1))
+        .overlay(alignment: .topTrailing) {
+            StatusDot(label: label.label, size: 8).padding(2).background(Circle().fill(P.island)).padding(3)
+        }
+        .overlay(alignment: .bottomLeading) {
+            Text(clock(label.ts)).font(F.islandFloor).monospacedDigit().foregroundStyle(P.ink)
+                .padding(.horizontal, Alibi.Space.s1).padding(.vertical, 1)
+                .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(P.surface1))
+                .padding(Alibi.Space.s1)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Frame at \(clock(label.ts)), \(human(label.label).lowercased())")
+    }
+}
+
+// Wrapping row: every chip stays reachable, the panel grows a line if needed.
 struct Flow: Layout {
-    var spacing: CGFloat = 6
+    var spacing: CGFloat = 8
     func rows(_ w: CGFloat, _ subs: Subviews) -> [[(Int, CGSize)]] {
         var rows: [[(Int, CGSize)]] = [[]]; var x: CGFloat = 0
         for (i, v) in subs.enumerated() {
@@ -735,10 +1047,11 @@ struct IslandView: View {
     @ObservedObject var m: Island
     let notch: Notch
     @FocusState private var focused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduce
 
     var session: Session? { m.session }
     var current: String { session?.recent?.last ?? session?.labels.last?.label ?? "on_task" }
-    /// A break is never a failure: while one runs, drifting is ignored everywhere (wing, glow, status line, nudges).
+    /// A break is never a failure: while one runs, drifting is ignored everywhere (wing, edge, status line, nudges).
     var drifting: Drifting? { onBreak ? nil : session?.drifting }
     /// Seconds since the state was fetched (keeps drift/break timers ticking between polls).
     var drift: Double { max(0, m.now - (m.state?.now ?? m.now)) }
@@ -758,139 +1071,219 @@ struct IslandView: View {
         return min(1, max(0, 1 - sessionLeft / Double(max(60, s.declared_min * 60))))
     }
     var showNote: Bool { (m.state?.witness ?? "") == "nvidia" }   // on-device/mock notes are internals, not copy
-    var corner: (CGFloat, CGFloat) { m.mode == .collapsed ? (6, 10) : (10, 24) }
     var plannedNow: PlanBlock? { m.upNext.flatMap { $0.state == "now" ? $0 : nil } }
+    var open: Bool { m.mode != .collapsed }
+    var plain: Bool { m.via == .key }
+    /// The lens tells the truth: it glows only while the camera is sampling.
+    var cameraSampling: Bool {
+        guard let s = session, !onBreak else { return false }
+        return s.modality == "physical" || s.modality == "hybrid"
+    }
 
     var body: some View {
         let w = width(for: m.mode, notch: notch, island: m)
+        let c = corners(m.mode, m)
         VStack(spacing: 0) {
             content
-                .padding(.horizontal, m.mode == .collapsed ? 6 + corner.0 : 16 + corner.0)
-                .padding(.bottom, m.mode == .collapsed ? 0 : 16)
+                .opacity(m.leaving ? 0 : 1)
+                .blur(radius: m.leaving && !reduce ? 4 : 0)
+                .padding(.horizontal, open ? c.flare + Alibi.Space.s3 : c.flare)
+                .padding(.bottom, open ? Alibi.Space.s3 : 0)
                 .frame(width: w, alignment: .top)
                 .fixedSize(horizontal: false, vertical: true)
                 .background(alignment: .top) {
-                    NotchShape(top: corner.0, bottom: corner.1)
-                        .fill(Color.black)
-                        .shadow(color: .black.opacity(m.mode == .collapsed ? 0 : 0.4), radius: 24, y: 10)
+                    // shadow-island when open; none when closed (it would outline the hardware notch).
+                    NotchShape(top: c.flare, bottom: c.bottom)
+                        .fill(P.island)
+                        .shadow(color: .black.opacity(open ? 0.5 : 0), radius: 6, y: 2)
+                        .shadow(color: .black.opacity(open ? 0.35 : 0), radius: 24, y: 12)
                 }
-                .overlay {
-                    if drifting != nil && m.mode == .collapsed && hasWings(m) {
-                        Glow(colour: red, top: corner.0, bottom: corner.1)
-                    } else if m.pending != nil && m.mode == .collapsed {
-                        Glow(colour: accent, top: corner.0, bottom: corner.1)
-                    }
-                }
+                .overlay { edge(c) }
                 .background(GeometryReader { g in Color.clear.preference(key: SizeKey.self, value: g.size) })
                 .onPreferenceChange(SizeKey.self) { s in MainActor.assumeIsolated { m.measured = s } }
+                .modifier(Shake(trigger: m.shakeID))
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .animation(.spring(response: 0.38, dampingFraction: 0.86), value: m.mode)
-        .animation(.spring(response: 0.42, dampingFraction: 0.8), value: session?.id)
-        .animation(.spring(response: 0.42, dampingFraction: 0.8), value: drifting?.label)
-        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: m.confirmFinish)
+        .animation(Alibi.Motion.adaptive(Alibi.Motion.snappy, reduceMotion: reduce), value: hasWings(m))
+        .animation(Alibi.Motion.adaptive(Alibi.Motion.snappy, reduceMotion: reduce), value: session?.id)
+        .animation(Alibi.Motion.adaptive(Alibi.Motion.smooth, reduceMotion: reduce), value: m.confirmFinish)
         .preferredColorScheme(.dark)
+    }
+
+    /// First run with nothing to track: the panel is the welcome. Once habits exist, setup never hides the composer.
+    var welcoming: Bool {
+        m.needsSetup && session == nil && m.habits.isEmpty && (m.state?.habits ?? []).isEmpty && (m.online || m.connecting)
+    }
+
+    /// A still hairline on the closed shape: warn while drifting, accent while an alert waits. No loops in the wings.
+    @ViewBuilder func edge(_ c: (flare: CGFloat, bottom: CGFloat)) -> some View {
+        if m.mode == .collapsed && hasWings(m) && drifting != nil {
+            NotchShape(top: c.flare, bottom: c.bottom).stroke(P.warn.opacity(0.6), lineWidth: 1)
+        } else if m.pending != nil && m.mode == .collapsed {
+            NotchShape(top: c.flare, bottom: c.bottom).stroke(P.accent.opacity(0.6), lineWidth: 1)
+        }
     }
 
     @ViewBuilder var content: some View {
         switch m.mode {
         case .collapsed: collapsed
-        case .expanded: expanded.transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
+        case .expanded: expanded.transition(.exitFade)
         case .alert:
             Group {
-                if m.alert?.kind == "verdict" { verdictView }
-                else if m.alert?.kind == "planned" { plannedView }
-                else if let a = m.alert, m.isSynced(a) { syncedView }
-                else { alertView }
-            }.transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .top)))
+                if m.alert?.kind == "verdict" { verdictView } else { alertView }
+            }
+            .id(m.alert?.id ?? 0)
+            .transition(.exitFade)
         }
     }
 
-    // MARK: Collapsed — the camera housing, plus compact leading/trailing wings while something is live.
+    // MARK: Pinch
+
+    /// Pinch at a rung of the size ladder, playing the current one-shot. The rig rests after 2 minutes without news,
+    /// lights the lens only while the camera samples, and draws key frames under reduced motion. Snapshots draw the
+    /// clip's key frame (one still image can't wait for a timeline).
+    @ViewBuilder func pinch(_ mood: PinchMood, size: CGFloat) -> some View {
+        if snapshotting {
+            let c = m.pinchClip
+            var p = PinchView.pose(mood: mood, clip: c, ms: c?.motion.key ?? mood.motion.key)
+            let _ = (p.lensLit = p.lensLit || cameraSampling)
+            PinchFigure(pose: p, size: size).accessibilityHidden(true)
+        } else {
+            PinchView(mood: mood, clip: m.pinchClip, clipID: m.pinchClipID, size: size, camera: cameraSampling,
+                      force: m.pinchForce)
+                .accessibilityHidden(true)
+        }
+    }
+
+    /// The 16 pt wing Pinch is always still: focused, a side-eye while drifting, sleepy on a break, connected on a sync.
+    var wingPose: PinchPose {
+        var p: PinchPose
+        if m.glinting { p = PinchView.pose(mood: .idle, clip: .connected, ms: PinchClip.connected.motion.key) }
+        else if onBreak { p = PinchView.pose(mood: .sleepy, clip: nil, ms: PinchMood.sleepy.motion.key) }
+        else if drifting != nil { p = PinchView.pose(mood: .focused, clip: .sideeye, ms: PinchClip.sideeye.motion.key) }
+        else if session != nil { p = PinchView.pose(mood: .focused, clip: nil, ms: PinchMood.focused.motion.key) }
+        else { p = PinchView.pose(mood: .idle, clip: nil, ms: PinchMood.idle.motion.key) }
+        p.lensLit = m.glinting || cameraSampling
+        return p
+    }
+
+    // MARK: Collapsed: the camera housing, plus compact leading/trailing wings while something is live.
 
     var collapsed: some View {
         HStack(spacing: 0) {
             if hasWings(m) {
-                compactLeading.frame(width: wing - 6, alignment: .leading)
+                wingLeading.frame(width: wing).modifier(WingIn(dx: 24, delay: 0.1))
                 Color.clear.frame(maxWidth: .infinity)
-                compactTrailing.frame(width: wing - 6, alignment: .trailing)
+                wingTrailing.frame(width: wing).modifier(WingIn(dx: -24, delay: 0.16))
             } else {
                 Color.clear.frame(maxWidth: .infinity)
             }
         }
-        .frame(height: notch.height)
+        .frame(height: notch.height + (m.peeking ? 4 : 0))
     }
 
-    /// Leading wing: one glyph that says how it's going.
-    @ViewBuilder var compactLeading: some View {
-        if session != nil {
-            if m.unseenNudges > 0 {
-                Text("\(m.unseenNudges)").font(rounded(10, .bold)).foregroundStyle(.black)
-                    .frame(minWidth: 16, minHeight: 16).background(Circle().fill(red))
-            } else if drifting != nil { Pulse(colour: red, size: 7) }
-            else if onBreak { Image(systemName: "cup.and.saucer.fill").font(.system(size: 11)).foregroundStyle(amber) }
-            else { Pulse(colour: palette[current] ?? accent, size: 7) }
-        } else if m.reply != nil {
+    /// Leading wing: Pinch (a reply glyph when Alibi just answered and nothing is live).
+    @ViewBuilder var wingLeading: some View {
+        if session == nil && m.reply != nil && !m.glinting {
             Image(systemName: m.replyFailed ? "exclamationmark" : "checkmark")
-                .font(.system(size: 11, weight: .bold)).foregroundStyle(m.replyFailed ? red : accent)
-        } else if plannedNow != nil {
-            Image(systemName: "play.fill").font(.system(size: 10, weight: .bold)).foregroundStyle(accent)
+                .font(F.sans(12, .bold)).foregroundStyle(m.replyFailed ? P.warnInk : P.accentInk)
+        } else {
+            PinchFigure(pose: wingPose, size: 16)
+                .rotationEffect(.degrees(m.peeking && !reduce ? 8 * m.peekSide : 0), anchor: .bottom)
+                .accessibilityHidden(true)
         }
     }
 
-    /// Trailing wing: the one number that matters (time left, break left, or "now").
-    @ViewBuilder var compactTrailing: some View {
+    /// Trailing wing: the one value that matters (Voice.md "Island wing values").
+    @ViewBuilder var wingTrailing: some View {
         if session != nil {
-            let tint: Color = drifting != nil ? red : onBreak ? amber : cream
-            Text(short(onBreak ? breakLeft : sessionLeft)).font(rounded(12, .semibold)).monospacedDigit()
-                .foregroundStyle(tint).contentTransition(.numericText()).lineLimit(1).fixedSize()
+            if onBreak {
+                HStack(spacing: 3) {
+                    Image(systemName: "cup.and.saucer.fill").font(F.sans(11, .semibold))
+                    Text(short(breakLeft)).font(F.islandWing)
+                }
+                .foregroundStyle(P.partialInk).fixedSize()
+            } else if let d = drifting {
+                // The mark says what (■ phone, ▨ off task, ◌ away, ○ idle); the value says for how long. "phone" itself
+                // doesn't fit 40 pt beside its mark.
+                HStack(spacing: 3) {
+                    StatusDot(label: d.label, size: 8)
+                    Text(short((d.since_s ?? 0) + drift)).font(F.islandWing).foregroundStyle(statusInk[d.label] ?? P.warnInk)
+                }
+                .fixedSize()
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(wingWord(d)), \(short((d.since_s ?? 0) + drift))")
+            } else {
+                Text(short(sessionLeft)).font(F.islandWing).foregroundStyle(P.accentInk)
+                    .contentTransition(.numericText(countsDown: true)).lineLimit(1).fixedSize()
+            }
+        } else if m.glinting {
+            Image(systemName: m.glintIcon).font(F.sans(12, .semibold)).foregroundStyle(P.accentInk)
         } else if m.reply == nil, plannedNow != nil {
-            Text("now").font(rounded(12, .semibold)).foregroundStyle(accent).fixedSize()
+            Text("now").font(F.islandWing).foregroundStyle(P.ink).fixedSize()
         }
     }
 
-    /// 24m · 45s · 1h05 — fits a 40 pt wing.
+    /// 24m · 45s · 1h 5m: fits a 46 pt wing.
     func short(_ s: Double) -> String {
         let s = Int(max(0, s).rounded())
-        if s >= 3600 { return String(format: "%dh%02d", s / 3600, (s % 3600) / 60) }
+        if s >= 3600 { return "\(s / 3600)h \((s % 3600) / 60)m" }
         return s >= 60 ? "\(Int((Double(s) / 60).rounded(.up)))m" : "\(s)s"
     }
 
-    func shortDrift(_ d: Drifting) -> String {
-        switch d.label { case "phone": return "Phone"; case "absent": return "Away"; case "idle": return "Idle"
-        default: return d.label_text.map(placeName) ?? "Off task" }
+    func wingWord(_ d: Drifting) -> String {
+        switch d.label {
+        case "phone": return "phone"
+        case "absent": return "away"
+        case "idle": return "idle"
+        default:
+            let p = d.label_text.map(placeName) ?? ""
+            return !p.isEmpty && p.count <= 6 ? p : "off"
+        }
     }
 
     // MARK: Expanded
 
     var expanded: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            header
-            if !m.online && !m.connecting {
-                offlineCard
-            } else if m.needsSetup && session == nil {
-                welcomeCard
-            } else {
-                if let s = session { sessionCard(s); sessionControls(s) }
-                else if let b = m.upNext { upNextCard(b) }
-                composer
+        VStack(alignment: .leading, spacing: 0) {
+            header.tier(0, plain: plain)
+            Group {
+                if !m.online && !m.connecting {
+                    offlineCard
+                } else if welcoming {
+                    welcomeCard
+                } else if let s = session {
+                    VStack(alignment: .leading, spacing: Alibi.Space.s3) { sessionCard(s); sessionControls(s) }
+                } else {
+                    VStack(alignment: .leading, spacing: Alibi.Space.s3) {
+                        if let b = plannedNow { upNextCard(b) }
+                        composer
+                    }
+                }
             }
-            if let r = m.reply {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    if m.replyFailed { Image(systemName: "exclamationmark.circle.fill").foregroundStyle(red).font(.system(size: 11)) }
-                    Text(r).font(.system(size: 13, design: .serif)).foregroundStyle(cream.opacity(0.8))
-                        .lineLimit(3).fixedSize(horizontal: false, vertical: true)
-                }.padding(.horizontal, 4)
+            .padding(.top, Alibi.Space.s2)
+            .tier(1, plain: plain)
+            if let r = m.reply { replyLine(r).padding(.top, Alibi.Space.s3).tier(1, plain: plain) }
+            if !welcoming {
+                VStack(alignment: .leading, spacing: Alibi.Space.s3) {
+                    if session == nil && !m.habits.isEmpty && (m.online || m.connecting) {
+                        chips.opacity(m.online ? 1 : 0.45)
+                    }
+                    if session == nil && m.needsSetup && m.online { finishSetupRow }
+                    Rectangle().fill(P.hairline).frame(height: 1).padding(.horizontal, Alibi.Space.s1)
+                    footer
+                }
+                .padding(.top, Alibi.Space.s3)
+                .tier(2, lift: true, plain: plain)
             }
-            if session == nil && !m.needsSetup && !m.habits.isEmpty { chips.opacity(m.online ? 1 : 0.45) }
-            footer
         }
         .onAppear {
             m.markNudgesSeen()
             if m.pinned { DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { focused = true } }
         }
         .onChange(of: m.pinned) { _, p in if p { focused = true } }
+        .onChange(of: focused) { _, f in m.composing = f }
     }
 
     var statusText: String {
@@ -899,165 +1292,240 @@ struct IslandView: View {
         if onBreak { return "On a break" }
         switch s.modality {
         case "digital": return "Watching your screen"
-        case "hybrid": return "Watching desk + screen"
+        case "hybrid": return "Watching desk and screen"
         default: return "Watching your desk"
         }
     }
 
-    /// The notch row: only the far edges are visible beside the camera, so it holds just the name and two icons.
+    /// The notch row: only the far edges are visible beside the camera. Pinch, the wordmark and the online dot on the
+    /// left; open-dashboard and quit on the right.
     var header: some View {
-        HStack(spacing: 2) {
-            Text("Alibi").font(.system(size: 14, weight: .medium, design: .serif)).foregroundStyle(cream)
-            Circle().fill(accent).frame(width: 4, height: 4).offset(y: 3)
+        let mood: PinchMood = m.composing ? .listening : onBreak ? .sleepy : session != nil ? .focused : .idle
+        return HStack(spacing: Alibi.Space.s2) {
+            // No Pinch on system errors (Mascot.md); one Pinch per view, so the welcome's 56 pt Pinch replaces this one.
+            if (m.online || m.connecting) && !welcoming { pinch(mood, size: 28) }
+            Text("ALIBI").font(F.islandWordmark).tracking(F.wordmarkTracking).foregroundStyle(P.ink)
+            Circle().fill(m.online ? P.accent : P.partial).frame(width: 6, height: 6)
+                .accessibilityLabel(m.online ? "Online" : "Offline")
             Spacer(minLength: notch.width)
-            IconButton(icon: "arrow.up.right", help: "Open Alibi in the browser") { m.open("/") }
+            IconButton(icon: "arrow.up.right", help: "Open the dashboard") { m.open("/") }
             IconButton(icon: "power", help: "Quit Alibi (stops watching)") { NSApp.terminate(nil) }
         }
-        .frame(height: notch.height - 2, alignment: .center)
+        .padding(.horizontal, Alibi.Space.s1)
+        .frame(height: notch.height, alignment: .center)
     }
 
-    /// Quiet status line under everything: what Alibi is doing, today's tally, the hotkey.
+    /// Quiet line under everything: today's habits as marks, then what's next (or the hotkey).
     var footer: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Alibi.Space.s2) {
             if (m.connecting || m.starting) && !m.online {
-                ProgressView().controlSize(.mini).tint(.white)
+                Spinner(size: 12)
                 Text(m.starting ? "Starting…" : "Connecting…")
-            } else {
-                Circle().fill(m.online ? (session != nil ? accent : Color.white.opacity(0.35)) : amber).frame(width: 6, height: 6)
-                Text(statusText).lineLimit(1)
-                    .help(m.online ? "Checked by: \(m.state?.witness_label ?? m.state?.witness ?? "—")" : "")
-                if m.online, let t = m.state?.today, let total = t.habits_total, total > 0 {
-                    Text("·").opacity(0.5)
-                    TodayRing(done: t.habits_done ?? 0, total: total, width: 2).frame(width: 10, height: 10)
-                    Text("\(t.habits_done ?? 0) of \(total) today").lineLimit(1).fixedSize()
+            } else if m.online, let t = m.state?.today, let total = t.habits_total, total > 0 {
+                HStack(spacing: Alibi.Space.s1) {
+                    ForEach(0..<min(total, 8), id: \.self) { i in
+                        StatusDot(label: i < (t.habits_done ?? 0) ? "on_task" : "absent", size: 8)
+                    }
                 }
+                .accessibilityHidden(true)
+                Text("\(t.habits_done ?? 0) of \(total) today").monospacedDigit().fixedSize()
+                    .accessibilityLabel("\(t.habits_done ?? 0) of \(total) habits done today")
+            } else {
+                Text(statusText)
             }
-            Spacer()
-            Keycap(text: "⌥⌘A")
+            Spacer(minLength: Alibi.Space.s2)
+            if let b = m.nextLater, plannedNow == nil {
+                Text("Next up: \(b.name) at \(b.at)").monospacedDigit().truncationMode(.tail)
+            } else {
+                Keycap(text: "⌥⌘A")
+            }
         }
-        .font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
-        .padding(.horizontal, 4).padding(.top, 2)
+        .font(F.islandSecondary).foregroundStyle(P.ink2).lineLimit(1)
+        .padding(.horizontal, Alibi.Space.s1)
+        .help(m.online ? "Checked by: \(m.state?.witness_label ?? m.state?.witness ?? "—")" : "")
     }
 
-    /// Claude-style composer: a soft box with the field on top and a round send button bottom-right.
+    /// Habits exist but the wizard isn't finished: one slim, quiet row that reopens it. It never blocks the composer.
+    var finishSetupRow: some View {
+        Button { m.open(m.setupPath) } label: {
+            HStack(spacing: Alibi.Space.s2) {
+                Image(systemName: "checklist").font(F.sans(12, .medium)).foregroundStyle(P.ink3)
+                Text("Setup isn't finished").foregroundStyle(P.ink2)
+                Spacer(minLength: Alibi.Space.s2)
+                Text("Finish setup").fontWeight(.medium).foregroundStyle(P.ink)
+                Image(systemName: "arrow.up.right").font(F.sans(10, .semibold)).foregroundStyle(P.ink3)
+            }
+            .font(F.islandSecondary).lineLimit(1)
+            .padding(.horizontal, Alibi.Space.s2).frame(height: 32)
+        }
+        .buttonStyle(Chip(quiet: true))
+        // Content lines up with the footer and divider (s1 in); the hover wash keeps s2 of air around it.
+        .padding(.horizontal, -Alibi.Space.s1)
+        .help("Opens the setup in your browser")
+    }
+
+    func replyLine(_ r: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: Alibi.Space.s2) {
+            if m.replyFailed {
+                Image(systemName: "exclamationmark.circle.fill").font(F.sans(12)).foregroundStyle(P.warnInk)
+            }
+            Text(r).font(F.islandVoice).foregroundStyle(P.ink)
+                .lineLimit(3).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, Alibi.Space.s1)
+    }
+
+    /// The composer: one field on surface-2 with a strong hairline, the round green send button on the right.
     var composer: some View {
         let canSend = !m.draft.trimmingCharacters(in: .whitespaces).isEmpty && !m.busy
-        return VStack(alignment: .leading, spacing: 8) {
-            TextField("", text: $m.draft, prompt: Text(session == nil ? "What are you about to do?" : "Add a note…")
-                .foregroundStyle(.white.opacity(0.38)))
-                .textFieldStyle(.plain).font(.system(size: 14)).foregroundStyle(cream)
-                .focused($focused)
-                .onSubmit { Task { await m.send(m.draft); m.unpinSoon() } }
-                .onExitCommand { Controller.shared?.collapse() }
-            HStack {
-                Text(session == nil ? "Try “draw for 25 min”" : "Notes go on the session record")
-                    .font(.system(size: 11)).foregroundStyle(.white.opacity(0.32)).lineLimit(1)
-                Spacer()
-                Button { Task { await m.send(m.draft); m.unpinSoon() } } label: {
-                    Image(systemName: m.busy ? "ellipsis" : "arrow.up").font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(canSend ? Color.black : .white.opacity(0.35))
-                        .frame(width: 28, height: 28)
-                        .background(Circle().fill(canSend ? accent : Color.white.opacity(0.08)))
+        let shape = RoundedRectangle(cornerRadius: Alibi.Radius.md, style: .continuous)
+        return HStack(spacing: Alibi.Space.s2) {
+            Group {
+                if snapshotting {
+                    Text(m.draft.isEmpty ? "What are you about to do?" : m.draft)
+                        .foregroundStyle(m.draft.isEmpty ? P.ink3 : P.ink)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    TextField("", text: $m.draft, prompt: Text("What are you about to do?").foregroundStyle(P.ink3))
+                        .textFieldStyle(.plain).foregroundStyle(P.ink)
+                        .focused($focused)
+                        .onSubmit { Task { await m.send(m.draft); m.unpinSoon() } }
+                        .onExitCommand { Controller.shared?.collapse() }
                 }
-                .buttonStyle(Pressable()).disabled(!canSend).help("Send (Return)")
             }
+            .font(F.islandVoice)
+            Button { Task { await m.send(m.draft); m.unpinSoon() } } label: {
+                Image(systemName: m.busy ? "ellipsis" : "arrow.up").font(F.sans(13, .bold))
+                    .foregroundStyle(canSend ? P.onAccent : P.ink3)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(canSend ? P.accent : P.surface3))
+            }
+            .buttonStyle(Pressable()).disabled(!canSend).help("Send (Return)").accessibilityLabel("Send")
         }
-        .padding(.leading, 14).padding(.trailing, 10).padding(.top, 13).padding(.bottom, 10)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(surface))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .strokeBorder(focused ? accent.opacity(0.55) : hairline, lineWidth: 1))
-        .animation(.easeOut(duration: 0.15), value: focused)
+        .padding(.leading, Alibi.Space.s4).padding(.trailing, Alibi.Space.s2).frame(minHeight: 48)
+        .background(shape.fill(P.surface2))
+        .overlay(shape.strokeBorder(focused ? P.focusRing : P.hairlineStrong, lineWidth: focused ? 2 : 1))
+        .animation(Alibi.Motion.adaptive(Alibi.Motion.micro, reduceMotion: reduce), value: focused)
         .contentShape(Rectangle())
         .simultaneousGesture(TapGesture().onEnded { Controller.shared?.focusPanel(); focused = true })
     }
 
     var offlineCard: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Alibi.Space.s3) {
             if m.starting {
-                ProgressView().controlSize(.small).tint(cream).frame(width: 8, height: 8)
+                Spinner(size: 12)
             } else {
-                Circle().fill(amber).frame(width: 8, height: 8)
+                StatusDot(label: "idle", size: 8)
             }
-            VStack(alignment: .leading, spacing: 3) {
-                Text(m.starting ? "Turning on…" : "Alibi is off").font(.system(size: 15, design: .serif)).foregroundStyle(cream)
+            VStack(alignment: .leading, spacing: Alibi.Space.s1) {
+                Text(m.starting ? "Turning on…" : "Alibi is off").font(F.islandTitle).foregroundStyle(P.ink)
                 Text(m.starting ? "Usually a few seconds." : "Nothing is being recorded.")
-                    .font(.system(size: 11.5)).foregroundStyle(.white.opacity(0.5))
+                    .font(F.islandSecondary).foregroundStyle(P.ink2)
                 if !m.starting && repoRoot != nil {
                     Button { Controller.openLogs() } label: {
-                        Text("Show details").font(.system(size: 11)).underline().foregroundStyle(.white.opacity(0.4))
+                        Text("Show details").font(F.islandSecondary).underline().foregroundStyle(P.ink3)
                     }.buttonStyle(.plain)
                 }
             }
             Spacer()
-            PillButton(title: "Turn on", primary: true) {
+            IslandButton(title: "Turn on", variant: .primary) {
                 guard !m.starting else { return }
                 m.reply = nil; m.replyFailed = false
                 m.startingUntil = Date().timeIntervalSince1970 + 20; m.now = Date().timeIntervalSince1970
                 Controller.startDaemon()
             }
-            .disabled(m.starting).opacity(m.starting ? 0.5 : 1)
+            .disabled(m.starting).opacity(m.starting ? 0.4 : 1)
         }
-        .padding(.horizontal, 14).padding(.vertical, 12)
+        .padding(Alibi.Space.cardIsland)
         .card()
     }
 
-    /// First run: nothing to track yet, so the only useful thing is the setup wizard.
+    /// First run, no habits yet (matches the dashboard's welcome step): Pinch says hello at 56 pt beside one headline
+    /// and its line, the three steps ahead on one card, then one primary button and a quiet way out.
     var welcomeCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Welcome to Alibi").font(.system(size: 19, design: .serif)).foregroundStyle(cream)
-            Text("Pick a habit or two, say when you'll do them, and Alibi quietly checks you actually did. It takes about two minutes.")
-                .font(.system(size: 12.5)).foregroundStyle(cream.opacity(0.7)).fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: 8) {
-                PillButton(title: "Set up my habits", primary: true, icon: "sparkles") { m.open(m.setupPath) }
-                Text("Opens in your browser").font(.system(size: 11)).foregroundStyle(.white.opacity(0.4))
-            }.padding(.top, 2)
+        VStack(alignment: .leading, spacing: Alibi.Space.s4) {
+            HStack(alignment: .center, spacing: Alibi.Space.s3) {
+                helloPinch(size: 56)
+                VStack(alignment: .leading, spacing: Alibi.Space.s1) {
+                    Text("Welcome to Alibi").font(F.islandTitle).foregroundStyle(P.ink)
+                    // Body size keeps the line on one row beside the 56 pt Pinch (island-voice wraps "I check." alone).
+                    Text("I'm Pinch. You say what you'll do; I check.").font(F.islandBody).foregroundStyle(P.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, Alibi.Space.s1)
+            VStack(alignment: .leading, spacing: Alibi.Space.s3) {
+                setupStep(1, "Pick a habit or two", current: true)
+                setupStep(2, "Say when you'll do them", current: false)
+                setupStep(3, "Try a short practice run", current: false)
+            }
+            .padding(Alibi.Space.cardIsland)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card()
+            HStack(spacing: Alibi.Space.s2) {
+                IslandButton(title: "Set up my habits", variant: .primary) { m.open(m.setupPath) }
+                    .help("Opens the setup in your browser")
+                IslandButton(title: "Not now", variant: .quiet) { Controller.shared?.collapse() }
+                Spacer(minLength: Alibi.Space.s2)
+                Text("About two minutes").font(F.islandSecondary).foregroundStyle(P.ink3).lineLimit(1).fixedSize()
+            }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .card()
+        .padding(.top, Alibi.Space.s2)
     }
 
-    /// Idle: what's planned. Now -> a big card with Start; later today -> one quiet line.
-    @ViewBuilder func upNextCard(_ b: PlanBlock) -> some View {
-        if b.state == "now" {
-            HStack(spacing: 14) {
-                Image(systemName: "calendar.badge.clock").font(.system(size: 15)).foregroundStyle(accent)
-                    .frame(width: 34, height: 34).background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(accent.opacity(0.14)))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(b.name).font(.system(size: 16, design: .serif)).foregroundStyle(cream).lineLimit(1)
-                    Text("Planned now · \(clock(b.start))–\(clock(b.end))").font(.system(size: 11.5, weight: .medium))
-                        .foregroundStyle(accent.opacity(0.9)).lineLimit(1)
-                }.layoutPriority(1)
-                Spacer(minLength: 8)
-                if b.startable {
-                    PillButton(title: "Start", primary: true, icon: "play.fill", small: true) { Task { await m.start(b.habit, b.min) } }
-                }
-                PillButton(title: "Skip", small: true) { skip(b) }.help("Skip \(b.name) for today")
-            }
-            .padding(12)
-            .card(highlight: true)
-        } else {
-            HStack(spacing: 8) {
-                Image(systemName: "calendar").font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
-                Text("Next up").font(.system(size: 11.5, weight: .semibold)).foregroundStyle(.white.opacity(0.45))
-                Text("\(b.name) at \(b.at) · \(b.min) min").font(.system(size: 12.5, weight: .medium))
-                    .foregroundStyle(cream.opacity(0.9)).lineLimit(1).truncationMode(.tail)
-                Spacer(minLength: 6)
-                if b.startable {
-                    PillButton(title: "Start now", small: true) { Task { await m.start(b.habit, b.min) } }
-                } else {
-                    Text(checkCopy[b.check ?? ""] ?? "").font(.system(size: 11)).foregroundStyle(.white.opacity(0.4))
-                        .lineLimit(1).fixedSize()
-                }
-            }.padding(.horizontal, 4)
+    /// One setup step: a numbered mark (the current one raised) and its line.
+    func setupStep(_ n: Int, _ text: String, current: Bool) -> some View {
+        HStack(spacing: Alibi.Space.s3) {
+            Text("\(n)").font(F.sans(11, .semibold)).monospacedDigit()
+                .foregroundStyle(current ? P.ink : P.ink3)
+                .frame(width: 20, height: 20)
+                .background(Circle().fill(current ? P.surface3 : P.surface2))
+                .overlay(Circle().strokeBorder(current ? P.accent : .clear, lineWidth: 1.5))
+            Text(text).font(F.islandBody).foregroundStyle(current ? P.ink : P.ink2).lineLimit(1)
+            Spacer(minLength: 0)
         }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Pinch waving hello (Mascot.md `hello`): plays once when the welcome appears; snapshots draw its key frame.
+    @ViewBuilder func helloPinch(size: CGFloat) -> some View {
+        if snapshotting {
+            PinchFigure(pose: PinchView.pose(mood: .idle, clip: .hello, ms: PinchClip.hello.motion.key), size: size)
+                .accessibilityHidden(true)
+        } else {
+            PinchView(mood: .idle, clip: .hello, clipID: 1, size: size, camera: false, force: m.pinchForce)
+                .accessibilityHidden(true)
+        }
+    }
+
+    /// A block planned for now: a card with Start (primary) and Skip.
+    func upNextCard(_ b: PlanBlock) -> some View {
+        HStack(spacing: Alibi.Space.s3) {
+            Image(systemName: "calendar").font(F.sans(14)).foregroundStyle(P.ink2)
+                .frame(width: 32, height: 32)
+                .background(RoundedRectangle(cornerRadius: Alibi.Radius.sm, style: .continuous).fill(P.surface2))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(b.name).font(F.islandTitle).foregroundStyle(P.ink).lineLimit(1)
+                Text("Now · \(clock(b.start))–\(clock(b.end))").font(F.islandSecondary).monospacedDigit()
+                    .foregroundStyle(P.accentInk).lineLimit(1)
+            }
+            .layoutPriority(1)
+            Spacer(minLength: Alibi.Space.s2)
+            if b.startable {
+                IslandButton(title: "Start", variant: .primary, icon: "play.fill", small: true) { Task { await m.start(b.habit, b.min) } }
+            }
+            IslandButton(title: "Skip", variant: .quiet, small: true) { skip(b) }.help("Skip \(b.name) for today")
+        }
+        .padding(Alibi.Space.s3)
+        .card()
     }
 
     func skip(_ b: PlanBlock) {
         m.act(AlertAction("Skip today", post: "/api/calendar/plan/skip", body: ["key": .str(b.key)]))
     }
 
-    /// Habits as one-tap chips: today's planned ones first (the one planned now highlighted), then the rest.
+    /// Up to four habits as one-tap chips (⌘1–⌘4): today's planned ones first, then the rest. Right-click for a length.
     var chips: some View {
         let planned = (m.plan?.blocks ?? []).filter { ["now", "planned"].contains($0.state) }
         let order = Dictionary(planned.enumerated().map { ($1.habit, $0) }, uniquingKeysWith: { a, _ in a })
@@ -1065,28 +1533,17 @@ struct IslandView: View {
             .enumerated().sorted { (order[$0.element.key] ?? 100 + $0.offset) < (order[$1.element.key] ?? 100 + $1.offset) }
             .map(\.element)
         let nowKey = plannedNow?.habit
-        let hs = m.upNext?.state == "now" ? all.filter { $0.key != nowKey } : all   // the card above already offers it
-        return Flow(spacing: 6) {
+        let hs = Array((plannedNow != nil ? all.filter { $0.key != nowKey } : all).prefix(4))   // the card offers it
+        return Flow(spacing: Alibi.Space.s2) {
             ForEach(Array(hs.enumerated()), id: \.element) { i, h in
                 let block = planned.first { $0.habit == h.key }
                 let mins = block?.min ?? h.default_min ?? 25
-                let isNow = h.key == nowKey
                 let doneToday = (m.plan?.blocks ?? []).contains { $0.habit == h.key && ["done", "partial"].contains($0.state) }
                 Button { Task { await m.send("\(h.key) for \(mins) minutes") } } label: {
-                    HStack(spacing: 6) {
-                        if isNow { Image(systemName: "play.fill").font(.system(size: 8, weight: .bold)).foregroundStyle(accent) }
-                        else if doneToday { Image(systemName: "checkmark").font(.system(size: 9, weight: .bold)).foregroundStyle(accent) }
-                        Text(h.name).font(.system(size: 12.5)).lineLimit(1).fixedSize()
-                        Text(block.map { isNow ? "now" : "\($0.at)" } ?? "\(mins)m")
-                            .font(.system(size: 11)).monospacedDigit().foregroundStyle(.white.opacity(0.4)).lineLimit(1).fixedSize()
-                    }
-                    .padding(.horizontal, 11).frame(height: 30)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.03)))
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(isNow ? accent.opacity(0.6) : hairline))
-                    .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    chipLabel(h.name, detail: block.map(\.at) ?? "\(mins) min", done: doneToday)
                 }
-                .buttonStyle(Chip()).foregroundStyle(cream.opacity(0.88))
-                .keyboardShortcut(KeyEquivalent(Character("\(min(i + 1, 9))")), modifiers: .command)
+                .buttonStyle(Chip())
+                .keyboardShortcut(KeyEquivalent(Character("\(i + 1)")), modifiers: .command)
                 .help("Start \(h.name) for \(mins) min (⌘\(i + 1)) · right-click for another length")
                 .contextMenu {
                     ForEach([15, 25, 45, 60], id: \.self) { n in
@@ -1095,209 +1552,235 @@ struct IslandView: View {
                 }
             }
             Button { Task { await m.send("how am I doing") } } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "chart.bar").font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.45))
-                    Text("How am I doing?").font(.system(size: 12.5))
-                }
-                .padding(.horizontal, 11).frame(height: 30)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.03)))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(hairline))
-                .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            }.buttonStyle(Chip()).foregroundStyle(cream.opacity(0.88))
+                chipLabel("How am I doing?", detail: nil, done: false)
+            }.buttonStyle(Chip())
         }
     }
 
+    func chipLabel(_ name: String, detail: String?, done: Bool) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Alibi.Radius.xs, style: .continuous)
+        return HStack(spacing: Alibi.Space.s2) {
+            if done { StatusDot(label: "on_task", size: 6) }
+            Text(name).font(F.sans(13, .medium)).foregroundStyle(detail == nil ? P.ink2 : P.ink).lineLimit(1).fixedSize()
+            if let detail {
+                Text(detail).font(F.islandSecondary).monospacedDigit().foregroundStyle(P.ink3).lineLimit(1).fixedSize()
+            }
+        }
+        .padding(.horizontal, Alibi.Space.s3).frame(height: 32)
+        .overlay(shape.strokeBorder(P.hairline, lineWidth: 1))
+        .contentShape(shape)
+    }
+
+    /// The live session (canvas Island-Expanded): name and plan, ring + big timer + on-task %, the last checks,
+    /// and one line in Pinch's voice.
     func sessionCard(_ s: Session) -> some View {
         let warming = s.warming_up ?? ((s.samples ?? s.labels.count) < 6)
-        let recentR = s.recent_on_task ?? s.on_task_so_far ?? 1
-        let heroColour = recentR >= 0.67 ? green : recentR >= 0.34 ? amber : red
-        return HStack(alignment: .center, spacing: 14) {
-            ZStack {
-                Ring(progress: progress, colour: onBreak ? amber : (palette[current] ?? accent), width: 3.5)
-                Image(systemName: onBreak ? "cup.and.saucer.fill" : s.modality == "digital" ? "macwindow" : "camera.fill")
-                    .font(.system(size: 13)).foregroundStyle(.white.opacity(0.55))
-            }.frame(width: 44, height: 44)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(s.name).font(.system(size: 18, design: .serif)).foregroundStyle(cream)
-                    .lineLimit(1).truncationMode(.tail)
-                Text(onBreak ? "Paused · \(mmss(sessionLeft)) left of \(s.declared_min) min"
-                             : "\(mmss(sessionLeft)) left of \(s.declared_min) min")
-                    .font(rounded(11.5, .medium)).monospacedDigit()
-                    .foregroundStyle(.white.opacity(0.5)).lineLimit(1)
-                let live = s.labels.isEmpty ? (s.recent ?? []) : s.labels.suffix(60).map(\.label)
-                if !live.isEmpty && !onBreak {
-                    Strip(labels: live, height: 6)
-                        .frame(maxWidth: 150, alignment: .leading)
-                        .padding(.top, 1)
+        let recent = s.labels.isEmpty ? (s.recent ?? []) : s.labels.suffix(12).map(\.label)
+        let lastTs = s.labels.last?.ts ?? s.last_seen?.ago_s.map { (m.state?.now ?? m.now) - $0 }
+        return VStack(alignment: .leading, spacing: Alibi.Space.s3) {
+            HStack(alignment: .firstTextBaseline, spacing: Alibi.Space.s3) {
+                Text(s.name).font(F.islandTitle).foregroundStyle(P.ink).lineLimit(1).truncationMode(.tail)
+                Spacer(minLength: Alibi.Space.s2)
+                Text("\(s.declared_min) min · started \(clock(s.started_at))").font(F.islandSecondary).monospacedDigit()
+                    .foregroundStyle(P.ink2).lineLimit(1).fixedSize()
+            }
+            HStack(spacing: Alibi.Space.s3) {
+                ZStack {
+                    Ring(progress: progress, colour: onBreak ? P.partial : P.accent)
+                    Image(systemName: onBreak ? "cup.and.saucer.fill" : s.modality == "digital" ? "laptopcomputer" : "camera")
+                        .font(F.sans(12)).foregroundStyle(P.ink2)
                 }
-                statusLine(s)
-            }.layoutPriority(1)
-            Spacer(minLength: 0)
-            VStack(alignment: .trailing, spacing: 1) {
-                if warming || s.on_task_so_far == nil {
-                    Text("—").font(rounded(24, .semibold)).foregroundStyle(.white.opacity(0.4))
-                    Text("getting a read").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.4))
-                } else if let r = s.on_task_so_far {
-                    Text("\(Int((r * 100).rounded()))%").font(rounded(24, .semibold)).monospacedDigit()
-                        .foregroundStyle(heroColour).contentTransition(.numericText())
-                    Text("focused").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.4))
+                .frame(width: 44, height: 44)
+                VStack(alignment: .leading, spacing: Alibi.Space.s1) {
+                    Text(mmss(onBreak ? breakLeft : sessionLeft)).font(F.islandTimer).tracking(F.islandTimerTracking)
+                        .foregroundStyle(onBreak ? P.partialInk : P.ink)
+                        .contentTransition(.numericText(countsDown: true)).lineLimit(1).fixedSize()
+                    Text(onBreak ? "break · \(mmss(sessionLeft)) of work left" : "left of \(s.declared_min) min")
+                        .font(F.islandSecondary).monospacedDigit().foregroundStyle(P.ink2).lineLimit(1)
                 }
-            }.fixedSize()
+                Spacer(minLength: Alibi.Space.s2)
+                VStack(alignment: .trailing, spacing: Alibi.Space.s1) {
+                    if warming || s.on_task_so_far == nil {
+                        Text("—").font(F.rounded(17)).foregroundStyle(P.ink3)
+                        Text("getting a read").font(F.islandSecondary).foregroundStyle(P.ink2)
+                    } else if let r = s.on_task_so_far {
+                        Text("\(Int((r * 100).rounded()))%").font(F.rounded(17)).foregroundStyle(P.ink)
+                            .contentTransition(.numericText())
+                        Text("on task").font(F.islandSecondary).foregroundStyle(P.ink2)
+                    }
+                }
+                .fixedSize()
+            }
+            if !recent.isEmpty || lastTs != nil {
+                HStack(spacing: Alibi.Space.s3) {
+                    SampleDots(labels: recent)
+                    Spacer(minLength: Alibi.Space.s2)
+                    if let t = lastTs {
+                        Text("Last seen \(clock(t))").font(F.islandSecondary).monospacedDigit().foregroundStyle(P.ink2)
+                    }
+                }
+            }
+            liveLine(s).font(F.islandVoice).foregroundStyle(P.ink).lineSpacing(2)
+                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
         }
-        .padding(14)
+        .padding(Alibi.Space.cardIsland)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .card()
+    }
+
+    /// Pinch's line for the live card: the drift (only the noun in warn-ink), the break, or what it last saw.
+    func liveLine(_ s: Session) -> Text {
+        if let d = drifting {
+            let secs = (d.since_s ?? 0) + drift
+            let span = secs < 60 ? "\(Int(secs)) seconds" : "\(Int((secs / 60).rounded())) minute\(Int((secs / 60).rounded()) == 1 ? "" : "s")"
+            switch d.label {
+            case "phone": return Text("I've seen your \(Text("phone").foregroundStyle(P.warnInk)) for \(span).")
+            case "absent": return Text("Your desk's been empty for \(span).")
+            case "idle": return Text("Nothing's moved for \(span).")
+            default:
+                let place = d.label_text.map(placeName) ?? "something else"
+                return Text("That's been \(Text(place).foregroundStyle(P.warnInk)) for \(span).")
+            }
+        }
+        if let u = breakUntil { return Text("On a break. Back at \(clock(u)).") }
+        if showNote, let n = s.last_seen?.note, !n.isEmpty { return Text(n) }
+        if let l = m.state?.pinch?.line, !l.isEmpty { return Text(l) }
+        if let l = s.last_seen { return Text(l.label_text ?? human(l.label)) }
+        return Text("First check in a few seconds.")
     }
 
     /// One-tap controls (no typed commands needed): break / +10 / finish, and an inline confirm before ending early.
     @ViewBuilder func sessionControls(_ s: Session) -> some View {
         if m.confirmFinish {
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("End \(s.name) now?").font(.system(size: 12.5, weight: .semibold)).foregroundStyle(cream)
-                    Text("\(max(1, Int(sessionLeft / 60))) min to go. It'll be judged on what Alibi saw.")
-                        .font(.system(size: 11)).foregroundStyle(.white.opacity(0.5)).lineLimit(2)
+            HStack(spacing: Alibi.Space.s2) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("End \(s.name) now?").font(F.islandBody).fontWeight(.semibold).foregroundStyle(P.ink)
+                    Text("\(max(1, Int(sessionLeft / 60))) min to go. It's judged on what Alibi saw.")
+                        .font(F.islandSecondary).foregroundStyle(P.ink2).lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
-                }.layoutPriority(1)
+                }
+                .layoutPriority(1)
                 Spacer(minLength: 6)
-                PillButton(title: "Keep going", small: true) { m.confirmFinish = false }
-                PillButton(title: "End now", primary: true, tint: amber, small: true) { Task { await m.end() } }
+                IslandButton(title: "Keep going", variant: .primary, small: true) { m.confirmFinish = false }
+                IslandButton(title: "End now", variant: .secondary, small: true) { Task { await m.end() } }
             }
-            .padding(.horizontal, 12).padding(.vertical, 10)
+            .padding(Alibi.Space.s3)
             .card()
         } else {
-            HStack(spacing: 8) {
+            HStack(spacing: Alibi.Space.s2) {
                 if onBreak {
-                    PillButton(title: "I'm back", primary: true, tint: amber, icon: "arrow.uturn.backward") {
+                    IslandButton(title: "I'm back", variant: .primary, icon: "arrow.uturn.backward") {
                         Task { await m.send("back", quiet: true) }
                     }
                 } else {
-                    PillButton(title: "Break", icon: "cup.and.saucer", small: true) {
-                        Task { await m.send("break 5", quiet: true) }
-                    }
-                    .contextMenu {
-                        ForEach([2, 5, 10, 15], id: \.self) { n in
-                            Button("Break for \(n) min") { Task { await m.send("break \(n)", quiet: true) } }
+                    IslandButton(title: "Break", icon: "cup.and.saucer") { Task { await m.send("break 5", quiet: true) } }
+                        .contextMenu {
+                            ForEach([2, 5, 10, 15], id: \.self) { n in
+                                Button("Break for \(n) min") { Task { await m.send("break \(n)", quiet: true) } }
+                            }
                         }
-                    }
-                    .help("5-minute break · right-click for another length")
+                        .help("5-minute break · right-click for another length")
                 }
-                PillButton(title: "+10 min", icon: "plus", small: true) {
+                IslandButton(title: "10 min", icon: "plus") {
                     Task { await m.send("change to \(s.declared_min + 10)", quiet: true) }
-                }.help("Make this session 10 minutes longer")
-                Spacer()
-                PillButton(title: "Finish", icon: "flag.checkered", small: true) {
+                }
+                .help("Make this session 10 minutes longer")
+                IslandButton(title: "Finish", icon: "stop.fill") {
                     if sessionLeft > 60 { m.confirmFinish = true } else { Task { await m.end() } }
                 }
+                Spacer(minLength: 0)
             }
-        }
-    }
-
-    @ViewBuilder func statusLine(_ s: Session) -> some View {
-        if let d = drifting {
-            let place = d.label == "phone" ? "on your phone" : d.label == "absent" ? "away from the desk"
-                : d.label == "idle" ? "idle" : "on \(shortDrift(d))"
-            Text("You've been \(place) for \(mmss((d.since_s ?? 0) + drift))").font(.system(size: 11.5, weight: .medium))
-                .foregroundStyle(red).lineLimit(1)
-        } else if onBreak {
-            HStack(spacing: 5) {
-                Image(systemName: "cup.and.saucer.fill").font(.system(size: 9))
-                Text("Break · back in \(mmss(breakLeft))").font(rounded(11.5, .semibold)).monospacedDigit()
-            }
-            .foregroundStyle(Color.black.opacity(0.85))
-            .padding(.horizontal, 8).frame(height: 20).background(Capsule().fill(amber))
-        } else if let l = s.last_seen {
-            let ago = l.ago_s.map { $0 < 5 ? "just now" : "\(Int($0)) s ago" } ?? ""
-            let note = showNote ? (l.note.map { " · \($0)" } ?? "") : ""
-            Text("\(l.label_text ?? human(l.label)) · checked \(ago)\(note)").font(.system(size: 11.5))
-                .foregroundStyle((palette[l.label] ?? .gray).opacity(0.95)).lineLimit(1)
-        } else if let n = s.labels.last {
-            Text(n.label_text ?? human(n.label)).font(.system(size: 11.5)).foregroundStyle(palette[n.label] ?? .gray).lineLimit(1)
-        } else {
-            Text("First check in a few seconds…").font(.system(size: 11)).foregroundStyle(.white.opacity(0.4))
+            .padding(.horizontal, Alibi.Space.s1)
         }
     }
 
     // MARK: Alerts
 
-    /// Server actions, with the island's plainer labels for the known ones.
-    func actions(for a: AlertEv) -> [AlertAction] {
-        var xs = a.actions ?? []
-        if xs.isEmpty {
-            switch a.kind {
-            case "nudge": xs = [AlertAction("Back to it", say: "back"), AlertAction("This counts", say: "it's on task"),
-                                AlertAction("Quiet 5 min", say: "snooze 5")]
-            case "verdict":
-                if let id = a.session_id {
-                    xs = [AlertAction("Watch replay", url: "/api/reel?session=\(id)"), AlertAction("Something's wrong?", url: "/#session-\(id)")]
-                } else { xs = [AlertAction("OK", dismiss: true)] }
-            default: xs = [AlertAction("OK", dismiss: true)]
+    func alertHeader(_ trailing: String?) -> some View {
+        HStack(spacing: Alibi.Space.s2) {
+            Text("ALIBI").font(F.islandWordmark).tracking(F.wordmarkTracking).foregroundStyle(P.ink)
+            Spacer(minLength: notch.width)
+            if let t = trailing {
+                Text(t).font(F.islandSecondary).monospacedDigit().foregroundStyle(P.ink2).lineLimit(1)
             }
         }
-        return xs.map { x in
-            let l: String = switch (x.say ?? "", x.label) {
-                case ("back", _): "Back to it"
-                case ("it's on task", _): "This counts"
-                case (let s, _) where s.hasPrefix("snooze"): "Quiet \(s.split(separator: " ").last.map(String.init) ?? "5") min"
-                case (_, "Watch reel"): "Watch replay"
-                case (_, "Fix samples"): "Something's wrong?"
-                case (_, "Not now"): "Not now"
-                case (_, let t) where t.hasSuffix("m") && t.hasPrefix("Start "): t.dropLast() + " min"
-                case (_, let t) where t.hasPrefix("Again ") && t.hasSuffix("m"): "Again · " + t.dropFirst(6).dropLast() + " min"
-                default: x.label
+        .padding(.horizontal, Alibi.Space.s1)
+        .frame(height: notch.height)
+    }
+
+    /// Buttons: primary, secondary, quiet on nudges and plans; the verdict leads with secondary (See proof).
+    func actionRow(_ a: AlertEv, extra: [AlertButton] = []) -> some View {
+        let verdict = a.kind == "verdict"
+        let xs = Array((extra + alertButtons(a)).prefix(verdict ? 2 + extra.count : 3))
+        return HStack(spacing: Alibi.Space.s2) {
+            ForEach(Array(xs.enumerated()), id: \.offset) { i, x in
+                let isExtra = i < extra.count
+                let v: IslandButton.Variant = isExtra ? .primary
+                    : verdict ? (i == extra.count ? .secondary : .quiet)
+                    : i == 0 ? .primary : i == 1 ? .secondary : .quiet
+                IslandButton(title: x.title, variant: v, icon: x.icon) { m.act(x.action) }
             }
-            return AlertAction(l, say: x.say, url: x.url, post: x.post, body: x.body, dismiss: x.dismiss)
+            Spacer(minLength: 0)
         }
     }
 
-    func actionRow(_ a: AlertEv, tint: Color, extra: [AlertAction] = []) -> some View {
-        HStack(spacing: 8) {
-            ForEach(Array((extra + actions(for: a)).prefix(3).enumerated()), id: \.offset) { i, x in
-                PillButton(title: x.label, primary: i == 0, tint: tint) { m.act(x) }
-            }
-            Spacer()
-            IconButton(icon: "xmark", help: "Dismiss (Esc)") { m.dismissAlert() }
-        }
-    }
-
-    /// Notch row (only its edges are visible): wordmark left, context right. The title sits below the camera.
-    func alertHeader(icon: String, title: String, tint: Color, trailing: String?) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 2) {
-                Text("Alibi").font(.system(size: 14, weight: .medium, design: .serif)).foregroundStyle(cream)
-                Circle().fill(accent).frame(width: 4, height: 4).offset(y: 3)
-                Spacer(minLength: notch.width)
-                if let t = trailing {
-                    Text(t).font(.system(size: 11)).monospacedDigit().foregroundStyle(.white.opacity(0.45)).lineLimit(1)
-                }
-            }.frame(height: notch.height - 2)
-            HStack(spacing: 7) {
-                Image(systemName: icon).font(.system(size: 11, weight: .semibold)).foregroundStyle(tint)
-                Text(title).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(tint)
-            }
-        }
-    }
-
+    /// Nudges, plans, pace, recap, report and info share the 400 pt frame: a 56 pt Pinch beside one line in its voice,
+    /// then the buttons. Only a nudge's noun takes warn-ink.
     var alertView: some View {
         let a = m.alert ?? AlertEv(id: 0, kind: "info", text: "")
-        let tint: Color = a.kind == "nudge" ? red : a.kind == "pace" ? amber : accent
         let habitName = a.habit_label ?? a.habit.map(displayName) ?? session?.name
-        let title: String = switch a.kind {
-            case "nudge": "Still \((session?.habit ?? a.habit).map(spokenHabit) ?? "on it")?"
-            case "pace": "Behind this week"; case "recap": "Today's replay"; case "report": "Tonight's report"
-            default: "Alibi" }
-        let icon = a.kind == "nudge" ? "eye.fill" : a.kind == "pace" ? "chart.line.downtrend.xyaxis"
-            : a.kind == "recap" ? "film" : a.kind == "report" ? "doc.text" : "bell.fill"
-        let text = a.kind == "pace" ? paceCopy(a) : a.text
-        return VStack(alignment: .leading, spacing: 12) {
-            alertHeader(icon: icon, title: title, tint: tint, trailing: a.kind == "nudge" ? nil : habitName)
-            Text(text).font(.system(size: 15, design: .serif)).foregroundStyle(cream)
-                .lineLimit(4).fixedSize(horizontal: false, vertical: true)
-            if a.kind == "nudge", let d = drifting {
-                Text("Seen for \(mmss((d.since_s ?? 0) + drift)) · \(mmss(sessionLeft)) left of your \(session?.declared_min ?? 0) min")
-                    .font(rounded(11, .medium)).monospacedDigit().foregroundStyle(.white.opacity(0.45))
-            }
-            actionRow(a, tint: tint)
+        let trailing: String = switch a.kind {
+            case "planned": (a.start.map(clock) ?? a.at ?? "") + (a.end.map { "–" + clock($0) } ?? "")
+            default: [habitName, clock(a.ts ?? m.now)].compactMap { $0 }.joined(separator: " · ")
         }
+        return VStack(alignment: .leading, spacing: 0) {
+            alertHeader(trailing).tier(0)
+            HStack(alignment: .center, spacing: Alibi.Space.s3) {
+                pinch(a.kind == "nudge" ? .focused : .idle, size: 56)
+                alertLine(a).font(F.islandVoice).foregroundStyle(P.ink).lineSpacing(2)
+                    .lineLimit(4).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            .padding(.top, Alibi.Space.s1).padding(.horizontal, Alibi.Space.s1)
+            .tier(0)
+            actionRow(a).padding(.top, Alibi.Space.s3).padding(.horizontal, Alibi.Space.s1).tier(1, lift: true)
+        }
+    }
+
+    func alertLine(_ a: AlertEv) -> Text {
+        switch a.kind {
+        case "nudge": return nudgeLine(a)
+        case "pace": return Text(paceCopy(a))
+        case "planned":
+            let name = a.habit_label ?? a.habit.map(displayName) ?? "A block"
+            if a.late == true { return Text("\(name) was planned for \(a.at ?? "earlier"). Start now?") }
+            return Text("\(name) is planned now. Start?")
+        default: return Text(plainReply(a.text))
+        }
+    }
+
+    /// "You said drawing. I've seen your phone for 3 minutes." Composed like the web (M3): from the habit, the label
+    /// and how long the drift has run; a server line already in Pinch's voice is used as it is.
+    func nudgeLine(_ a: AlertEv) -> Text {
+        let d = session?.drifting
+        let label = a.label ?? d?.label ?? ""
+        var noun: String? = label == "phone" ? "phone" : label == "off_task" ? d?.label_text.map(placeName) : nil
+        var line = a.text
+        if !(a.text.hasPrefix("You said") || a.text.hasPrefix("Your desk")), let d, let h = a.habit.map(spokenHabit) {
+            let mins = max(1, Int((((d.since_s ?? 0) + drift) / 60).rounded()))
+            let span = "\(mins) minute\(mins == 1 ? "" : "s")"
+            switch label {
+            case "phone": line = "You said \(h). I've seen your phone for \(span)."
+            case "off_task" where noun != nil: line = "You said \(h). That's been \(noun!) for \(span)."
+            case "absent": line = "Your desk's been empty for \(span). Still \(h)?"
+            case "idle": line = "You said \(h). Nothing's moved in \(span)."
+            default: break
+            }
+        }
+        if noun.map({ !line.contains($0) }) ?? true { noun = (["phone"] + knownPlaces.map(\.1)).first { line.contains($0) } }
+        guard let n = noun, let r = line.range(of: n) else { return Text(line) }
+        let before = String(line[..<r.lowerBound]), cause = String(line[r]), after = String(line[r.upperBound...])
+        return Text("\(before)\(Text(cause).foregroundStyle(P.warnInk))\(after)")
     }
 
     /// "Drawing: 40 min behind pace. 25 min now closes 62% of it. Say 'yes'." ->
@@ -1313,167 +1796,129 @@ struct IslandView: View {
         return "You're \(behind) min short on \(name) this week. \(mins) min now \(how)."
     }
 
-    /// "drawing" -> "drawing"; "cpp" -> "on C++"; "internships" -> "on Internships".
+    /// "drawing" -> "drawing"; "cpp" -> "C++"; "internships" -> "Internships".
     func spokenHabit(_ k: String) -> String {
         let verbs = ["drawing", "building", "reading", "running", "coding", "studying", "writing", "practising",
                      "practicing", "meditating", "sketching", "painting", "journaling", "stretching"]
         let label = m.habits.first { $0.key == k }?.name ?? displayName(k)
-        return verbs.contains(label.lowercased()) ? label.lowercased() : "on \(label)"
+        return verbs.contains(label.lowercased()) ? label.lowercased() : label
     }
 
-    /// Calendar auto-start: "Drawing is planned now — start?" [Start 25 min] [In 10 min] [Skip today].
-    var plannedView: some View {
-        let a = m.alert ?? AlertEv(id: 0, kind: "planned", text: "")
-        let range = (a.start.map(clock) ?? a.at ?? "") + (a.end.map { "–" + clock($0) } ?? "")
-        let late = a.late ?? false
-        return VStack(alignment: .leading, spacing: 12) {
-            alertHeader(icon: "calendar.badge.clock", title: late ? "Planned for \(a.at ?? "earlier")" : "Planned now",
-                        tint: accent, trailing: range)
-            HStack(alignment: .center, spacing: 14) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(a.text).font(.system(size: 16, design: .serif)).foregroundStyle(cream)
-                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                    Text([a.minutes.map { "\($0) min" }, checkCopy[a.check ?? ""]].compactMap { $0 }.joined(separator: " · "))
-                        .font(.system(size: 11.5)).foregroundStyle(.white.opacity(0.5)).lineLimit(1)
-                }.layoutPriority(1)
-                Spacer(minLength: 0)
-            }
-            actionRow(a, tint: accent)
-        }
+    /// Drop the verdict word the pill already says ("Done. 23 of 25…" -> "23 of 25…"). A server line that isn't in
+    /// Pinch's voice ("Time's up. Drawing: slacked. 15% on task…") is rebuilt from the numbers instead.
+    func verdictSentence(_ t: String, rv: Verdict?, verdict: String?) -> String {
+        let s = plainReply(t)
+        let words = ["done", "done early", "partly", "slacked", "slacked, by my count", "not this time"]
+        if let r = s.range(of: ". "), words.contains(s[..<r.lowerBound].lowercased()) { return String(s[r.upperBound...]) }
+        guard let rv, rv.declared_min > 0 else { return s }
+        let elapsed = rv.elapsed_min ?? rv.declared_min
+        let seen = rv.verified_min ?? Int(((rv.on_task_ratio ?? 0) * Double(elapsed)).rounded())
+        let line = "\(seen) of \(rv.declared_min) minutes on task."
+        return verdict == "slacked" ? line + " Tap any frame if I got it wrong." : line
     }
 
-    /// A run (or a Health target) came in from the phone: quiet, celebratory, gone in 6 s.
-    var syncedView: some View {
-        let a = m.alert ?? AlertEv(id: 0, kind: "synced", text: "")
-        let (title, detail) = syncedCopy(a)
-        return VStack(alignment: .leading, spacing: 12) {
-            alertHeader(icon: "figure.run", title: a.title ?? title, tint: green, trailing: a.habit_label)
-            HStack(spacing: 14) {
-                ZStack {
-                    Ring(progress: 1, colour: green, width: 3.5)
-                    Image(systemName: "checkmark").font(.system(size: 15, weight: .bold)).foregroundStyle(green)
-                }.frame(width: 40, height: 40)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(a.detail ?? detail).font(.system(size: 15, design: .serif)).foregroundStyle(cream).lineLimit(2)
-                    if let p = a.progress {
-                        Text(p).font(.system(size: 11.5)).foregroundStyle(.white.opacity(0.5))
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-            if a.actions?.isEmpty == false { actionRow(a, tint: green) }
-        }
-    }
-
-    /// "Strava: Morning Run, 5.2 km — logged." -> ("Run logged from Strava", "Morning Run · 5.2 km")
-    func syncedCopy(_ a: AlertEv) -> (String, String) {
-        guard a.text.hasPrefix("Strava:") else { return ("Synced", a.text) }
-        var t = String(a.text.dropFirst(7)).trimmingCharacters(in: .whitespaces)
-        let updated = t.contains("— updated")
-        if let r = t.range(of: " — ") { t = String(t[..<r.lowerBound]) }
-        t = t.replacingOccurrences(of: ", ", with: " · ")
-        return (updated ? "Run updated from Strava" : "Run logged from Strava", t)
-    }
-
+    /// The verdict (canvas Island-Verdict, 440 wide): Pinch 64 plays its clip (a bloom behind it on done), the pill and
+    /// the sentence, three frames of proof, then See proof and Fix a moment. Pinch stays green whatever the verdict.
     var verdictView: some View {
         let a = m.alert ?? AlertEv(id: 0, kind: "verdict", text: "")
         let rv = m.state?.recent_verdict.flatMap { v in (a.session_id == nil || v.id == a.session_id) ? v : nil }
         let v = a.verdict ?? rv?.verdict
         let labels = rv?.labels ?? []
         let wins = labels.isEmpty ? (rv?.windows ?? []) : []      // screen-only habit: the windows are the evidence
-        let screenShare: Double? = wins.isEmpty ? nil : wins.filter { $0.label == "on_task" }.map(\.share).reduce(0, +)
         let declared = rv?.declared_min ?? 0
         let elapsed = rv?.elapsed_min ?? declared
         let early = (a.ended_early ?? false) || (declared > 0 && Double(elapsed) < Double(declared) * 0.9)
-        let tint = early ? amber : verdictColour(v)
         let ratio = a.ratio ?? rv?.on_task_ratio
-        let onShare = labels.isEmpty ? screenShare : Double(labels.filter { $0.label == "on_task" }.count) / Double(labels.count)
-        let counts = Dictionary(grouping: labels, by: \.label).mapValues(\.count)
-        let offBits = ["phone": "on the phone", "absent": "away", "idle": "idle", "off_task": "on something else"]
-            .compactMap { k, t in counts[k].map { (k, "\(t) \($0 == 1 ? "once" : $0 == 2 ? "twice" : "\($0)×")") } }
-            .sorted { $0.0 < $1.0 }.map(\.1)
-        let detail = wins.isEmpty ? (["Checked \(labels.count) time\(labels.count == 1 ? "" : "s")"] + offBits).joined(separator: " · ")
-            : (placesLine(wins) ?? "")
+        let onShare: Double? = labels.isEmpty
+            ? (wins.isEmpty ? nil : wins.filter { $0.label == "on_task" }.map(\.share).reduce(0, +))
+            : Double(labels.filter { $0.label == "on_task" }.count) / Double(labels.count)
         let name = a.habit_label ?? rv?.label ?? a.habit.map(displayName) ?? "Session"
-        let badge = early ? "STOPPED EARLY" : v == "done" ? "DONE" : v == "partial" ? "PARTLY DONE" : v == "slacked" ? "DIDN'T COUNT" : "ENDED"
-        let enoughLooks = labels.count >= 6 || !wins.isEmpty
-        let checkedWhat = wins.isEmpty ? "Alibi checked" : "Alibi checked your screen"
-        let focusLine: String? = onShare.map { r in
-            r >= 0.99 ? "Focused the whole time \(checkedWhat)." : r <= 0.01 ? "Not on it any time \(checkedWhat)."
-                : "Focused \(Int((r * 100).rounded()))% of the time \(checkedWhat)." }
-        let counted = v == "done" ? " Still counts for today." : v == "partial" ? " Counts as partly done."
-            : " Too short to count for today."
-        let line = early ? ((focusLine ?? "") + counted).trimmingCharacters(in: .whitespaces) : plainReply(a.text)
-        var extra: [AlertAction] = []
+        let enoughLooks = labels.count >= 6 || !wins.isEmpty || rv == nil
+        let counted = v == "done" ? "Still counts for today." : v == "partial" ? "Counts as partly done." : "Too short to count today."
+        let sentence = early
+            ? ([onShare.map { "\(elapsed) of \(declared) minutes, \(Int(($0 * 100).rounded()))% on task." }, counted]
+                .compactMap { $0 }.joined(separator: " "))
+            : verdictSentence(a.text, rv: rv, verdict: v)
+        var extra: [AlertButton] = []
         if early, let h = a.habit ?? rv?.habit, declared - elapsed >= 2 {
-            extra = [AlertAction("Keep going · \(declared - elapsed) min", say: "\(h) for \(declared - elapsed) minutes")]
+            let x = AlertAction("Keep going · \(declared - elapsed) min", say: "\(h) for \(declared - elapsed) minutes")
+            extra = [AlertButton(title: x.label, action: x)]
         }
-        return VStack(alignment: .leading, spacing: 12) {
-            alertHeader(icon: "checkmark.seal.fill", title: "Verdict", tint: accent,
-                        trailing: rv.map { _ in early ? nil : "\(elapsed) of \(declared) min" } ?? nil)
-            HStack(alignment: .center, spacing: 12) {
-                Text(badge).font(.system(size: 10.5, weight: .bold)).tracking(0.8)
-                    .foregroundStyle(Color.black).lineLimit(1).fixedSize()
-                    .padding(.horizontal, 8).frame(height: 22).background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(tint))
-                Text(name).font(.system(size: 19, design: .serif)).foregroundStyle(cream)
-                    .lineLimit(1).truncationMode(.tail).layoutPriority(1)
-                Spacer(minLength: 8)
-                VStack(alignment: .trailing, spacing: 0) {
-                    if early && rv != nil {
-                        Text("\(elapsed) of \(declared)").font(rounded(24, .semibold)).monospacedDigit().foregroundStyle(tint)
-                        Text("minutes").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.45))
-                    } else if let r = ratio, enoughLooks || rv == nil {
-                        Text("\(Int((r * 100).rounded()))%").font(rounded(26, .semibold)).monospacedDigit().foregroundStyle(tint)
-                        Text("focused").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.45))
+        let trailing = [name, early && rv != nil ? "\(elapsed) of \(declared) min" : clock(a.ts ?? m.now)].joined(separator: " · ")
+        return VStack(alignment: .leading, spacing: 0) {
+            alertHeader(trailing).tier(0)
+            HStack(alignment: .top, spacing: Alibi.Space.s3) {
+                verdictPinch(v).tier(0)
+                VStack(alignment: .leading, spacing: Alibi.Space.s2) {
+                    VStack(alignment: .leading, spacing: Alibi.Space.s2) {
+                        VerdictPill(verdict: v, ratio: enoughLooks ? ratio : nil)
+                        if !sentence.isEmpty {
+                            Text(sentence).font(F.islandVoice).foregroundStyle(P.ink).lineSpacing(2).monospacedDigit()
+                                .lineLimit(3).fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                }.fixedSize()
-            }
-            if !labels.isEmpty || !wins.isEmpty {
-                let rest = early && declared > 0 ? min(0.7, max(0, 1 - Double(elapsed) / Double(declared))) : 0  // keep the evidence readable
-                VStack(alignment: .leading, spacing: 6) {
-                    if wins.isEmpty { Strip(labels: labels.map(\.label), height: 8, rest: rest) }
-                    else { PlaceStrip(ws: wins, height: 8, rest: rest) }
-                    HStack {
-                        Text(detail).font(rounded(11, .medium)).foregroundStyle(.white.opacity(0.5)).lineLimit(1)
-                        Spacer()
-                        if early { Text("not done").font(rounded(11, .medium)).foregroundStyle(.white.opacity(0.35)) }
-                    }
+                    .tier(0)
+                    evidence(labels: labels, wins: wins, verdict: v).padding(.top, Alibi.Space.s1).tier(1, lift: true)
                 }
+                Spacer(minLength: 0)
             }
-            if !line.isEmpty {
-                Text(line).font(.system(size: 13.5, design: .serif))
-                    .foregroundStyle(cream.opacity(0.8)).lineLimit(3).fixedSize(horizontal: false, vertical: true)
-            }
-            if !labels.isEmpty { thumbRow(labels) }
-            actionRow(a, tint: tint, extra: extra)
+            .padding(.top, Alibi.Space.s1).padding(.horizontal, Alibi.Space.s1)
+            actionRow(a, extra: extra)
+                .padding(.top, Alibi.Space.s3).padding(.leading, Alibi.Space.s1 + 64 + Alibi.Space.s3)
+                .padding(.trailing, Alibi.Space.s1)
+                .tier(2, lift: true)
         }
     }
 
-    // 5 frames: every off-task look first (that's the evidence), padded with evenly spaced on-task ones, in time order.
-    func thumbRow(_ labels: [LabelEv]) -> some View {
-        let withFrames = labels.filter { $0.frame_url != nil }
-        var pick = Array(withFrames.filter { $0.label != "on_task" }.prefix(3))
-        let on = withFrames.filter { $0.label == "on_task" }
-        let need = max(0, 5 - pick.count)
-        if need > 0 && !on.isEmpty {
-            for i in 0..<min(need, on.count) { pick.append(on[i * on.count / min(need, on.count)]) }
+    /// The bloom is the product's one gradient: closest-side, 1.6x Pinch, only on done, only while the clip plays.
+    func verdictPinch(_ v: String?) -> some View {
+        ZStack {
+            if v == "done" && m.pinchClip == .celebrate && !reduce {
+                RadialGradient(colors: [P.bloom, P.bloom.opacity(0)], center: .center, startRadius: 0, endRadius: 51) // bloom
+                    .frame(width: 102, height: 102)
+                    .transition(.opacity.animation(Alibi.Motion.easeOut(Alibi.Motion.durMedium)))
+                    .allowsHitTesting(false)
+            }
+            pinch(.idle, size: 64)
         }
-        pick.sort { $0.ts < $1.ts }
-        return HStack(spacing: 8) {
-            ForEach(pick, id: \.self) { l in
-                ZStack(alignment: .bottom) {
-                    Group {
-                        if let u = l.frame_url, let img = m.thumb(u) {
-                            Image(nsImage: img).resizable().aspectRatio(contentMode: .fill)
-                        } else {
-                            Color.white.opacity(0.06)
-                        }
-                    }
-                    .frame(maxWidth: .infinity).frame(height: 62).clipped()
-                    Rectangle().fill(palette[l.label] ?? .gray).frame(height: 3)
+        .frame(width: 64, height: 64)
+    }
+
+    /// Three frames in time order. Partial / slacked: the off-task looks first (they're the evidence), padded with evenly
+    /// spaced on-task ones. Done: an even sample of the session with at most one off-task look, so a pass never reads as
+    /// an accusation. Screen-only habits show where the time went instead.
+    @ViewBuilder func evidence(labels: [LabelEv], wins: [WindowShare], verdict: String?) -> some View {
+        if !wins.isEmpty {
+            VStack(alignment: .leading, spacing: Alibi.Space.s2) {
+                PlaceStrip(ws: wins, height: 8)
+                if let l = placesLine(wins) { Text(l).font(F.islandSecondary).foregroundStyle(P.ink2).lineLimit(1) }
+            }
+        } else if !labels.isEmpty {
+            let withFrames = labels.filter { $0.frame_url != nil }
+            let pool = withFrames.isEmpty ? labels : withFrames
+            let pick: [LabelEv] = {
+                func spread(_ a: [LabelEv], _ n: Int) -> [LabelEv] {
+                    let k = min(n, a.count)
+                    return k > 0 ? (0..<k).map { a[(2 * $0 + 1) * a.count / (2 * k)] } : []
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5))
+                let on = pool.filter { $0.label == "on_task" }
+                let off = pool.filter { $0.label != "on_task" }
+                var p: [LabelEv]
+                if verdict == "done" {
+                    p = spread(pool, 3)
+                    let drift = p.filter { $0.label != "on_task" }
+                    if drift.count > 1 {
+                        p = Array(drift.prefix(1)) + spread(on, 2)
+                        for l in off where p.count < 3 && !p.contains(l) { p.append(l) }
+                    }
+                } else {
+                    p = Array(off.prefix(2))
+                    p += spread(on, 3 - p.count)
+                }
+                return p.sorted { $0.ts < $1.ts }
+            }()
+            HStack(spacing: Alibi.Space.s2) {
+                ForEach(pick, id: \.self) { l in FrameThumb(label: l, image: l.frame_url.flatMap { m.thumb($0) }) }
             }
         }
     }
@@ -1628,7 +2073,7 @@ final class Controller {
         island.draft = ""
         island.confirmFinish = false
         island.alertTask?.cancel()
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { island.mode = .collapsed }
+        island.setMode(.collapsed)
         giveBackFocus()
     }
 
@@ -1650,7 +2095,7 @@ final class Controller {
         previousApp = NSWorkspace.shared.frontmostApplication
         island.pinned = true
         island.pending = nil
-        island.mode = .expanded
+        island.setMode(.expanded, via: .key)      // keyboard: the shape only, no blur or stagger
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
     }
@@ -1687,6 +2132,8 @@ final class Controller {
             : NSRect(x: hit.minX - 32, y: hit.minY - 48, width: hit.width + 64, height: hit.height + 48).contains(p)
         island.hovering = inside
         defer { wasInside = inside }
+        // Peek while the pointer rests in the closed notch, until the dwell opens it.
+        island.setPeek(inside && island.mode == .collapsed && !island.leaving, side: p.x < f.midX ? -1 : 1)
 
         // A queued alert surfaces as soon as the user is done typing.
         if let a = island.pending, island.mode == .collapsed { island.show(alert: a) }
@@ -1697,8 +2144,9 @@ final class Controller {
             if speed > 200 { enteredAt = Date() }   // still moving: restart the dwell
             if island.mode == .alert {
                 island.alertTask?.cancel()          // pause auto-dismiss while the pointer is on it
-            } else if island.mode == .collapsed, let t = enteredAt, Date().timeIntervalSince(t) > 0.35 {
-                withAnimation(.spring(response: 0.42, dampingFraction: 0.8)) { island.mode = .expanded }
+            } else if island.mode == .collapsed, let t = enteredAt, Date().timeIntervalSince(t) > 0.35,
+                      Date().timeIntervalSince1970 - island.closedAt > 0.15 {   // ignore re-entries just after a close
+                island.setMode(.expanded, via: .hover)
             }
         } else {
             enteredAt = nil
@@ -1707,7 +2155,7 @@ final class Controller {
             if island.mode == .expanded && island.draft.isEmpty && !island.busy && !island.pinned {
                 if collapseAt == nil { collapseAt = Date().addingTimeInterval(0.8) }
                 if let c = collapseAt, Date() > c {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { island.mode = .collapsed }
+                    island.setMode(.collapsed)
                     collapseAt = nil
                     island.confirmFinish = false
                     giveBackFocus()
@@ -1723,16 +2171,19 @@ final class Controller {
 // MARK: - Snapshots
 
 /// Extra keys a --state fixture may carry (all optional): "_plan" (/api/calendar/plan), "_needs_setup",
-/// "_alerts" [{name, alert}] rendered in alert mode, "_only" [render names] to limit output, "_confirm_finish".
+/// "_alerts" [{name, alert}] rendered in alert mode, "_only" [render names] to limit output, "_confirm_finish",
+/// "_draft" (composer text).
 struct SnapNamedAlert: Decodable { let name: String; let alert: AlertEv }
 struct SnapExtras: Decodable {
     let _plan: PlanResp?; let _needs_setup: Bool?; let _alerts: [SnapNamedAlert]?; let _only: [String]?
-    let _confirm_finish: Bool?
+    let _confirm_finish: Bool?; let _draft: String?
 }
 
 // --snapshot DIR [--state FILE.json] [--prefix P]: render every mode offscreen to PNGs
 // (visual check without screen-recording permission). --state renders a saved /api/state payload (+ extras above).
+// Each render is one still frame at rest: alerts show the key pose of the clip Pinch would play.
 @MainActor func snapshot(to dir: String, stateFile: String?, prefix: String) async {
+    snapshotting = true
     let m = Island()
     var extras: SnapExtras?
     if let f = stateFile, let d = FileManager.default.contents(atPath: f) {
@@ -1749,22 +2200,25 @@ struct SnapExtras: Decodable {
     if stateFile != nil, let n = m.state?.now { m.now = n }
     if let h = m.state?.habits { m.habits = h }
     m.confirmFinish = extras?._confirm_finish ?? false
+    m.draft = extras?._draft ?? ""
     let screen = NSScreen.screens.first { $0.safeAreaInsets.top > 0 } ?? NSScreen.main!
     let notch = Notch(screen: screen)
     // Preload every frame the verdict view might show (ImageRenderer can't wait on network).
     for l in m.state?.recent_verdict?.labels ?? [] { if let u = l.frame_url { await m.loadThumb(u) } }
 
     let nudge = m.state?.alert?.kind == "nudge" ? m.state!.alert! :
-        AlertEv(id: 1, kind: "nudge", text: "You said drawing. I've seen your phone for 30 seconds.", habit: "drawing",
-                habit_label: "Drawing", actions: [AlertAction("I'm back", say: "back"), AlertAction("It's on task", say: "it's on task"),
-                                                  AlertAction("Snooze 5m", say: "snooze 5")])
+        AlertEv(id: 1, kind: "nudge", text: "You said drawing. I've seen your phone for 3 minutes.", habit: "drawing",
+                habit_label: "Drawing", actions: [AlertAction("Back to it", say: "back"), AlertAction("This counts", say: "it's on task"),
+                                                  AlertAction("Quiet 5 min", say: "snooze 5")], label: "phone")
     var renders: [(String, Mode, AlertEv?, Bool)] = [
-        ("collapsed", .collapsed, nil, true), ("expanded", .expanded, nil, true), ("alert", .alert, nudge, true),
+        ("collapsed", .collapsed, nil, true), ("peek", .collapsed, nil, true), ("expanded", .expanded, nil, true),
+        ("alert", .alert, nudge, true),
         ("offline_collapsed", .collapsed, nil, false), ("offline_expanded", .expanded, nil, false),
         ("offline_starting", .expanded, nil, false),
     ]
     if let a = m.state?.alert, a.kind != "nudge", a.kind != "verdict", m.shouldShow(a) {
-        renders.append(("alert_\(a.kind)", .alert, a, true))
+        // A quiet sync never opens a panel: render the glinting wings instead.
+        renders.append(m.isSynced(a) && (a.actions ?? []).isEmpty ? ("synced", .collapsed, a, true) : ("alert_\(a.kind)", .alert, a, true))
     }
     if let rv = m.state?.recent_verdict {
         let a = m.state?.alert?.kind == "verdict" ? m.state!.alert! :
@@ -1781,7 +2235,13 @@ struct SnapExtras: Decodable {
         m.online = online
         m.state = online ? saved : nil
         m.mode = mode
-        m.alert = alert
+        m.alert = mode == .alert ? alert : nil
+        m.glintUntil = name == "synced" ? m.now + 3 : 0
+        m.peeking = name == "peek"; m.peekSide = 1
+        m.glintIcon = alert.map { $0.text.hasPrefix("Strava") ? "figure.run" : "heart.fill" } ?? "heart.fill"
+        m.pinchClip = mode != .alert ? nil
+            : alert?.kind == "nudge" ? .sideeye
+            : alert?.kind == "verdict" ? Island.verdictClip[alert?.verdict ?? ""] : nil
         m.startingUntil = name == "offline_starting" ? m.now + 20 : 0
         let v = ZStack(alignment: .top) {
             Color(white: 0.82)   // stand-in for the menu bar / wallpaper
@@ -1798,41 +2258,21 @@ struct SnapExtras: Decodable {
 }
 
 /// --act LABEL: press a button on the current alert exactly as a click would (say / post+body / url), print the reply.
+/// LABEL may be the island's label ("Back to it"), the server's, or the pre-redesign one ("I'm back").
 @MainActor func actOnce(_ label: String) async {
     let m = Island()
     await m.refresh()
     guard let a = m.state?.alert else { print("no alert"); return }
-    let screen = NSScreen.main!
-    let v = IslandView(m: m, notch: Notch(screen: screen))
-    let xs = v.actions(for: a)
-    guard let x = xs.first(where: { $0.label == label }) else {
-        print("no button “\(label)” on \(a.kind) alert; buttons: \(xs.map(\.label))"); return
+    let xs = alertButtons(a)
+    guard let b = xs.first(where: { actLabels($0).contains(label) }) else {
+        print("no button “\(label)” on \(a.kind) alert; buttons: \(xs.map(\.title))"); return
     }
+    let x = b.action
     if x.url != nil { print("would open \(x.url!)"); return }
     m.act(x)
     for _ in 0..<30 where m.reply == nil && m.busy == false && x.post != nil {
         try? await Task.sleep(nanoseconds: 100_000_000)
     }
     try? await Task.sleep(nanoseconds: 500_000_000)
-    print("pressed “\(x.label)” on \(a.kind): reply=\(m.reply ?? "-") session=\(m.session?.name ?? "none")")
-}
-
-let args = CommandLine.arguments
-func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
-if let label = arg("--act") {
-    Task { @MainActor in await actOnce(label); exit(0) }
-    RunLoop.main.run()
-} else if let dir = arg("--snapshot") {
-    Task { @MainActor in await snapshot(to: dir, stateFile: arg("--state"), prefix: arg("--prefix") ?? ""); exit(0) }
-    RunLoop.main.run()
-} else {
-    // Inside Alibi.app: own the daemon's lifetime (start it if nothing answers, stop it when we quit).
-    if Bundle.main.url(forResource: "root", withExtension: "txt") != nil, let root = repoRoot {
-        DaemonOwner.shared.start(root: root)
-    }
-    let app = NSApplication.shared
-    app.setActivationPolicy(.accessory)
-    let controller = MainActor.assumeIsolated { Controller() }
-    MainActor.assumeIsolated { controller.start() }
-    app.run()
+    print("pressed “\(label)” on \(a.kind): reply=\(m.reply ?? "-") session=\(m.session?.name ?? "none")")
 }

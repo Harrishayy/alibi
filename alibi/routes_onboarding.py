@@ -88,7 +88,7 @@ def habits_view():
 
 @router.get("/api/habits/checks")
 def habit_checks():
-    return {"checks": [{"value": k, "text": config.CHECK_TEXT[k], "how": templates.CHECK_HOW[k]}
+    return {"checks": [{"value": k, "text": config.CHECK_TEXT[k], "how": config.photo_text(templates.CHECK_HOW[k])}
                        for k in ("camera", "screen", "both", "strava", "health")]}
 
 

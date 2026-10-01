@@ -19,7 +19,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel
-from . import cli, config, db
+from . import cli, config, db, pinch
 from .notify import recent_alerts
 
 app = FastAPI(title="Alibi")
@@ -166,6 +166,7 @@ def state(request: Request, client: str | None = None):
     cfg = config.habits()
     habits = cfg["habits"]
     sj = _session_json(con, s, live=True) if s else None
+    rv = None if s else _recent_verdict(con)
     return {
         "now": time.time(),
         "session": sj,
@@ -179,8 +180,9 @@ def state(request: Request, client: str | None = None):
         "text_model": config.LLM_MODEL if config.TEXT_READY else "rules",
         "daemon": {"up_since": STARTED},
         "today": _today(con, habits),
-        "recent_verdict": None if s else _recent_verdict(con),
+        "recent_verdict": rv,
         "status_text": _status_text(sj),
+        "pinch": pinch.pinch_state({"now": time.time(), "session": sj, "alert": a, "recent_verdict": rv}),
     }
 
 

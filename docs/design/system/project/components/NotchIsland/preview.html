@@ -1,0 +1,91 @@
+<!-- @dsCard group="Surfaces" height=1192 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>NotchIsland — preview</title>
+<style>
+.al-stack { gap: var(--space-6); }
+  .shots { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; }
+  .shot { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .shot figcaption { font-size: 13px; color: var(--ink-2); }
+  .screen { position: relative; overflow: hidden; border-radius: 0 0 var(--radius-md) var(--radius-md); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline); }
+  .live { display: flex; flex-direction: column; gap: var(--space-3); }
+  .picker { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .say { display: flex; align-items: center; gap: var(--space-3); }
+  .say .al-pinch { flex: none; }
+  .col { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+  .acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .frames { display: flex; gap: var(--space-2); }
+  .frame { position: relative; width: 96px; height: 54px; border-radius: var(--radius-xs); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline-strong); display: flex; align-items: flex-end; justify-content: space-between; padding: var(--space-1) 6px; box-sizing: border-box; }
+  .frame .t { font-family: var(--font-mono); font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  function wing(state) {
+    if (state === 'break') return { leading: h(A.Pinch, { mood: 'sleepy', size: 16, theme: 'dark', still: true }), trailing: [h(A.Icon, { key: 'i', name: 'cup', size: 16 }), '4m'] };
+    return { leading: h(A.Pinch, { mood: 'focused', size: 16, theme: 'dark', still: true }), trailing: '24m' };
+  }
+  function header(withPinch) {
+    return {
+      leading: [h('span', { key: 'w', className: 'al-wordmark' }, 'ALIBI'), h(A.StatusDot, { key: 'd', label: 'on_task', size: 8 })],
+      trailing: withPinch ? h(A.Pinch, { mood: 'listening', size: 28, theme: 'dark' }) : null
+    };
+  }
+  function frames() {
+    return h('div', { className: 'frames' }, ['18:06', '18:15', '18:27'].map(function (t) {
+      return h('div', { key: t, className: 'frame' }, h('span', { className: 'al-island-secondary t' }, t), h(A.StatusDot, { label: 'on_task', size: 10 }));
+    }));
+  }
+  function content(state) {
+    if (state === 'idle') return {};
+    if (state === 'live' || state === 'peek' || state === 'break') return wing(state);
+    if (state === 'expanded') return Object.assign(header(true), { children: [
+      h(A.Composer, { key: 'c', chips: ['Drawing', 'C++', 'Reading'] }),
+      h('p', { key: 'n', className: 'al-island-secondary' }, 'Next up: Drawing at 19:00 \u00b7 6 days in a row')] });
+    if (state === 'nudge') return Object.assign(header(false), { children: [
+      h('div', { key: 'l', className: 'say' }, h(A.Pinch, { mood: 'focused', size: 56, theme: 'dark', play: 'sideeye', force: true }),
+        h('p', { className: 'al-island-voice' }, 'You said drawing. I\u2019ve seen your ', h('span', { className: 'al-cause' }, 'phone'), ' for 3 minutes.')),
+      h('div', { key: 'a', className: 'acts' },
+        h(A.Button, { variant: 'primary', size: 'sm' }, 'Back to it'),
+        h(A.Button, { variant: 'secondary', size: 'sm' }, 'This counts'),
+        h(A.Button, { variant: 'quiet', size: 'sm' }, 'Quiet 5 min'))] });
+    return Object.assign(header(false), { children: [
+      h('div', { key: 'v', className: 'say' }, h(A.Pinch, { mood: 'idle', size: 64, theme: 'dark', play: 'celebrate', force: true }),
+        h('div', { className: 'col' }, h(A.VerdictPill, { verdict: 'done', ratio: 1 }),
+          h('p', { className: 'al-island-voice' }, 'Done. 25 of 25 minutes at the desk, pencil in hand.'))),
+      h('div', { key: 'f' }, frames()),
+      h('div', { key: 'a', className: 'acts' },
+        h(A.Button, { variant: 'secondary', size: 'sm', icon: 'film' }, 'See proof'),
+        h(A.Button, { variant: 'quiet', size: 'sm' }, 'Fix a moment'))] });
+  }
+  function Screen(p) {
+    var c = content(p.state);
+    return h('figure', { className: 'shot' },
+      h('div', { className: 'screen', style: { width: p.w, height: p.h } },
+        h(A.NotchIsland, { state: p.state, leading: c.leading, trailing: c.trailing, shake: p.shake }, c.children)),
+      p.caption === false ? null : h('figcaption', null, p.state));
+  }
+  var STATES = ['idle', 'live', 'peek', 'break', 'expanded', 'nudge', 'verdict'];
+  function Live() {
+    var s = React.useState('nudge'), st = s[0], set = s[1];
+    var c = content(st);
+    return h('div', { className: 'live' },
+      h('div', { className: 'picker', role: 'group', 'aria-label': 'Island state' }, STATES.map(function (x) {
+        return h(A.Chip, { key: x, selected: st === x, onClick: function () { set(x); } }, x);
+      })),
+      h('div', { className: 'screen', style: { width: 560, height: 280 } },
+        h(A.NotchIsland, { state: st, leading: c.leading, trailing: c.trailing, shake: true }, c.children)));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h('div', { className: 'shots' },
+      h(Screen, { state: 'idle', w: 300, h: 64 }), h(Screen, { state: 'live', w: 300, h: 64 }),
+      h(Screen, { state: 'peek', w: 300, h: 64 }), h(Screen, { state: 'break', w: 300, h: 64 })),
+    h('div', { className: 'shots' },
+      h(Screen, { state: 'expanded', w: 456, h: 240 }), h(Screen, { state: 'verdict', w: 496, h: 270 })),
+    h(Live)));
+</script>
+</body>
+</html>

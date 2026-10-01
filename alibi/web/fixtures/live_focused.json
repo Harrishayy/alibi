@@ -1,0 +1,175 @@
+{
+ "now": 1790875425.7397041,
+ "session": {
+  "id": 11,
+  "habit": "drawing",
+  "modality": "physical",
+  "declared_min": 3,
+  "started_at": 1790875370.436212,
+  "ends_at": 1790875550.436212,
+  "ended_at": null,
+  "status": "active",
+  "on_task_ratio": null,
+  "verdict": null,
+  "evidence_path": null,
+  "artefact": null,
+  "label": "Drawing",
+  "evidence_url": null,
+  "labels": [
+   {
+    "ts": 1790875375.345043,
+    "label": "on_task",
+    "note": "hands on the work",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798400.jpg",
+    "reused": false,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875385.4011688,
+    "label": "on_task",
+    "note": "hands on the work",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798460.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875395.44006,
+    "label": "on_task",
+    "note": "hands on the work",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798520.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875405.63032,
+    "label": "on_task",
+    "note": "hands on the work",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798580.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875415.66445,
+    "label": "on_task",
+    "note": "hands on the work",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798640.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   },
+   {
+    "ts": 1790875425.699125,
+    "label": "on_task",
+    "note": "hands on the work",
+    "label_text": "On task",
+    "frame_url": "/files/frames/6/1790798700.jpg",
+    "reused": true,
+    "corrected_from": null,
+    "learned_from": null
+   }
+  ],
+  "reel_url": null,
+  "on_task_so_far": 1.0,
+  "day": "2026-10-01",
+  "left_s": 124.7003390789032,
+  "progress": 0.3072203384505378,
+  "last_frame_url": "/files/frames/6/1790798700.jpg",
+  "samples": 6,
+  "warming_up": false,
+  "recent": [
+   "on_task",
+   "on_task",
+   "on_task"
+  ],
+  "recent_on_task": 1.0,
+  "last_seen": {
+   "label": "on_task",
+   "label_text": "On task",
+   "note": "hands on the work",
+   "source": "camera",
+   "ago_s": 0,
+   "text": "Witness · 0 s ago · hands on the work"
+  },
+  "drifting": null,
+  "on_break": null,
+  "breaks_taken": 0,
+  "nudges": 0,
+  "strikes": 0
+ },
+ "alert": null,
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790875370.028407
+ },
+ "today": {
+  "sessions": 4,
+  "verified_min": 51,
+  "declared_min": 57,
+  "habits_done": 1,
+  "habits_total": 5,
+  "tally": "1/5",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 3
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Watching · Drawing 02:04",
+ "pinch": {
+  "mood": "focused",
+  "event": null,
+  "seq": 0,
+  "age_s": null,
+  "line": "Watching drawing until 18:25."
+ }
+}

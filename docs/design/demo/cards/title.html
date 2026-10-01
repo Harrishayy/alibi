@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alibi title card</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="cards.css">
+<script src="pinch-data.js"></script>
+<script src="../../pinch/rig.js"></script>
+<script src="card.js"></script>
+</head>
+<body>
+<main class="card">
+  <div class="pinch-slot" id="pinch"></div>
+  <h1 class="wordmark" id="mark">ALIBI</h1>
+  <p class="t-voice title-sub" id="sub">The habit tracker that checks your alibi.</p>
+</main>
+<script>
+/* DEMO.md §2 title: 0.0 black · 0.3 wordmark · 0.8 Pinch pops in and waves · 1.6 subtitle · 2.8 the lens lights
+   (the camera-on light: Alibi starts watching) · hold to 4.0. */
+Card.init({ duration: 4000 });
+var tok = function (n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); };
+Card.enter(document.getElementById('mark'), 300, { y: 8, scale: 0.97, blur: 8, dur: parseFloat(tok('--dur-reveal')) });
+Card.enter(document.getElementById('pinch'), 800, { y: 16, scale: 0.8, easing: tok('--spring-celebrate'),
+                                                     dur: parseFloat(tok('--spring-celebrate-dur')) });
+Card.enter(document.getElementById('sub'), 1600, { y: 4, dur: parseFloat(tok('--dur-reveal')) });
+Card.pinch(document.getElementById('pinch'), { size: 160, mood: 'idle', cues: [{ clip: 'hello', at: 920 }],
+                                               blinks: [3350], lens: [[0, 0], [2800, 0], [3300, 1]] });
+Card.start();
+</script>
+</body>
+</html>

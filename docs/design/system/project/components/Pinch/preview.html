@@ -1,0 +1,43 @@
+<!-- @dsCard group="Pinch" height=344 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Pinch — preview</title>
+<style>
+.al-stack { gap: var(--space-6); }
+  .moods { align-self: stretch; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: var(--space-4) var(--space-2); }
+  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+  figcaption { font-size: 13px; color: var(--ink-2); }
+  .stage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6); }
+  .hero { width: 160px; height: 160px; display: grid; place-items: center; }
+  .clips { display: flex; flex-direction: column; gap: var(--space-2); max-width: 420px; }
+  .label { font-size: 12px; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); }
+  .btns { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+</style>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  var P = window.AlibiPinch;
+  var MOODS = (P && P.moods) || ['idle', 'focused', 'listening', 'thinking', 'sleepy', 'reading'];
+  var CLIPS = (P && P.clips) || ['hello', 'sideeye', 'nudge', 'celebrate', 'partial', 'supportive', 'surprise', 'connected'];
+  function Demo() {
+    var s = React.useState({ clip: null, key: 0 }), st = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h('div', { className: 'moods' }, MOODS.map(function (m) {
+        return h('figure', { key: m }, h(A.Pinch, { mood: m, size: 96 }), h('figcaption', null, m));
+      })),
+      h('div', { className: 'stage' },
+        h('div', { className: 'hero' }, h(A.Pinch, { mood: 'idle', size: 160, play: st.clip, playKey: st.key, force: true })),
+        h('div', { className: 'clips' },
+          h('span', { className: 'label' }, 'Play a clip'),
+          h('div', { className: 'btns' }, CLIPS.map(function (c) {
+            return h(A.Button, { key: c, variant: st.clip === c ? 'ghost' : 'secondary', size: 'sm',
+              onClick: function () { set({ clip: c, key: st.key + 1 }); } }, c);
+          })))));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

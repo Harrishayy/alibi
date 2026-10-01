@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alibi Signals</title>
+<meta name="description" content="Everything Alibi can see from your iPhone, Apple Health and this Mac — and what it made of it.">
+<link rel="stylesheet" href="/web/css/tokens.css?v=p17">
+<link rel="stylesheet" href="/web/css/components.css?v=p17">
+<style>
+/* Signals page on the design tokens (tokens.css + components.css, linked above): dark-first, all-sans, hairlines
+   over shadows, status = colour + shape. The legacy names below are aliases the page script still reads. */
+:root{
+  --paper:var(--surface-1); --muted:var(--ink-2); --faint:var(--ink-3); --rule:var(--surface-3); --rule-2:var(--hairline);
+  --amber:var(--partial); --amber-ink:var(--partial-ink); --amber-wash:var(--partial-wash);
+  --grey:var(--absent); --grey-wash:var(--surface-2); --neutral:var(--ink-3);
+  --on_task:var(--on-task); --off_task:var(--off-task);
+  --deep:var(--green-700); --core:var(--green-500); --rem:var(--green-200); --awake:var(--partial);
+  --sans:var(--font-sans); --mono:var(--font-mono); --shadow:none; --r:var(--radius-md);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;overflow-x:hidden}
+.wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,5vw,48px)}
+.mono,.num{font-family:var(--font-sans);font-variant-numeric:tabular-nums lining-nums}
+.eyebrow{font:600 12px/1.3 var(--font-sans);letter-spacing:.01em;color:var(--ink-2)}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+.card{background:var(--surface-1);border:1px solid var(--hairline);border-radius:var(--radius-md)}
+.muted{color:var(--ink-2)}
+.wrap section,.hero,.next,.tile,.stat,.sesssum{min-width:0}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);height:48px;margin-top:var(--space-4)}
+.crumbs{display:flex;align-items:center;gap:var(--space-3)}
+.wordmark{font:800 13px/1 var(--font-sans);letter-spacing:.13em;text-decoration:none;color:var(--ink);padding:var(--space-2) 0;border-radius:var(--radius-xs)}
+.crumbs .sep{color:var(--ink-3)}
+.crumbs .here{font:400 13px/1.45 var(--font-sans);color:var(--ink-2)}
+.tools{display:flex;align-items:center;gap:var(--space-2)}
+.day{display:flex;align-items:center;height:36px;border:1px solid var(--hairline);border-radius:var(--radius-sm);background:var(--surface-1);overflow:hidden}
+.day button{border:0;background:transparent;width:36px;height:34px;display:grid;place-items:center;color:var(--ink-2);transition:background-color var(--dur-micro) var(--ease-out),color var(--dur-micro) var(--ease-out)}
+.day button:hover:not([disabled]){background:var(--surface-2);color:var(--ink)}
+.day button:active:not([disabled]){transform:scale(.97)}
+.day button[disabled]{opacity:.3;cursor:default}
+.day span{font:500 13px/1 var(--font-sans);font-variant-numeric:tabular-nums;padding:0 var(--space-2);min-width:120px;text-align:center}
+.iconbtn{border:1px solid var(--hairline);background:var(--surface-1);border-radius:var(--radius-sm);width:36px;height:36px;display:grid;place-items:center;color:var(--ink-2);transition:background-color var(--dur-micro) var(--ease-out),color var(--dur-micro) var(--ease-out),transform var(--spring-micro-dur) var(--spring-micro)}
+.iconbtn:hover{color:var(--ink);background:var(--surface-2)}
+.iconbtn:active{transform:scale(.97)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:var(--space-12);align-items:end;padding:var(--space-12) 0 var(--space-8)}
+.hero h1{margin:var(--space-2) 0 0;font:600 32px/1.15 var(--font-sans);letter-spacing:-.02em;text-wrap:balance}
+.hero h1 em{font-style:normal;color:inherit}
+.verdictline{margin:var(--space-4) 0 0;font:500 20px/1.45 var(--font-sans);letter-spacing:-.01em;color:var(--ink-2);max-width:56ch;text-wrap:pretty}
+.verdictline b{font-weight:500;color:var(--ink)}
+.meter{display:flex;gap:var(--space-1);margin-top:var(--space-6);height:8px}
+.meter i{flex:1;border-radius:var(--radius-pill);background:var(--surface-3)}
+.meter i.ok{background:var(--accent)} .meter i.stale{background:var(--partial)} .meter i.needs_permission{background:var(--warn)}
+.meter i.missing{background:var(--surface-3)} .meter i.waiting{background:var(--absent)}
+.meter i.not_applicable{background:transparent;box-shadow:inset 0 0 0 1.5px var(--surface-3)}
+.meterkey{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4);margin-top:var(--space-3);font:400 13px/1.45 var(--font-sans);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.meterkey span{display:inline-flex;align-items:center;gap:var(--space-2)}
+.meterkey span::before{content:"";width:8px;height:8px;border-radius:var(--radius-pill);background:var(--c)}
+.next{padding:var(--space-6);display:grid;gap:var(--space-2)}
+.next .eyebrow{color:var(--warn-ink)}
+.next.allgood .eyebrow{color:var(--accent-ink)}
+.next h3{margin:0;font:600 17px/1.35 var(--font-sans);letter-spacing:-.01em}
+.next p{margin:0;color:var(--ink-2);font:400 13px/1.45 var(--font-sans);text-wrap:pretty}
+.next .more{font:400 13px/1.45 var(--font-sans);color:var(--ink-2)}
+
+section{padding:var(--space-12) 0}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-6);flex-wrap:wrap}
+.sechead h2{margin:0;font:600 22px/1.25 var(--font-sans);letter-spacing:-.015em}
+.sechead h2 em{font-style:normal;color:var(--ink-2);font-weight:600}
+.sechead .aside{font:400 13px/1.45 var(--font-sans);color:var(--ink-2)}
+.rule{border:0;border-top:1px solid var(--hairline);margin:0}
+
+/* source grid */
+.groups{display:grid;gap:var(--space-8)}
+.group h3{margin:0 0 var(--space-3);display:flex;align-items:center;gap:var(--space-2);font:600 12px/1.3 var(--font-sans);letter-spacing:.01em;color:var(--ink-2)}
+.group h3 .count{font:400 12px/1.3 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:var(--space-3)}
+.tile{padding:var(--space-4);display:flex;gap:var(--space-3);align-items:flex-start;transition:border-color var(--dur-micro) var(--ease-out)}
+.tile:hover{border-color:var(--hairline-strong)}
+.tile .body{flex:1;min-width:0;display:grid;gap:var(--space-1)}
+.tile .ic{flex:none;width:32px;height:32px;border-radius:var(--radius-sm);display:grid;place-items:center;background:var(--surface-2);color:var(--ink-2)}
+.tile.ok .ic{background:var(--accent-wash);color:var(--accent-ink)}
+.tile.needs_permission .ic,.tile.missing .ic{background:var(--warn-wash);color:var(--warn-ink)}
+.tile.stale .ic{background:var(--partial-wash);color:var(--partial-ink)}
+.tile.not_applicable .ic{background:var(--surface-2);color:var(--ink-3)}
+.tile.not_applicable .name,.tile.not_applicable .what{color:var(--ink-2)}
+.tile .ic svg{width:16px;height:16px}
+.tile .row1{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--space-1) var(--space-2);min-width:0;min-height:24px}
+.tile .name{font:600 15px/1.35 var(--font-sans);letter-spacing:-.01em;padding-top:2px}
+.pill{flex:none;display:inline-flex;align-items:center;gap:var(--space-2);height:24px;font:600 12px/1 var(--font-sans);letter-spacing:.01em;padding:0 var(--space-2);border-radius:var(--radius-pill);background:var(--surface-2);color:var(--ink-2)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--accent-wash);color:var(--accent-ink)}
+.pill.ok.live::before{animation:pulse 2.2s var(--ease-in-out) infinite}
+.pill.stale{background:var(--partial-wash);color:var(--partial-ink)}
+.pill.stale::before{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
+.pill.missing,.pill.needs_permission{background:var(--warn-wash);color:var(--warn-ink)}
+.pill.missing::before,.pill.needs_permission::before{border-radius:2px}
+.pill.not_applicable{background:var(--surface-2);color:var(--ink-3)}
+.pill.not_applicable::before{background:transparent;box-shadow:inset 0 0 0 1.5px currentColor}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.tile .what{font:400 13px/1.45 var(--font-sans);color:var(--ink);min-height:18px}
+.tile .when{font:400 12px/1.3 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.tile .fix{margin-top:var(--space-2);font:400 13px/1.45 var(--font-sans);color:var(--ink-2);padding:var(--space-2) var(--space-3);border-radius:var(--radius-xs);background:var(--surface-2)}
+.tile .fix b{color:var(--ink);font-weight:600}
+
+/* today stats */
+.stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--space-3);margin-bottom:var(--space-4)}
+.stat{padding:var(--space-4)}
+.stat .v{font:600 32px/1 var(--font-rounded);letter-spacing:-.02em;font-variant-numeric:tabular-nums lining-nums;margin:var(--space-3) 0 var(--space-2);white-space:nowrap}
+.stat .v small{font:400 13px/1 var(--font-sans);color:var(--ink-2);margin-left:var(--space-1);letter-spacing:0}
+.stat .s{font:400 13px/1.45 var(--font-sans);color:var(--ink-2);min-height:18px}
+.stat .s.bad{color:var(--warn-ink)}
+
+/* swim lanes */
+.lanes{padding:var(--space-2) 0 var(--space-3);overflow:hidden}
+.lanegrid{display:grid;grid-template-columns:152px minmax(0,1fr)}
+.lanelabels{border-right:1px solid var(--hairline)}
+.lanelabels div{height:var(--lh);display:flex;flex-direction:column;justify-content:center;padding:0 var(--space-4) 0 var(--space-4);font:600 13px/1.3 var(--font-sans)}
+.lanelabels div small{font:400 12px/1.3 var(--font-sans);color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lanelabels .axis{height:28px}
+.plot{overflow-x:auto;overflow-y:hidden;position:relative;scrollbar-width:thin;overscroll-behavior-x:contain}
+.plot svg{display:block}
+.plot svg text{font-family:var(--font-sans);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4);padding:var(--space-3) var(--space-4) var(--space-1);border-top:1px solid var(--hairline);margin-top:var(--space-2);font:400 13px/1.45 var(--font-sans);color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:var(--space-2)}
+.legend span::before{content:"";width:10px;height:10px;border-radius:2px;background:var(--c)}
+.legend span.tick::before{width:2px;height:12px;border-radius:1px}
+.legend span.dot::before{border-radius:50%}
+.legend span.box::before{box-shadow:inset 0 0 0 1.5px var(--ink-2)}
+.tip{position:fixed;z-index:20;pointer-events:none;max-width:280px;white-space:pre-line;overflow-wrap:anywhere;background:var(--surface-2);color:var(--ink);font:400 13px/1.45 var(--font-sans);padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);box-shadow:var(--shadow-float);opacity:0;transform:translateY(2px);transition:opacity var(--dur-micro) var(--ease-out),transform var(--dur-micro) var(--ease-out)}
+.tip.on{opacity:1;transform:none}
+.tip b{font-weight:600}
+.tip .t{font:600 12px/1.3 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-2);display:block;margin-bottom:2px}
+
+/* sessions */
+.sesstabs{display:flex;gap:var(--space-2);overflow-x:auto;padding-bottom:var(--space-1);margin-bottom:var(--space-4);scrollbar-width:none}
+.sesstabs::-webkit-scrollbar{display:none}
+.stab{flex:none;border:1px solid var(--hairline);background:var(--surface-1);border-radius:var(--radius-sm);padding:var(--space-2) var(--space-3);min-height:44px;display:flex;align-items:center;gap:var(--space-3);text-align:left;transition:border-color var(--dur-micro) var(--ease-out),background-color var(--dur-micro) var(--ease-out),transform var(--spring-micro-dur) var(--spring-micro)}
+.stab:hover{border-color:var(--hairline-strong)}
+.stab:active{transform:scale(.98)}
+.stab[aria-selected="true"]{background:var(--surface-2);border-color:var(--hairline-strong)}
+.stab .vd{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.stab b{font:600 13px/1.3 var(--font-sans);display:block}
+.stab small{font:400 12px/1.3 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.stab .capmark{font:600 12px/1 var(--font-sans);color:var(--warn-ink);background:var(--warn-wash);padding:var(--space-1) var(--space-2);border-radius:var(--radius-xs)}
+.sess{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:var(--space-4);align-items:start}
+.sesssum{padding:var(--space-6)}
+.score{display:flex;align-items:flex-end;gap:var(--space-4);margin:var(--space-3) 0 var(--space-1)}
+.score .big{font:600 56px/1 var(--font-rounded);letter-spacing:-.025em;font-variant-numeric:tabular-nums lining-nums}
+.score .big sup{font:600 22px/1 var(--font-rounded);color:var(--ink-2);vertical-align:26px;margin-left:2px}
+.score .was{font:400 13px/1.45 var(--font-sans);color:var(--ink-2);padding-bottom:var(--space-2)}
+.score .was s{color:var(--ink-3)}
+.vchip{display:inline-flex;align-items:center;gap:var(--space-2);height:28px;font:600 13px/1 var(--font-sans);padding:0 var(--space-3) 0 var(--space-2);border-radius:var(--radius-pill);background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--ink)}
+.vchip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.why{margin:var(--space-4) 0 0;font:500 20px/1.45 var(--font-sans);letter-spacing:-.01em;text-wrap:pretty}
+.capbox{margin-top:var(--space-4);padding:var(--space-3) var(--space-4);border-radius:var(--radius-sm);background:var(--warn-wash);display:grid;grid-template-columns:20px 1fr;gap:var(--space-3);align-items:start}
+.capbox svg{width:18px;height:18px;color:var(--warn-ink);margin-top:2px}
+.capbox p{margin:0;font:400 13px/1.45 var(--font-sans)}
+.capbox p b{font-weight:600}
+.capbox p span{color:var(--ink-2)}
+.okbox{background:var(--accent-wash)}
+.okbox svg{color:var(--accent-ink)}
+.offbars{margin-top:var(--space-6);display:grid;gap:var(--space-3)}
+.offbar{display:grid;grid-template-columns:104px minmax(0,1fr) 56px;gap:var(--space-3);align-items:center;font:400 13px/1.45 var(--font-sans)}
+.offbar .track{height:8px;border-radius:var(--radius-pill);background:var(--surface-2);overflow:hidden}
+.offbar .fill{height:100%;border-radius:var(--radius-pill);background:var(--c);min-width:0}
+.offbar .n{font:400 13px/1 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-2);text-align:right}
+.ruler{position:relative;height:32px;margin:var(--space-6) 0 var(--space-1);border-radius:var(--radius-xs);background:var(--surface-2)}
+.ruler i{position:absolute;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--c);transform:translateX(-50%)}
+.ruler i.neutral{top:12px;bottom:12px;opacity:.9}
+.rulerax{display:flex;justify-content:space-between;font:400 12px/1.3 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.hintchips{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-4)}
+.hc{display:inline-flex;align-items:center;gap:var(--space-2);height:32px;font:500 13px/1 var(--font-sans);padding:0 var(--space-3);border-radius:var(--radius-xs);border:1px solid var(--hairline);color:var(--ink-2);background:var(--surface-2);transition:opacity var(--dur-micro) var(--ease-out),border-color var(--dur-micro) var(--ease-out)}
+.hc::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.hc b{font:600 13px/1 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink)}
+.hc[aria-pressed="false"]{opacity:.45}
+.hc:hover{border-color:var(--hairline-strong)}
+.evlist{padding:var(--space-2) 0;max-height:560px;overflow:auto}
+.evhead{display:flex;justify-content:space-between;align-items:center;padding:var(--space-4) var(--space-6) var(--space-3);border-bottom:1px solid var(--hairline)}
+.evhead b{font:600 17px/1.35 var(--font-sans);letter-spacing:-.01em}
+.ev{display:grid;grid-template-columns:48px 16px minmax(0,1fr) auto;gap:var(--space-3);align-items:center;padding:var(--space-2) var(--space-6);font:400 13px/1.45 var(--font-sans)}
+.ev:hover{background:var(--surface-2)}
+.ev time{font:400 13px/1 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.ev .d{width:10px;height:10px;border-radius:50%;background:var(--c);justify-self:center;position:relative}
+.ev.off_task .d{border-radius:2px}
+.ev.idle .d{background:transparent;box-shadow:inset 0 0 0 2px var(--c)}
+.ev.absent .d{background:transparent;border:1.5px dashed var(--c)}
+.ev .src{font:600 12px/1 var(--font-sans);letter-spacing:.01em;color:var(--ink-3);border:1px solid var(--hairline);padding:var(--space-1) 6px;border-radius:var(--radius-xs)}
+.ev.neutral .tx{color:var(--ink-2)}
+.ev .rep{font:400 12px/1 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-3);margin-left:var(--space-1)}
+.ev.off_task .tx,.ev.absent .tx,.ev.idle .tx{font-weight:500}
+.ev .tx em{font-style:normal;font:600 12px/1 var(--font-sans);margin-left:var(--space-2);color:var(--c2)}
+
+/* health */
+.span12{grid-column:span 12}
+.hgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--space-3)}
+.hc2{padding:var(--space-6)}
+.span6{grid-column:span 6}.span4{grid-column:span 4}.span3{grid-column:span 3}.span8{grid-column:span 8}
+.hv{font:600 32px/1 var(--font-rounded);letter-spacing:-.02em;font-variant-numeric:tabular-nums lining-nums;margin:var(--space-3) 0 var(--space-1)}
+.hv small{font:400 16px/1 var(--font-sans);color:var(--ink-2);margin-left:var(--space-1);letter-spacing:0}
+.hsub{font:400 13px/1.45 var(--font-sans);color:var(--ink-2)}
+.hsub .good{color:var(--accent-ink);font-weight:600}.hsub .bad{color:var(--warn-ink);font-weight:600}
+.stages{display:flex;gap:2px;height:24px;margin:var(--space-4) 0 var(--space-3);border-radius:var(--radius-xs);overflow:hidden}
+.stages i{display:block;height:100%;background:var(--c);transition:opacity var(--dur-micro) var(--ease-out)}
+.stages i:hover{opacity:.8}
+.stagekey{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-2)}
+.stagekey div{font:400 13px/1.45 var(--font-sans);color:var(--ink-2)}
+.stagekey div::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--c);margin-right:6px}
+.stagekey b{display:block;font:600 16px/1.35 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink);margin-top:2px}
+.bedwake{display:flex;justify-content:space-between;font:400 12px/1.3 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.spark{display:block;width:100%;height:56px;margin-top:var(--space-3);overflow:visible}
+.minis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4);margin-top:var(--space-2)}
+.mini .mv{font:600 22px/1 var(--font-rounded);font-variant-numeric:tabular-nums lining-nums;margin-top:var(--space-2);letter-spacing:-.015em}
+.mini .mv small{font:400 13px/1 var(--font-sans);color:var(--ink-2);margin-left:var(--space-1)}
+.mini .ms{font:400 12px/1.3 var(--font-sans);color:var(--ink-3);margin-top:var(--space-1)}
+.moods{display:grid;gap:var(--space-4);margin-top:var(--space-4)}
+.mood .scale{position:relative;height:6px;border-radius:var(--radius-pill);background:var(--surface-3);margin:var(--space-3) 0 var(--space-2)}
+.mood .scale::before,.mood .scale::after{content:"";position:absolute;top:0;bottom:0;width:6px;border-radius:var(--radius-pill)}
+.mood .scale::before{left:0;background:var(--warn)}.mood .scale::after{right:0;background:var(--accent)}
+.mood .scale i{position:absolute;z-index:1;top:50%;width:14px;height:14px;border-radius:50%;background:var(--surface-1);border:2.5px solid var(--ink);transform:translate(-50%,-50%)}
+.mood .ml{display:flex;justify-content:space-between;gap:var(--space-2);font:400 13px/1.45 var(--font-sans)}
+.mood .ml span{color:var(--ink-3);font:400 12px/1.3 var(--font-sans);font-variant-numeric:tabular-nums}
+.workouts{display:grid;gap:var(--space-2);margin-top:var(--space-3)}
+.wo{display:grid;grid-template-columns:32px 1fr;gap:var(--space-3);align-items:center;padding:var(--space-3);border-radius:var(--radius-sm);background:var(--surface-2)}
+.wo .ic{width:32px;height:32px;border-radius:var(--radius-xs);background:var(--accent-wash);color:var(--accent-ink);display:grid;place-items:center}
+.wo .ic svg{width:18px;height:18px}
+.wo b{font:600 13px/1.3 var(--font-sans)}
+.wo div div{font:400 12px/1.3 var(--font-sans);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.empty{padding:var(--space-8) var(--space-6);color:var(--ink-2);font:400 16px/1.55 var(--font-sans);text-align:center;text-wrap:pretty}
+.lane-empty{font:400 12px/1 var(--font-sans);fill:var(--ink-3)}
+.skel{background:var(--surface-1);border:1px solid var(--hairline);border-radius:var(--radius-md);height:120px;animation:sk 1.4s var(--ease-in-out) infinite}
+@keyframes sk{50%{opacity:.5}}
+footer{padding:var(--space-8) 0 var(--space-12);color:var(--ink-3);font:400 13px/1.45 var(--font-sans);display:flex;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap;border-top:1px solid var(--hairline)}
+.err{margin:var(--space-3) 0;padding:var(--space-3) var(--space-4);border-radius:var(--radius-sm);background:var(--warn-wash);color:var(--warn-ink);font:400 13px/1.45 var(--font-sans);display:none}
+
+@media (max-width:1060px){
+  .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .span3{grid-column:span 6}.span4{grid-column:span 6}.span8{grid-column:span 12}
+}
+@media (max-width:820px){
+  .hero{grid-template-columns:1fr;gap:var(--space-6);padding:var(--space-8) 0 var(--space-6)}
+  .verdictline{font-size:17px}
+  .sess{grid-template-columns:1fr}
+  .span6,.span4,.span3,.span8{grid-column:span 12}
+  .lanegrid{grid-template-columns:104px minmax(0,1fr)}
+  .lanelabels div{padding:0 var(--space-2) 0 var(--space-3);font-size:12px}
+  .lanelabels div small{display:none}
+  section{padding:var(--space-8) 0}
+}
+@media (max-width:520px){
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tiles{grid-template-columns:1fr;gap:0;background:var(--surface-1);border:1px solid var(--hairline);border-radius:var(--radius-md);overflow:hidden}
+  .tiles .tile{border:0;border-radius:0;border-top:1px solid var(--hairline);padding:var(--space-3) var(--space-4)}
+  .tiles .tile:first-child{border-top:0}
+  .top .crumbs .sep{display:none}
+  .top .crumbs .here{display:none}
+  .day span{min-width:92px}
+  .minis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ev{grid-template-columns:44px 12px minmax(0,1fr);padding:var(--space-2) var(--space-4)}
+  .ev .src{display:none}
+  .stagekey{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .score .big{font-size:48px}
+}
+/* Reduced motion: tokens.css shortens every transition; the live pulse and skeleton breathe stop. */
+@media (prefers-reduced-motion:reduce){.pill.ok.live::before,.skel{animation:none}.tip{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="crumbs">
+      <a class="wordmark" href="/" aria-label="Alibi">ALIBI</a><span class="sep">/</span><span class="here">Signals</span>
+    </div>
+    <div class="tools">
+      <div class="day" role="group" aria-label="Day">
+        <button id="prev" aria-label="Previous day"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button>
+        <span id="daylabel">Today</span>
+        <button id="next" aria-label="Next day"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 3 5 5-5 5"/></svg></button>
+      </div>
+      <button class="iconbtn" id="theme" aria-label="Switch light or dark" title="Light / dark"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11A5.5 5.5 0 0 0 8 2.5Z" fill="currentColor"/></svg></button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow" id="heroEyebrow">Signals</div>
+      <h1>Is Alibi <em>seeing</em> you?</h1>
+      <p class="verdictline" id="verdictline">Checking your iPhone, Apple Health and this Mac…</p>
+      <div class="meter" id="meter" aria-hidden="true"></div>
+      <div class="meterkey" id="meterkey"></div>
+    </div>
+    <div class="card next" id="next-card"><div class="skel" style="height:90px"></div></div>
+  </div>
+  <div class="err" id="err"></div>
+  <hr class="rule">
+
+  <section id="sources">
+    <div class="sechead"><h2>Every source, <em>right now</em></h2><span class="aside" id="srcAside"></span></div>
+    <div class="groups" id="groups"><div class="skel"></div></div>
+  </section>
+  <hr class="rule">
+
+  <section id="today">
+    <div class="sechead"><h2 id="todayTitle">Today, <em>lane by lane</em></h2><span class="aside">Hover any mark for details. Shaded bands are sessions.</span></div>
+    <div class="stats" id="stats"></div>
+    <div class="card lanes">
+      <div class="lanegrid">
+        <div class="lanelabels" id="lanelabels"></div>
+        <div class="plot" id="plot"></div>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+  <hr class="rule">
+
+  <section id="sessions">
+    <div class="sechead"><h2>Sessions, <em>and what the phone said</em></h2><span class="aside">Phone and Mac signals can only lower a score, never raise it.</span></div>
+    <div class="sesstabs" id="sesstabs" role="tablist"></div>
+    <div id="sessbody"></div>
+  </section>
+  <hr class="rule">
+
+  <section id="health">
+    <div class="sechead"><h2>Health, <em>last night and today</em></h2><span class="aside" id="healthAside"></span></div>
+    <div class="hgrid" id="hgrid"></div>
+  </section>
+
+  <footer><span>Alibi never stores message text, and the phone only says “home” or “not home” — never where.</span><span id="updated"></span></footer>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+// Tooltips are plain text: time, optional bold head, body. Built with textContent on hover — never parsed as HTML,
+// because window titles, media titles and notification apps come from the outside world.
+const tipA = (text, t, head) => ` data-tip="${esc(text)}"${t ? ` data-tt="${esc(t)}"` : ""}${head ? ` data-tb="${esc(head)}"` : ""}`;
+const hhmm = ts => { const d = new Date(ts * 1000); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const isoDay = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const mins = m => { m = Math.round(m); return m >= 60 ? `${Math.floor(m / 60)}h ${pad(m % 60)}m` : `${m} min`; };
+const hm = h => { const m = Math.round(h * 60); return `${Math.floor(m / 60)}h ${pad(m % 60)}m`; };
+const ago = s => s == null ? "never" : s < 90 ? "just now" : s < 5400 ? `${Math.round(s / 60)} min ago` : s < 172800 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+async function get(u) { const r = await fetch(u, {cache: "no-store"}); if (!r.ok) throw new Error(`${u} → ${r.status}`); return r.json(); }
+const soft = p => p.catch(e => { console.warn(e); return null; });
+
+/* ---------- theme (per-viewer convenience; storage may be unavailable) ---------- */
+function setTheme(t) { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; }
+try { setTheme(localStorage.getItem("alibi.theme")); } catch (e) {}
+$("#theme").onclick = () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const t = dark ? "light" : "dark"; setTheme(t);
+  try { localStorage.setItem("alibi.theme", t); } catch (e) {}
+  renderAll();
+};
+
+/* ---------- icons ---------- */
+const P = {
+  phone: '<rect x="4.5" y="1.5" width="7" height="13" rx="1.8"/><path d="M7 12.5h2"/>',
+  heart: '<path d="M8 13.5S2 10 2 5.8A3.1 3.1 0 0 1 8 4.3a3.1 3.1 0 0 1 6 1.5C14 10 8 13.5 8 13.5Z"/>',
+  pulse: '<path d="M1.5 8.5h3l1.5-4 3 8 1.6-4h3.9"/>',
+  hourglass: '<path d="M4 1.5h8M4 14.5h8M5 1.5c0 4 6 4 6 6.5S5 10.5 5 14.5M11 1.5c0 4-6 4-6 6.5s6 2.5 6 6.5"/>',
+  shield: '<path d="M8 1.5 2.8 3.4v4.2c0 3.2 2.2 5.6 5.2 6.9 3-1.3 5.2-3.7 5.2-6.9V3.4L8 1.5Z"/>',
+  walk: '<circle cx="9" cy="2.6" r="1.3"/><path d="m6 14.5 1.6-4.5 2 1.8v2.7M7.6 10 8.4 5.4 5.6 6.6 4.7 9M8.4 5.4l1.6 2.6 2.4.8"/>',
+  hand: '<path d="M5.5 8V3.2a1 1 0 0 1 2 0V7m0-.5V2.2a1 1 0 0 1 2 0V7m0-.3V3.2a1 1 0 0 1 2 0v5.3c0 3.2-1.8 6-4.6 6-2 0-3-1.1-4-2.8L1.8 9.2a1 1 0 0 1 1.7-1l2 2.2"/>',
+  home: '<path d="M2 7.2 8 2l6 5.2M3.6 6v8h8.8V6"/><path d="M6.5 14v-4h3v4"/>',
+  moon: '<path d="M13.5 9.5A5.8 5.8 0 0 1 6.5 2.5a5.8 5.8 0 1 0 7 7Z"/>',
+  mac: '<rect x="1.5" y="2.5" width="13" height="8.5" rx="1.3"/><path d="M5.5 14h5M8 11v3"/>',
+  bell: '<path d="M4 11V7a4 4 0 0 1 8 0v4l1.3 1.5H2.7L4 11ZM6.5 14a1.6 1.6 0 0 0 3 0"/>',
+  video: '<rect x="1.5" y="4" width="9" height="8" rx="1.6"/><path d="m10.5 7 4-2.2v6.4l-4-2.2"/>',
+  music: '<path d="M6 12.2V3l7.5-1.5v9"/><circle cx="4.3" cy="12.3" r="1.8"/><circle cx="11.8" cy="10.6" r="1.8"/>',
+  switch: '<path d="M2 5h10.5L10 2.5M14 11H3.5L6 13.5"/>',
+  git: '<circle cx="4" cy="3.5" r="1.6"/><circle cx="4" cy="12.5" r="1.6"/><circle cx="12" cy="6" r="1.6"/><path d="M4 5.1v5.8M12 7.6c0 2.4-2.6 2.6-6.6 3.6"/>',
+  camera: '<path d="M2 5.2h2.6L6 3.3h4l1.4 1.9H14v8H2Z"/><circle cx="8" cy="9" r="2.4"/>',
+  screen: '<rect x="1.5" y="2" width="13" height="9.5" rx="1.3"/><path d="M1.5 8.5h13M6 14h4"/>',
+  run: '<circle cx="10.3" cy="2.5" r="1.3"/><path d="m3.5 14.5 2.4-3.6 2.6 1.4 1-3.6-3-1.6L4.4 8.8M8.5 7.6 10.6 5l-.4 3.6 3.2 1.6"/>',
+  focus: '<circle cx="8" cy="8" r="6"/><path d="M8 4.2A3.8 3.8 0 0 0 8 11.8Z" fill="currentColor"/>',
+  link: '<path d="M6.5 9.5 9.5 6.5M7 4.5l1.5-1.5a2.8 2.8 0 0 1 4 4L11 8.5M9 11.5l-1.5 1.5a2.8 2.8 0 0 1-4-4L5 7.5"/>',
+  alert: '<path d="M8 1.8 1.3 13.6h13.4L8 1.8Z"/><path d="M8 6.2v3.4M8 11.6v.3"/>',
+  check: '<circle cx="8" cy="8" r="6.3"/><path d="m5.3 8.2 1.9 1.9 3.6-3.8"/>',
+  sun: '<circle cx="8" cy="8" r="3"/><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9 13 13M3 13l1.1-1.1M11.9 4.1 13 3"/>',
+};
+const icon = (k, sw = 1.5) => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[k] || P.link}</svg>`;
+
+/* ---------- source catalogue: group + icon + extra rows from /api/health ---------- */
+const GROUPS = [
+  {id: "iphone", name: "iPhone", keys: ["phone.listener", "phone.app", "phone.screentime", "phone.shield", "phone.motion", "phone.pickup", "phone.location", "phone.focus"]},
+  {id: "health", name: "Apple Health & Watch", keys: ["health.samples", "health.heart"]},
+  {id: "mac", name: "This Mac", keys: ["mac.presence", "x.windows", "x.camera", "mac.notifications", "mac.meeting", "mac.media", "mac.focus", "mac.focus_shortcuts", "mac.switches", "mac.git"]},
+  {id: "else", name: "Elsewhere", keys: ["x.strava"]},
+];
+const ICON = {"phone.listener": "link", "phone.app": "phone", "phone.screentime": "hourglass", "phone.shield": "shield", "phone.motion": "walk",
+  "phone.pickup": "hand", "phone.location": "home", "phone.focus": "moon", "health.samples": "heart", "health.heart": "pulse",
+  "mac.presence": "mac", "x.windows": "screen", "x.camera": "camera", "mac.notifications": "bell", "mac.meeting": "video",
+  "mac.media": "music", "mac.focus": "moon", "mac.focus_shortcuts": "focus", "mac.switches": "switch", "mac.git": "git", "x.strava": "run"};
+const SHORT = {"phone.listener": "Phone sync on this Mac", "phone.app": "Alibi on your iPhone", "phone.screentime": "Screen Time",
+  "phone.shield": "App blocking in sessions", "phone.motion": "Motion", "phone.pickup": "Pickups", "phone.location": "Home geofence",
+  "phone.focus": "Alibi Focus (iPhone)", "health.samples": "Daily Health totals", "health.heart": "Live heart rate",
+  "mac.presence": "Idle & lock", "x.windows": "Front app", "x.camera": "Camera witness", "mac.notifications": "Notifications",
+  "mac.meeting": "Meetings", "mac.media": "What's playing", "mac.focus": "Mac Focus", "mac.focus_shortcuts": "Focus shortcuts",
+  "mac.switches": "App-switch rate", "mac.git": "Git commits", "x.strava": "Strava runs"};
+const STATE_WORD = {ok: "Live", stale: "Stale", missing: "Missing", waiting: "Waiting", needs_permission: "Needs access", not_applicable: "Not used"};
+const STATE_C = {ok: "var(--accent)", stale: "var(--amber)", needs_permission: "var(--warn)", missing: "var(--rule)", waiting: "var(--grey)", not_applicable: "var(--surface-3)"};
+
+const S = {day: isoDay(new Date()), status: null, live: null, checks: null, dayData: null, sessions: [], feeds: {}, sess: null, sessData: {}, health: null, hidden: new Set()};
+const isToday = () => S.day === isoDay(new Date());
+
+function extraRows() {
+  const out = [];
+  const c = Object.fromEntries(((S.checks && S.checks.checks) || []).map(x => [x.key, x]));
+  const row = (key, label, ck, okText) => {
+    if (!ck) return;
+    out.push({key, label, state: ck.ok ? "ok" : "missing", flowing: !!ck.ok, text: ck.detail, fix: ck.ok ? null : ck.fix, extra: true, okText});
+  };
+  row("x.windows", "Screen (which app is in front)", c.windows);
+  row("x.camera", "Camera witness", c.camera);
+  row("x.strava", "Strava runs", c.strava);
+  return out;
+}
+
+function liveText(key) {
+  const l = S.live && S.live.signals && S.live.signals[key];
+  if (!l) return null;
+  if (l.text) return l.text;
+  const p = l.payload || {};
+  if (key === "mac.git") return p.uncommitted_files ? `${p.repo || "repo"}: ${p.uncommitted_files} files changed, not committed` : `${p.repo || "repo"}: no new commits`;
+  if (key === "mac.switches") return `Switching apps ${p.per_min}×/min`;
+  return null;
+}
+
+/* ---------- 1. Is Alibi seeing you? ---------- */
+function renderStatus() {
+  const st = S.status;
+  if (!st) return;
+  const rows = [...st.sources, ...extraRows()];
+  const by = Object.fromEntries(rows.map(r => [r.key, r]));
+  const inPlay = r => r.state !== "not_applicable";      // e.g. live heart rate without a Watch: not a source, not a gap
+  const counted = rows.filter(r => r.state !== "waiting" && inPlay(r));
+  const ok = counted.filter(r => r.state === "ok").length;
+  const order = {ok: 0, stale: 1, waiting: 2, needs_permission: 3, missing: 4, not_applicable: 5};
+  $("#meter").innerHTML = [...rows].sort((a, b) => order[a.state] - order[b.state]).map(r => `<i class="${r.state}" title="${esc(r.label)}"></i>`).join("");
+  const counts = {}; rows.forEach(r => counts[r.state] = (counts[r.state] || 0) + 1);
+  $("#meterkey").innerHTML = ["ok", "stale", "needs_permission", "missing", "waiting", "not_applicable"].filter(k => counts[k])
+    .map(k => `<span style="--c:${STATE_C[k]}">${counts[k]} ${STATE_WORD[k].toLowerCase()}</span>`).join("");
+  const share = ok / Math.max(1, counted.length);
+  const phoneOk = ["phone.app", "phone.screentime", "phone.motion"].some(k => by[k] && by[k].state === "ok");
+  const macOk = by["mac.presence"] && by["mac.presence"].state === "ok";
+  const lead = share >= .85 ? "Yes — clearly." : share >= .6 ? "Mostly." : share >= .3 ? "Partly." : "Barely.";
+  const blind = !phoneOk && !macOk ? "It can't see your phone or this Mac yet." : !phoneOk ? "Your phone is still a blind spot." : !macOk ? "This Mac is still a blind spot." : "Your phone and this Mac are both reporting in.";
+  $("#verdictline").innerHTML = `<b>${lead}</b> ${ok} of ${counted.length} sources are flowing. ${blind}`;
+  $("#heroEyebrow").textContent = st.sources.length ? `Updated ${hhmm(st.now)}` : "Signals";
+  const todo = rows.filter(r => r.fix && r.state !== "ok" && r.state !== "waiting" && inPlay(r))
+    .sort((a, b) => (order[b.state] - order[a.state]) || ((a.extra ? 1 : 0) - (b.extra ? 1 : 0)));
+  const nc = $("#next-card");
+  if (!todo.length) {
+    nc.className = "card next allgood";
+    nc.innerHTML = `<div class="eyebrow">All set</div><h3>Every source is reporting in.</h3><p>Alibi checks your sessions against your phone, your heart and this Mac. Nothing to fix.</p>`;
+  } else {
+    const t = todo[0];
+    nc.className = "card next";
+    nc.innerHTML = `<div class="eyebrow">Fix next · ${STATE_WORD[t.state]}</div><h3>${esc(t.label)}</h3><p>${esc(t.fix)}</p>` +
+      (todo.length > 1 ? `<div class="more">Then ${todo.slice(1, 3).map(x => esc(x.label)).join(", ")}${todo.length > 3 ? ` and ${todo.length - 3} more` : ""}.</div>` : "");
+  }
+  $("#srcAside").textContent = `${ok} live · ${counted.length - ok} need a look`;
+  $("#groups").innerHTML = GROUPS.map(g => {
+    const rs = g.keys.map(k => by[k]).filter(Boolean);
+    const extra = rows.filter(r => !GROUPS.some(G => G.keys.includes(r.key)) && (r.source === (g.id === "iphone" ? "phone" : g.id)));
+    const all = [...rs, ...extra];
+    if (!all.length) return "";
+    const n = all.filter(r => r.state === "ok").length, of = all.filter(inPlay).length;
+    return `<div class="group"><h3>${g.name} <span class="count">${n}/${of} live</span></h3><div class="tiles">${all.map(tile).join("")}</div></div>`;
+  }).join("");
+}
+
+function tile(r) {
+  const lt = liveText(r.key);
+  const fresh = r.state === "ok" && r.age_s != null && r.age_s < 600;
+  const what = r.state === "ok" ? (lt || r.text) : r.state === "stale" ? (lt ? `Last: ${lt}` : "Gone quiet.") : r.state === "waiting" || r.state === "not_applicable" ? r.text : r.state === "needs_permission" ? "Blocked by macOS until you allow it." : (r.extra ? r.text : "Not reporting yet.");
+  const when = r.extra || r.state === "not_applicable" ? "" : r.last_seen ? `${fresh ? "Seen" : "Last seen"} ${ago(r.age_s)} · ${hhmm(r.last_seen)}` : r.state === "waiting" ? "Waiting for it to happen" : "Never seen";
+  const fix = r.state !== "ok" && r.state !== "waiting" && r.state !== "not_applicable" && r.fix ? `<div class="fix"><b>Fix:</b> ${esc(r.fix)}</div>` : "";
+  return `<div class="card tile ${r.state}"><div class="ic">${icon(ICON[r.key] || "link")}</div><div class="body">
+    <div class="row1"><span class="name" title="${esc(r.label)}">${esc(SHORT[r.key] || r.label)}</span><span class="pill ${r.state}${fresh ? " live" : ""}">${STATE_WORD[r.state] || esc(r.state)}</span></div>
+    <div class="what">${esc(what)}</div>${when ? `<div class="when">${when}</div>` : ""}${fix}</div></div>`;
+}
+
+/* ---------- 2. Today: stats + swim lanes ---------- */
+function renderStats() {
+  const d = S.dayData; if (!d) return;
+  const s = d.summary, st = s.screentime || {}, n = s.notifications || {}, mac = s.mac || {};
+  const top = (st.apps || [])[0];
+  const daySess = S.sessions;
+  const verified = daySess.reduce((a, x) => a + (x.verified_min || 0), 0);
+  const moving = Object.entries(s.motion_min || {}).filter(([k]) => k !== "stationary" && k !== "unknown").reduce((a, [, v]) => a + v, 0);
+  const tiles = [
+    ["Verified work", verified ? mins(verified) : "—", daySess.length ? `${daySess.length} session${daySess.length > 1 ? "s" : ""}` : "No sessions yet"],
+    ["Phone screen time", st.total_min ? mins(st.total_min) : "—", top ? `Most: ${top.app} ${top.minutes} min` : "Picked apps only", top && st.total_min > 60],
+    ["Pickups", s.pickups ?? "—", moving ? `${mins(moving)} on the move` : "Phone stayed put"],
+    ["Notifications", n.total ?? "—", n.total ? `${n.from_phone} mirrored from iPhone` : "None counted"],
+    ["Heart", s.heart ? `${s.heart.avg}<small>bpm</small>` : "—", s.heart ? `${s.heart.min}–${s.heart.max} bpm · ${s.heart.n} readings` : "No Watch readings"],
+    ["On this Mac", mac.commits != null ? `${mac.commits}<small>commit${mac.commits === 1 ? "" : "s"}</small>` : "—", `${mac.lines ? `${mac.lines} lines · ` : ""}idle ${mac.idle_min || 0} min`],
+  ];
+  $("#stats").innerHTML = tiles.map(([k, v, sub, bad]) => `<div class="card stat"><div class="eyebrow">${k}</div><div class="v num">${v}</div><div class="s${bad ? " bad" : ""}">${esc(sub)}</div></div>`).join("");
+}
+
+const LANES = [
+  {id: "sess", name: "Sessions", sub: "what you declared"},
+  {id: "cam", name: "Camera", sub: "witness, per minute"},
+  {id: "screen", name: "Screen", sub: "front app on the Mac"},
+  {id: "phone", name: "Phone screen time", sub: "picked apps"},
+  {id: "motion", name: "Motion & pickups", sub: "from the iPhone"},
+  {id: "heart", name: "Heart rate", sub: "Watch, bpm", h: 64},
+  {id: "notif", name: "Notifications", sub: "Mac + mirrored iPhone"},
+  {id: "mac", name: "Mac", sub: "idle, Focus, meetings, git"},
+  {id: "home", name: "At home", sub: "geofence only"},
+];
+const LH = 40;
+
+function domain() {
+  const t0 = new Date(S.day + "T00:00:00").getTime() / 1000;
+  const tl = (S.dayData && S.dayData.timeline) || [];
+  const ts = [...tl.map(x => x.ts), ...S.sessions.flatMap(s => [s.started_at, s.ended_at || s.ends_at])].filter(Boolean);
+  let a = ts.length ? Math.min(...ts) : t0 + 8 * 3600, b = isToday() ? Date.now() / 1000 : (ts.length ? Math.max(...ts) : t0 + 22 * 3600);
+  a = Math.max(t0, Math.floor((a - t0) / 3600) * 3600 + t0);
+  b = Math.min(t0 + 86400, Math.ceil((b - t0 + 600) / 3600) * 3600 + t0);
+  if (b - a < 6 * 3600) a = Math.max(t0, b - 6 * 3600);
+  if (b - a < 6 * 3600) b = Math.min(t0 + 86400, a + 6 * 3600);
+  return [a, b];
+}
+
+function renderLanes() {
+  const d = S.dayData; if (!d) return;
+  const plot = $("#plot");
+  const lanes = LANES.map(l => ({...l, h: l.h || LH}));
+  $("#lanelabels").innerHTML = `<div class="axis"></div>` + lanes.map(l => `<div style="--lh:${l.h}px">${l.name}<small>${l.sub}</small></div>`).join("");
+  const [a, b] = domain();
+  const avail = plot.clientWidth || 800;
+  const W = Math.max(avail, Math.round((b - a) / 3600 * (innerWidth < 600 ? 64 : 40)));
+  const AX = 28, H = AX + lanes.reduce((s, l) => s + l.h, 0) + 4;
+  const x = t => (Math.min(b, Math.max(a, t)) - a) / (b - a) * (W - 16) + 8;
+  const y = {}; let yy = AX; lanes.forEach(l => { y[l.id] = yy; yy += l.h; });
+  const C = k => css(k);
+  const tl = d.timeline || [];
+  const g = [];
+  // hour grid
+  for (let t = Math.ceil(a / 3600) * 3600; t <= b; t += 3600) {
+    const h = new Date(t * 1000).getHours();
+    g.push(`<line x1="${x(t)}" x2="${x(t)}" y1="${AX - 6}" y2="${H}" stroke="${C("--rule-2")}" stroke-width="1"/>`);
+    if ((b - a) / 3600 <= 14 || h % 2 === 0) g.push(`<text x="${x(t)}" y="16" text-anchor="${x(t) < 24 ? "start" : x(t) > W - 24 ? "end" : "middle"}" font-size="12" fill="${C("--faint")}">${pad(h)}:00</text>`);
+  }
+  lanes.slice(1).forEach(l => g.push(`<line x1="0" x2="${W}" y1="${y[l.id]}" y2="${y[l.id]}" stroke="${C("--rule-2")}"/>`));
+  // session bands across every lane
+  const VC = {done: "--accent", partial: "--amber", slacked: "--warn"};
+  for (const s of S.sessions) {
+    const s0 = x(s.started_at), s1 = x(s.ended_at || s.ends_at), w = Math.max(3, s1 - s0);
+    const col = C(VC[s.verdict] || "--grey");
+    g.push(`<rect x="${s0}" y="${AX}" width="${w}" height="${H - AX}" fill="${col}" opacity="0.07"/>`);
+    g.push(`<rect x="${s0}" y="${y.sess + 8}" width="${w}" height="${LH - 16}" rx="5" fill="${col}" ${tipA(`· ${s.verdict || "live"} ${Math.round((s.on_task_ratio || 0) * 100)}%${s.signals_reason ? "\nLowered: " + s.signals_reason : ""}`, `${hhmm(s.started_at)}–${hhmm(s.ended_at || s.ends_at)}`, s.label)} data-sess="${s.id}" style="cursor:pointer"/>`);
+    const full = `${s.label} ${Math.round((s.on_task_ratio || 0) * 100)}%`, lab = full.length * 7 + 14 <= w ? full : s.label.length * 7 + 14 <= w ? s.label : `${Math.round((s.on_task_ratio || 0) * 100)}%`;
+    if (lab.length * 7 + 10 <= w) g.push(`<text x="${s0 + 7}" y="${y.sess + 24}" font-size="12" font-weight="600" fill="${C("--on-accent")}" pointer-events="none">${esc(lab)}</text>`);
+  }
+  // camera labels + screen from sessions/feeds
+  const LC = {on_task: "--on_task", phone: "--phone", off_task: "--off_task", idle: "--idle", absent: "--absent"};
+  const LT = {on_task: "On task", phone: "On the phone", off_task: "Off task", idle: "Idle", absent: "Away from the desk"};
+  let camAny = false, scrAny = false;
+  for (const s of S.sessions) {
+    for (const l of s.labels || []) {
+      camAny = true;
+      g.push(`<rect x="${x(l.ts)}" y="${y.cam + 10}" width="${Math.max(2, x(l.ts + 60) - x(l.ts) - 1)}" height="${LH - 20}" rx="1.5" fill="${C(LC[l.label] || "--grey")}" ${tipA(`${LT[l.label] || l.label}${l.note ? " — " + l.note : ""}`, hhmm(l.ts))}/>`);
+    }
+    const f = S.feeds[s.id] || [];
+    for (const it of f) {
+      scrAny = true;
+      const on = it.label === "on_task";
+      g.push(`<rect x="${x(it.ts)}" y="${y.screen + 10}" width="${Math.max(1.5, x(it.ts + 30) - x(it.ts) - .5)}" height="${LH - 20}" fill="${C(on ? "--on_task" : "--off_task")}" ${tipA(it.text, hhmm(it.ts))}/>`);
+    }
+  }
+  // phone rows from the day timeline
+  const lane = {phone: 0, motion: 0, heart: 0, notif: 0, mac: 0, home: 0};
+  const heart = [], home = [], meet = [], focus = [], media = [];
+  for (const e of tl) {
+    const tip = tipA(e.text, hhmm(e.ts));
+    if (e.kind === "screentime") {
+      const m = /\+([\d.]+) min/.exec(e.text); const dm = m ? +m[1] : 5;
+      g.push(`<rect x="${x(e.ts - dm * 60)}" y="${y.phone + 10}" width="${Math.max(2, x(e.ts) - x(e.ts - dm * 60) - 1)}" height="${LH - 20}" rx="2" fill="${C("--warn")}"${tip}/>`); lane.phone++;
+    } else if (e.kind === "pickup") {
+      g.push(`<circle cx="${x(e.ts)}" cy="${y.motion + LH / 2}" r="3.5" fill="${C("--warn")}" stroke="${C("--paper")}" stroke-width="1.5"${tip}/>`); lane.motion++;
+    } else if (e.kind === "motion") {
+      const m = /for (\d+) min|\((\d+) min\)/.exec(e.text); const dm = m ? +(m[1] || m[2]) : 1;
+      if (/stationary|unknown/.test(e.text)) continue;
+      g.push(`<rect x="${x(e.ts)}" y="${y.motion + 13}" width="${Math.max(3, x(e.ts + dm * 60) - x(e.ts))}" height="${LH - 26}" rx="3" fill="${C("--absent")}"${tip}/>`); lane.motion++;
+    } else if (e.kind === "heart") {
+      const m = /Heart (\d+) bpm(?:, (\d+)–(\d+))?/.exec(e.text); if (m) heart.push([e.ts, +m[1], +(m[2] || m[1]), +(m[3] || m[1]), e.text]);
+    } else if (e.kind === "notifications") {
+      const m = /^(\d+)/.exec(e.text); const n = m ? +m[1] : 1; const hh = Math.min(LH - 12, 6 + n * 3.2);
+      const ph = /\(iPhone\)/.test(e.text);
+      g.push(`<rect x="${x(e.ts) - 1}" y="${y.notif + LH - 6 - hh}" width="2.5" height="${hh}" rx="1" fill="${C(ph ? "--ink" : "--faint")}"${tip}/>`); lane.notif++;
+    } else if (e.kind === "location") {
+      home.push([e.ts, !/left/.test(e.text)]);
+    } else if (e.kind === "meeting") {
+      meet.push([e.ts, !e.end, e.text, e.session_id]);
+    } else if (e.kind === "focus" && e.source === "mac") {
+      focus.push([e.ts, / on/.test(e.text)]);
+    } else if (e.source === "mac" && e.kind === "presence") {
+      const m = /(\d+) min/.exec(e.text); const dm = m ? +m[1] : 1; const locked = /locked|asleep/.test(e.text);
+      g.push(`<rect x="${x(e.ts - (locked ? 30 : dm * 60))}" y="${y.mac + 12}" width="${Math.max(3, x(e.ts) - x(e.ts - (locked ? 30 : dm * 60)))}" height="${LH - 24}" rx="3" fill="${C("--idle")}"${tip}/>`); lane.mac++;
+    } else if (e.kind === "git") {
+      const cx = x(e.ts), cy = y.mac + LH / 2;
+      g.push(`<path d="M${cx} ${cy - 6} L${cx + 6} ${cy} L${cx} ${cy + 6} L${cx - 6} ${cy} Z" fill="${C("--accent")}" stroke="${C("--paper")}" stroke-width="1.5"${tip}/>`); lane.mac++;
+    } else if (e.kind === "media") {
+      media.push([e.ts, !e.end, e.text, e.verdict_hint, e.session_id]);
+    }
+  }
+  // Mac Focus spans (under the marks)
+  focus.sort((p, q) => p[0] - q[0]);
+  let fOn = null;
+  for (const [t, on] of [...focus, [b, false]]) {
+    if (on && fOn == null) fOn = t;
+    else if (!on && fOn != null) { g.unshift(`<rect x="${x(fOn)}" y="${y.mac + LH - 9}" width="${Math.max(2, x(t) - x(fOn))}" height="3" rx="1.5" fill="${C("--accent")}" opacity=".7" ${tipA("Mac Focus on", `${hhmm(fOn)}–${hhmm(t)}`)}/>`); fOn = null; lane.mac++; }
+  }
+  // Meetings + media are written on *change* (docs/SIGNALS.md), so a span runs from an "on" row to the next row that
+  // ends it (camera+mic off / stopped playing, end=true) or replaces it. With no closing row it runs to the end of
+  // the session it started in, or to now / the edge of the day.
+  const sessEnd = Object.fromEntries(S.sessions.map(s => [s.id, s.ended_at || null]));
+  const openEnd = (t, sid) => Math.max(t + 60, (sid && sessEnd[sid]) || (isToday() ? Date.now() / 1000 : b));
+  const spans = rows => {
+    rows.sort((p, q) => p[0] - q[0]);
+    const out = [];
+    let cur = null;
+    for (const r of rows) {
+      if (cur && r[1] && r[2] === cur.text) continue;      // same thing re-announced (new session): keep the span going
+      if (cur) { cur.t1 = Math.max(cur.t0 + 60, r[0]); out.push(cur); cur = null; }
+      if (r[1]) cur = {t0: r[0], text: r[2], hint: r[3], sid: r[4]};
+    }
+    if (cur) { cur.t1 = openEnd(cur.t0, cur.sid); cur.open = true; out.push(cur); }
+    return out;
+  };
+  for (const m of spans(meet.map(([t, on, tx, sid]) => [t, on, tx, null, sid]))) {
+    g.push(`<rect x="${x(m.t0)}" y="${y.mac + 8}" width="${Math.max(3, x(m.t1) - x(m.t0))}" height="${LH - 22}" rx="3" fill="${C("--paper")}" stroke="${C("--muted")}" stroke-width="1.5" data-kind="meeting"${tipA(m.text + (m.open ? "\n(no end seen yet)" : ""), `${hhmm(m.t0)}–${hhmm(m.t1)}`)}/>`); lane.mac++;
+  }
+  for (const m of spans(media)) {
+    const off = m.hint === "off_task" || /youtube|netflix|twitch|tiktok/i.test(m.text), w = x(m.t1) - x(m.t0);
+    const col = C(off ? "--warn" : "--muted");
+    g.push(`<rect x="${x(m.t0)}" y="${y.mac + LH / 2 - 2}" width="${Math.max(3, w)}" height="4" rx="2" fill="${col}" opacity=".55" data-kind="media"${tipA(m.text, `${hhmm(m.t0)}–${hhmm(m.t1)}`)}/>`);
+    g.push(`<circle cx="${x(m.t0)}" cy="${y.mac + LH / 2}" r="4" fill="${C("--paper")}" stroke="${col}" stroke-width="2"${tipA(m.text, `${hhmm(m.t0)}–${hhmm(m.t1)}`)}/>`); lane.mac++;
+  }
+  // at home
+  home.sort((p, q) => p[0] - q[0]);
+  if (home.length) {
+    let cur = home[0][1], since = home[0][0];
+    const seg = (t0, t1, at) => g.push(at
+      ? `<rect x="${x(t0)}" y="${y.home + 15}" width="${Math.max(1, x(t1) - x(t0))}" height="${LH - 30}" rx="5" fill="${C("--accent")}" opacity=".35" ${tipA("Phone at home", `${hhmm(t0)}–${hhmm(t1)}`)}/>`
+      : `<rect x="${x(t0)}" y="${y.home + 13}" width="${Math.max(2, x(t1) - x(t0))}" height="${LH - 26}" rx="5" fill="url(#hatch)" stroke="${C("--muted")}" stroke-width="1" ${tipA("Phone away from home", `${hhmm(t0)}–${hhmm(t1)}`)}/>`);
+    for (const [t, at] of home.slice(1)) { if (at !== cur) { seg(since, t, cur); cur = at; since = t; } }
+    seg(since, b, cur); lane.home++;
+  }
+  // heart sparkline: range band + average line
+  if (heart.length) {
+    lane.heart++;
+    heart.sort((p, q) => p[0] - q[0]);
+    const lo = Math.min(...heart.map(h => h[2])), hi = Math.max(...heart.map(h => h[3]));
+    const yv = v => y.heart + 64 - 8 - (v - lo) / Math.max(1, hi - lo) * (64 - 16);
+    let path = "", prev = null;
+    for (const h of heart) { path += `${prev != null && h[0] - prev < 50 * 60 ? "L" : "M"}${x(h[0]).toFixed(1)} ${yv(h[1]).toFixed(1)}`; prev = h[0]; }
+    g.push(`<path d="${path}" fill="none" stroke="${C("--warn")}" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>`);
+    const mx = heart.reduce((m, h) => h[3] > m[3] ? h : m, heart[0]);
+    g.push(`<text x="${Math.min(W - 40, x(mx[0]) + 6)}" y="${yv(mx[3]) + 10}" font-size="12" fill="${C("--muted")}">${mx[3]}</text>`);
+    for (const h of heart) g.push(`<circle cx="${x(h[0])}" cy="${yv(h[1])}" r="7" fill="transparent" ${tipA(h[4], hhmm(h[0]))}/>`);
+  }
+  const empties = {cam: camAny ? 1 : 0, screen: scrAny ? 1 : 0, sess: S.sessions.length};
+  const EMPTY = {sess: "No sessions this day", cam: "No camera sessions", screen: "No screen sessions", phone: "No Screen Time events", motion: "No motion or pickups",
+    heart: "No heart readings", notif: "No notifications counted", mac: "Nothing from the Mac sensor", home: "No geofence events"};
+  const since = d.from_ts ? ` since ${hhmm(d.from_ts)}` : "";
+  for (const l of lanes) if (!(empties[l.id] ?? lane[l.id])) g.push(`<text x="12" y="${y[l.id] + l.h / 2 + 4}" class="lane-empty">${EMPTY[l.id]}${since}</text>`);
+  if (d.from_ts) {   // the server trimmed an enormous day: say where the lanes really start instead of implying "nothing"
+    const fx = x(d.from_ts);
+    g.push(`<rect x="${x(a)}" y="${AX}" width="${Math.max(0, fx - x(a))}" height="${H - AX}" fill="url(#hatch)" opacity=".25"/>`);
+    g.push(`<text x="${fx + 4}" y="${AX + 12}" font-size="12" fill="${C("--muted")}" id="fromnote">Showing from ${hhmm(d.from_ts)}</text>`);
+  }
+  // now marker
+  if (isToday()) { const n = x(Date.now() / 1000); g.push(`<line x1="${n}" x2="${n}" y1="${AX - 6}" y2="${H}" stroke="${C("--ink")}" stroke-width="1.5" stroke-dasharray="2 3"/><text x="${n}" y="${AX - 10}" text-anchor="end" font-size="12" font-weight="600" fill="${C("--ink")}" dx="-3">now</text>`); }
+  plot.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Timeline of today's signals">
+    <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="${C("--muted")}" stroke-width="1.5" opacity=".6"/></pattern></defs>
+    ${g.join("")}<line id="xhair" x1="0" x2="0" y1="${AX}" y2="${H}" stroke="${C("--faint")}" stroke-width="1" opacity="0"/></svg>`;
+  plot.querySelectorAll("[data-sess]").forEach(r => r.addEventListener("click", () => { selectSession(+r.dataset.sess); $("#sessions").scrollIntoView({behavior: "smooth"}); }));
+  const svg = plot.querySelector("svg"), xh = svg.querySelector("#xhair");
+  svg.addEventListener("mousemove", ev => { const r = svg.getBoundingClientRect(); const px = ev.clientX - r.left; xh.setAttribute("x1", px); xh.setAttribute("x2", px); xh.setAttribute("opacity", ".8"); });
+  svg.addEventListener("mouseleave", () => xh.setAttribute("opacity", "0"));
+  if (W > avail && !plot.dataset.scrolled) { plot.scrollLeft = W; plot.dataset.scrolled = 1; }
+  $("#legend").innerHTML = [
+    ["--on_task", "On task"], ["--warn", "Phone / off task"], ["--idle", "Idle Mac"], ["--absent", "Moving / away"], ["--paper", "Meeting", "box"],
+    ["--accent", "Commit · Focus", "dot"], ["--ink", "Notification", "tick"],
+  ].map(([c, t, k]) => `<span class="${k || ""}" style="--c:var(${c})">${t}</span>`).join("");
+}
+
+/* tooltip */
+const tip = $("#tip");
+function showTip(el) {
+  const parts = [];
+  if (el.dataset.tt) { const t = document.createElement("span"); t.className = "t"; t.textContent = el.dataset.tt; parts.push(t); }
+  if (el.dataset.tb) { const b = document.createElement("b"); b.textContent = el.dataset.tb; parts.push(b, " "); }
+  parts.push(el.dataset.tip || "");
+  tip.replaceChildren(...parts);
+}
+document.addEventListener("mouseover", e => { const t = e.target.closest && e.target.closest("[data-tip]"); if (!t) { tip.classList.remove("on"); return; } showTip(t); tip.classList.add("on"); });
+document.addEventListener("mousemove", e => { if (!tip.classList.contains("on")) return; const w = tip.offsetWidth, h = tip.offsetHeight; let L = e.clientX + 14, T = e.clientY - h - 12; if (L + w > innerWidth - 8) L = e.clientX - w - 14; if (T < 8) T = e.clientY + 16; tip.style.left = L + "px"; tip.style.top = T + "px"; });
+document.addEventListener("scroll", () => tip.classList.remove("on"), true);
+
+/* ---------- 3. Sessions ---------- */
+const VERDICT = {done: ["Checks out", "--accent"], partial: ["Partly", "--amber"], slacked: ["Didn't check out", "--warn"]};
+const HINT = {on_task: ["On task", "--on_task"], off_task: ["Off task", "--warn"], absent: ["Away", "--absent"], idle: ["Idle", "--idle"], neutral: ["Context", "--neutral"]};
+const SRC = {phone: "iPhone", mac: "Mac", health: "Watch"};
+
+function renderSessTabs() {
+  const el = $("#sesstabs");
+  if (!S.sessions.length) { el.innerHTML = ""; $("#sessbody").innerHTML = `<div class="card empty">No finished sessions on this day. Start one and Alibi will line it up against your phone and Mac.</div>`; return; }
+  el.innerHTML = S.sessions.map(s => {
+    const [, c] = VERDICT[s.verdict] || ["", "--grey"];
+    return `<button class="stab" role="tab" aria-selected="${s.id === S.sess}" data-id="${s.id}" style="--c:var(${c})"><span class="vd"></span><span><b>${esc(s.label)}</b><small>${hhmm(s.started_at)} · ${s.declared_min} min · ${Math.round((s.on_task_ratio || 0) * 100)}%</small></span>${s.signals_reason ? `<span class="capmark">lowered</span>` : ""}</button>`;
+  }).join("");
+  el.querySelectorAll(".stab").forEach(b => b.onclick = () => selectSession(+b.dataset.id));
+}
+
+async function selectSession(id) {
+  S.sess = id; renderSessTabs();
+  if (!S.sessData[id]) { $("#sessbody").innerHTML = `<div class="skel" style="height:280px"></div>`; S.sessData[id] = await soft(get(`/api/signals?session=${id}`)); }
+  renderSession();
+}
+
+function renderSession() {
+  const s = S.sessions.find(x => x.id === S.sess), d = S.sessData[S.sess];
+  if (!s) return;
+  const [vword, vc] = VERDICT[s.verdict] || ["Live", "--grey"];
+  const pct = Math.round((s.on_task_ratio || 0) * 100);
+  const cap = d && d.cap;
+  const t0 = s.started_at, t1 = s.ended_at || s.ends_at, len = Math.max(60, t1 - t0);
+  const off = (d && d.off_s) || {};
+  const tl = (d && d.timeline) || [];
+  const counts = (d && d.hints) || {};
+  const capHtml = cap ? `<div class="capbox">${icon("alert", 1.6)}<p><b>Lowered from ${Math.round(cap.from * 100)}% to ${Math.round(cap.to * 100)}%.</b> ${esc(cap.reason)}. <span>The camera and screen alone said ${Math.round(cap.from * 100)}%.</span></p></div>`
+    : tl.length ? `<div class="capbox okbox">${icon("check", 1.6)}<p><b>Your phone and Mac back this up.</b> <span>Nothing they saw was enough to lower the score.</span></p></div>`
+    : `<div class="capbox okbox" style="background:var(--rule-2)">${icon("phone", 1.6)}<p><b>No phone or Mac signals for this session.</b> <span>The score comes from the ${s.modality === "physical" ? "camera" : "screen"} alone.</span></p></div>`;
+  const bars = [["On the phone", off.phone || 0, "--warn"], ["On the move", off.moving || 0, "--absent"], ["Mac idle", off.idle || 0, "--idle"]];
+  const ruler = tl.filter(e => !S.hidden.has(e.verdict_hint)).map(e => `<i class="${e.verdict_hint}" style="left:${Math.min(99.5, Math.max(.5, (e.ts - t0) / len * 100))}%;--c:var(${HINT[e.verdict_hint][1]})" ${tipA(e.text, hhmm(e.ts))}></i>`).join("");
+  const list = [], open = {};          // fold repeats (a call sampled every minute) into one row
+  for (const e of tl.filter(e => !S.hidden.has(e.verdict_hint))) {
+    const k = e.kind + "|" + e.text, l = open[k];
+    if (l && e.ts - l.last < 180) { l.n++; l.last = e.ts; } else list.push(open[k] = {...e, n: 1, last: e.ts});
+  }
+  $("#sessbody").innerHTML = `<div class="sess">
+    <div class="card sesssum">
+      <div class="eyebrow">${hhmm(t0)}–${hhmm(t1)} · ${esc(s.modality)} · ${s.declared_min} min</div>
+      <div class="score"><div class="big num">${pct}<sup>%</sup></div><div class="was"><span class="vchip" style="--c:var(${vc})">${vword}</span>${cap ? `<div style="margin-top:6px">was <s>${Math.round(cap.from * 100)}%</s> before signals</div>` : ""}</div></div>
+      <p class="why">${esc(s.why || s.score_line || "")}</p>
+      ${capHtml}
+      <div class="offbars">${bars.map(([k, v, c]) => `<div class="offbar"><span>${k}</span><div class="track"><div class="fill" style="width:${Math.min(100, v / len * 100)}%;--c:var(${c})"></div></div><span class="n">${v ? mins(v / 60) : "0"}</span></div>`).join("")}</div>
+      <div class="ruler" aria-label="Signals across the session">${ruler}</div>
+      <div class="rulerax"><span>${hhmm(t0)}</span><span>${hhmm(t0 + len / 2)}</span><span>${hhmm(t1)}</span></div>
+      <div class="hintchips">${Object.keys(HINT).filter(k => counts[k]).map(k => `<button class="hc" data-h="${k}" aria-pressed="${!S.hidden.has(k)}" style="--c:var(${HINT[k][1]})">${HINT[k][0]} <b>${counts[k]}</b></button>`).join("")}</div>
+    </div>
+    <div class="card">
+      <div class="evhead"><b>Evidence, in order</b><span class="eyebrow">${list.reduce((a, e) => a + e.n, 0)} of ${tl.length}</span></div>
+      <div class="evlist">${list.length ? list.map(e => `<div class="ev ${e.verdict_hint}" style="--c:var(${HINT[e.verdict_hint][1]});--c2:var(${e.verdict_hint === "on_task" ? "--accent-ink" : e.verdict_hint === "neutral" ? "--faint" : e.verdict_hint === "idle" ? "--amber-ink" : "--warn-ink"})"><time>${hhmm(e.ts)}</time><span class="d"></span><span class="tx">${esc(e.text)}${e.n > 1 ? ` <span class="rep">×${e.n} until ${hhmm(e.last)}</span>` : ""}${e.verdict_hint !== "neutral" ? `<em>${HINT[e.verdict_hint][0]}</em>` : ""}</span><span class="src">${SRC[e.source] || e.source}</span></div>`).join("")
+        : `<div class="empty" style="font-size:16px">${tl.length ? "Everything is filtered out — tap a chip to bring it back." : "Nothing from the phone, Watch or Mac during this session."}</div>`}</div>
+    </div></div>`;
+  $("#sessbody").querySelectorAll(".hc").forEach(b => b.onclick = () => { const h = b.dataset.h; S.hidden.has(h) ? S.hidden.delete(h) : S.hidden.add(h); renderSession(); });
+}
+
+/* ---------- 4. Health ---------- */
+function sparkline(vals, {lowerBetter = false, color = "--accent", bars = false} = {}) {
+  const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null);
+  if (pts.length < 2) return "";
+  const W = 300, H = 56, n = vals.length;
+  const lo = Math.min(...pts.map(p => p[1])), hi = Math.max(...pts.map(p => p[1]));
+  const xx = i => i / (n - 1) * (W - 8) + 4, yy = v => H - 6 - (v - lo) / Math.max(1e-9, hi - lo) * (H - 14);
+  const avg = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+  if (bars) {
+    const bw = (W - 8) / n - 3;
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${pts.map(([i, v]) => { const h = Math.max(3, (v - lo * .6) / Math.max(1e-9, hi - lo * .6) * (H - 6)); return `<rect x="${i / n * (W - 8) + 4}" y="${H - h}" width="${bw}" height="${h}" rx="2" fill="var(${i === n - 1 ? color : "--rule"})" ${tipA(v.toLocaleString())}/>`; }).join("")}</svg>`;
+  }
+  const d = pts.map(([i, v], k) => `${k ? "L" : "M"}${xx(i).toFixed(1)} ${yy(v).toFixed(1)}`).join("");
+  const last = pts[pts.length - 1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="4" x2="${W - 4}" y1="${yy(avg)}" y2="${yy(avg)}" stroke="var(--rule)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/><path d="${d}" fill="none" stroke="var(${color})" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/><circle cx="${xx(last[0])}" cy="${yy(last[1])}" r="3.5" fill="var(${color})" stroke="var(--paper)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function trendLine(today, vals, unit, lowerBetter) {
+  const prior = vals.slice(0, -1).filter(v => v != null);
+  if (today == null || prior.length < 3) return `<span>${prior.length} days so far</span>`;
+  const avg = prior.reduce((a, b) => a + b, 0) / prior.length, diff = today - avg;
+  if (Math.abs(diff) < avg * .03) return `Right on your ${prior.length}-day average`;
+  const better = lowerBetter ? diff < 0 : diff > 0;
+  return `<span class="${better ? "good" : "bad"}">${Math.abs(diff) >= 10 ? Math.round(Math.abs(diff)).toLocaleString() : Math.abs(diff).toFixed(1)}${unit} ${diff < 0 ? "below" : "above"}</span> your ${prior.length}-day average${lowerBetter ? " (lower is better)" : ""}`;
+}
+
+function renderHealth() {
+  const days = ((S.health && S.health.days) || []).slice().sort((a, b) => a.date < b.date ? -1 : 1).filter(d => d.date <= S.day);
+  const h = (S.dayData && S.dayData.summary && S.dayData.summary.health) || days.find(d => d.date === S.day) || null;
+  const el = $("#hgrid");
+  if (!h || !Object.keys(h).length) { el.innerHTML = `<div class="card empty span12" style="grid-column:span 12">No Apple Health data for this day yet. Open the Alibi iPhone app and tap Allow Health.</div>`; $("#healthAside").textContent = ""; return; }
+  const series = k => days.slice(-14).map(d => { const v = d[k] ?? (k === "sleep_h" && d.sleep ? (d.sleep.core_h || 0) + (d.sleep.deep_h || 0) + (d.sleep.rem_h || 0) : null); return typeof v === "number" ? v : null; });
+  $("#healthAside").textContent = `From Apple Health · ${days.length ? `${Math.min(14, days.length)} days of history` : ""}`;
+  const sl = h.sleep || {};
+  const stages = [["Deep", sl.deep_h, "--deep"], ["Core", sl.core_h, "--core"], ["REM", sl.rem_h, "--rem"], ["Awake", sl.awake_h, "--awake"]].filter(s => typeof s[1] === "number");
+  const tot = stages.reduce((a, s) => a + s[1], 0);
+  const asleep = h.sleep_h ?? (tot ? tot - (sl.awake_h || 0) : null);
+  const sleepCard = `<div class="card hc2 span6"><div class="eyebrow">Last night</div>
+    <div class="hv num">${asleep != null ? `${Math.floor(Math.round(asleep * 60) / 60)}<small style="margin:0 8px 0 2px">h</small>${pad(Math.round(asleep * 60) % 60)}<small style="margin-left:2px">m</small>` : "—"}</div>
+    <div class="hsub">${asleep != null ? trendLine(asleep, series("sleep_h"), " h", false) : "No sleep recorded"}</div>
+    ${stages.length ? `<div class="stages">${stages.map(([k, v, c]) => `<i style="flex:${v};--c:var(${c})" ${tipA(`${hm(v)} · ${Math.round(v / tot * 100)}%`, "", k)}></i>`).join("")}</div>
+    <div class="bedwake"><span>${sl.bed ? "Bed " + esc(sl.bed) : ""}</span><span>${sl.wake ? "Up " + esc(sl.wake) : ""}</span></div>
+    <div class="stagekey" style="margin-top:14px">${stages.map(([k, v, c]) => `<div style="--c:var(${c})">${k}<b>${hm(v)}</b></div>`).join("")}</div>` : ""}
+  </div>`;
+  const vital = (title, k, unit, lowerBetter, color) => h[k] == null ? "" : `<div class="card hc2 span3"><div class="eyebrow">${title}</div><div class="hv num">${Math.round(h[k])}<small>${unit}</small></div><div class="hsub">${trendLine(h[k], series(k), " " + unit, lowerBetter)}</div>${sparkline(series(k), {color})}</div>`;
+  const steps = h.steps != null ? `<div class="card hc2 span4"><div class="eyebrow">Steps</div><div class="hv num">${Math.round(h.steps).toLocaleString()}</div><div class="hsub">${trendLine(h.steps, series("steps"), "", false)}</div>${sparkline(series("steps"), {bars: true})}</div>` : "";
+  const mini = [["Exercise", h.exercise_min, "min"], ["Active energy", h.active_kcal, "kcal"], ["Daylight", h.daylight_min, "min"], ["Mindful", h.mindful_min, "min"],
+    ["Distance", h.distance_km, "km"], ["Flights", h.flights, ""], ["Stand", h.stand_h, "h"], ["Breathing", h.resp_rate, "/min"], ["Headphones", h.headphone_db, "dB"]]
+    .filter(m => typeof m[1] === "number");
+  const miniCard = mini.length ? `<div class="card hc2 span8"><div class="eyebrow">Today so far</div><div class="minis" style="margin-top:14px">${mini.map(([k, v, u]) => `<div class="mini"><div class="eyebrow">${k}</div><div class="mv num">${Number.isInteger(v) ? v.toLocaleString() : v.toFixed(1)}<small>${u}</small></div></div>`).join("")}</div></div>` : "";
+  const moods = (h.moods || []).filter(m => typeof m.valence === "number");
+  const moodWord = v => v > .5 ? "Very pleasant" : v > .15 ? "Pleasant" : v > -.15 ? "Neutral" : v > -.5 ? "Unpleasant" : "Very unpleasant";
+  const moodCard = `<div class="card hc2 span4"><div class="eyebrow">Mood</div>${moods.length ? `<div class="moods">${moods.map(m => `<div class="mood"><div class="ml"><b style="font-weight:500">${moodWord(m.valence)}</b><span>${m.ts ? hhmm(m.ts) : ""}</span></div><div class="scale"><i style="left:${(m.valence + 1) / 2 * 100}%"></i></div><div class="hsub">${esc((m.labels || []).join(", "))}</div></div>`).join("")}</div>` : `<div class="hsub" style="margin-top:12px">Log how you feel in the Health app (State of Mind) and it shows up here.</div>`}</div>`;
+  const wos = (h.workouts || []);
+  const woCard = wos.length ? `<div class="card hc2 span4"><div class="eyebrow">Workouts</div><div class="workouts">${wos.map(w => `<div class="wo"><div class="ic">${icon(/run/i.test(w.type) ? "run" : "pulse", 1.7)}</div><div><b>${esc((w.type || "Workout").replace(/^./, c => c.toUpperCase()))}${w.km ? ` · ${w.km} km` : ""}</b><div>${[w.start, w.min && `${w.min} min`, w.avg_hr && `${w.avg_hr} bpm avg`, w.kcal && `${w.kcal} kcal`].filter(Boolean).map(esc).join(" · ")}</div></div></div>`).join("")}</div></div>` : "";
+  el.innerHTML = sleepCard + vital("Resting heart rate", "resting_hr", "bpm", true, "--warn") + vital("Heart rate variability", "hrv_ms", "ms", false, "--accent") + steps + miniCard
+    + (woCard ? moodCard.replace("span4", "span6") + woCard.replace("span4", "span6") : moodCard.replace("span4", "span12"));
+}
+
+/* ---------- load ---------- */
+function renderAll() { renderStatus(); renderStats(); renderLanes(); renderSessTabs(); if (S.sess) renderSession(); renderHealth(); }
+
+async function loadStatus() {
+  const [st, lv, ck] = await Promise.all([soft(get("/api/signals/status")), soft(get("/api/signals/live")), soft(get("/api/health"))]);
+  if (!st) { const e = $("#err"); e.style.display = "block"; e.textContent = "Can't reach Alibi on this Mac. Is it running? (./alibi.sh up)"; return; }
+  $("#err").style.display = "none";
+  S.status = st; S.live = lv; S.checks = ck;
+  renderStatus();
+}
+
+async function loadDay() {
+  const day = S.day;
+  const [dd, ss, hd] = await Promise.all([soft(get(`/api/signals?day=${day}`)), soft(get("/api/sessions?limit=200")), soft(get("/api/apple-health/days?days=60"))]);
+  if (day !== S.day) return;
+  S.dayData = dd || {summary: {}, timeline: []};
+  S.sessions = (ss || []).filter(s => s.day === day).sort((a, b) => a.started_at - b.started_at);
+  S.health = hd;
+  const feeds = await Promise.all(S.sessions.filter(s => s.modality !== "physical").map(s => soft(get(`/api/feed?session=${s.id}&limit=200`)).then(f => [s.id, f])));
+  S.feeds = {};
+  for (const [id, f] of feeds) S.feeds[id] = ((f && f.items) || []).filter(i => i.source === "screen");
+  const d = new Date(day + "T12:00:00");
+  $("#daylabel").textContent = isToday() ? "Today" : d.toLocaleDateString(undefined, {weekday: "short", day: "numeric", month: "short"});
+  $("#todayTitle").innerHTML = isToday() ? "Today, <em>lane by lane</em>" : `${d.toLocaleDateString(undefined, {weekday: "long"})}, <em>lane by lane</em>`;
+  $("#next").disabled = isToday();
+  delete $("#plot").dataset.scrolled;
+  if (!S.sessions.some(s => s.id === S.sess)) {
+    const capped = [...S.sessions].reverse().find(s => s.signals_reason);
+    S.sess = (capped || S.sessions[S.sessions.length - 1] || {}).id || null;
+  }
+  renderStats(); renderLanes(); renderSessTabs(); renderHealth();
+  if (S.sess) selectSession(S.sess);
+  $("#updated").textContent = `Refreshed ${hhmm(Date.now() / 1000)}`;
+}
+
+function shiftDay(n) { const d = new Date(S.day + "T12:00:00"); d.setDate(d.getDate() + n); if (isoDay(d) > isoDay(new Date())) return; S.day = isoDay(d); S.sessData = {}; history.replaceState(null, "", isToday() ? location.pathname : `?day=${S.day}`); loadDay(); }
+$("#prev").onclick = () => shiftDay(-1);
+$("#next").onclick = () => shiftDay(1);
+const q = new URLSearchParams(location.search);
+if (/^\d{4}-\d{2}-\d{2}$/.test(q.get("day") || "")) S.day = q.get("day");
+if (q.get("session")) S.sess = +q.get("session");
+
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(renderLanes, 120); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
+loadStatus(); loadDay();
+setInterval(loadStatus, 30000);
+setInterval(() => { if (isToday() && !document.hidden) { S.sessData = {}; loadDay(); } }, 60000);
+</script>
+</body>
+</html>

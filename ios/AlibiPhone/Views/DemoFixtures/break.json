@@ -1,0 +1,151 @@
+{
+ "demo_now": 1790875853.282182,
+ "demo_mac": "Harrish's MacBook Pro",
+ "active": true,
+ "habit": "drawing",
+ "label": "Drawing",
+ "session_id": 11,
+ "started_at": 1790875804.7803168,
+ "ends_at": 1790875984.7803168,
+ "shield": false,
+ "on_break": true,
+ "sync_every_s": 120,
+ "session": {
+  "id": 11,
+  "habit": "drawing",
+  "habit_label": "Drawing",
+  "modality": "physical",
+  "started_at": 1790875804.7803168,
+  "ends_at": 1790875984.7803168,
+  "declared_min": 2,
+  "on_break": {
+   "until": 1790875913.276924,
+   "left_s": 60
+  },
+  "on_task_ratio": 1.0,
+  "last_label": "on_task",
+  "drifting": null,
+  "nudges": 0
+ },
+ "today": {
+  "habits_done": 1,
+  "habits_total": 5,
+  "verified_min": 51
+ },
+ "recent_verdict": null,
+ "streak_days": 7,
+ "week": {
+  "week_start": 1790550000.0,
+  "claimed_min": 352,
+  "seen_min": 269,
+  "habits": [
+   {
+    "habit": "drawing",
+    "label": "Drawing",
+    "claimed_min": 82,
+    "seen_min": 33,
+    "target_min": 210,
+    "status": "behind"
+   },
+   {
+    "habit": "building",
+    "label": "Building",
+    "claimed_min": 150,
+    "seen_min": 136,
+    "target_min": 420,
+    "status": "behind"
+   },
+   {
+    "habit": "math",
+    "label": "Math",
+    "claimed_min": 50,
+    "seen_min": 50,
+    "target_min": 240,
+    "status": "behind"
+   },
+   {
+    "habit": "cpp",
+    "label": "C++",
+    "claimed_min": 40,
+    "seen_min": 32,
+    "target_min": 180,
+    "status": "behind"
+   },
+   {
+    "habit": "internships",
+    "label": "Internships",
+    "claimed_min": 30,
+    "seen_min": 18,
+    "target_min": 180,
+    "status": "behind"
+   },
+   {
+    "habit": "portfolio",
+    "label": "Portfolio",
+    "claimed_min": 0,
+    "seen_min": 0,
+    "target_min": 180,
+    "status": "behind"
+   }
+  ]
+ },
+ "plan_next": null,
+ "pinch": {
+  "mood": "sleepy",
+  "event": null,
+  "seq": 0,
+  "age_s": null,
+  "line": "Break. Back at 18:31."
+ },
+ "demo_health_days": [
+  {
+   "days_ago": 0,
+   "steps": 9120.0,
+   "sleep_h": 7.4,
+   "mindful_min": 5.0,
+   "exercise_min": 31.0
+  },
+  {
+   "days_ago": 1,
+   "steps": 7655.0,
+   "sleep_h": 7.0,
+   "mindful_min": 10.0,
+   "exercise_min": 22.0
+  },
+  {
+   "days_ago": 2,
+   "steps": 12410.0,
+   "sleep_h": 6.2,
+   "mindful_min": 5.0,
+   "exercise_min": 38.0
+  },
+  {
+   "days_ago": 3,
+   "steps": 9874.0,
+   "sleep_h": 7.1,
+   "mindful_min": 10.0,
+   "exercise_min": 18.0
+  },
+  {
+   "days_ago": 4,
+   "steps": 6930.0,
+   "sleep_h": 7.6,
+   "mindful_min": 15.0,
+   "exercise_min": 41.0
+  },
+  {
+   "days_ago": 5,
+   "steps": 11206.0,
+   "sleep_h": 8.1,
+   "mindful_min": 0.0,
+   "exercise_min": 12.0
+  },
+  {
+   "days_ago": 6,
+   "steps": 8412.0,
+   "sleep_h": 7.2,
+   "mindful_min": 10.0,
+   "exercise_min": 34.0
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+<!-- @dsCard group="Data" height=112 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Stat — preview</title>
+<style>
+.al-row { gap: var(--space-8); align-items: flex-start; }
+</style>
+</head>
+<body>
+<div id="root" class="al-row"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  function Demo() {
+    var s = React.useState(false), alt = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(A.Stat, { value: alt ? '86%' : '82%', label: 'On task', sub: alt ? 'Seen 21 of 25 min' : 'Seen 20 of 25 min' }),
+      h(A.Stat, { value: alt ? '1h 58m' : '1h 52m', label: 'Seen today', sub: 'Claimed 2h 10m' }),
+      h(A.Stat, { value: alt ? 7 : 6, label: 'Days in a row', sub: '1 freeze left' }),
+      h(A.Button, { variant: 'quiet', size: 'sm', icon: 'undo', onClick: function () { set(!alt); } }, alt ? 'Undo' : 'Fix a moment'));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

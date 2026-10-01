@@ -1,0 +1,24 @@
+<!-- @dsCard group="Inputs" height=64 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Chip — preview</title>
+</head>
+<body>
+<div id="root" class="al-row"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  function Demo() {
+    var s = React.useState(0), sel = s[0], set = s[1];
+    var habits = ['Drawing', 'C++', 'Reading'];
+    return h(React.Fragment, null,
+      habits.map(function (t, i) {
+        return h(A.Chip, { key: t, kbd: '\u2318' + (i + 1), selected: sel === i, onClick: function () { set(sel === i ? -1 : i); } }, t);
+      }),
+      h(A.Chip, { icon: 'run' }, 'Run'),
+      h(A.Chip, { icon: 'calendar' }, 'Plan at 19:00'));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pinch lab</title>
+<link rel="stylesheet" href="../tokens/tokens.css">
+<style>
+  /* Fallback when tokens.css is missing: the dark tokens this page uses. */
+  :root {
+    --bg: #000; --surface-1: #1A1A1A; --surface-2: #262626; --surface-3: #333; --ink: #F2F2F2; --ink-2: #A6A6A6; --ink-3: #8F8F8F;
+    --hairline: rgba(255,255,255,.08); --hairline-strong: rgba(255,255,255,.38); --accent: #76B900; --accent-hover: #85C900;
+    --accent-press: #6AA800; --on-accent: #000; --accent-ink: #8FD400; --accent-wash: #1C2A06; --focus-ring: #76B900;
+    --partial-ink: #FFC233; --warn-ink: #FF7A7E;
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Onest", system-ui, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px; --space-12: 48px;
+    --radius-xs: 6px; --radius-sm: 10px; --radius-md: 16px; --radius-lg: 22px; --radius-pill: 9999px;
+    --dur-micro: 120ms; --dur-small: 180ms; --ease-out: cubic-bezier(0.23,1,0.32,1);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; }
+  .page { max-width: 1240px; margin: 0 auto; padding: var(--space-12) var(--space-6) var(--space-12); }
+  header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-8); }
+  h1 { margin: 0; font-size: 32px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
+  h2 { margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; }
+  .lede { margin: var(--space-2) 0 0; color: var(--ink-2); font-size: 16px; max-width: 60ch; }
+  .label { font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); }
+  .small { font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+  .mono { font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .card { background: var(--surface-1); border-radius: var(--radius-lg); padding: var(--space-6); min-width: 0; }
+  .card > h2 + .small { margin: var(--space-1) 0 0; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-4); }
+  .stack { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+  .row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+  .section { margin-top: var(--space-4); }
+  .group + .group { margin-top: var(--space-6); }
+  .group .label { display: block; margin-bottom: var(--space-2); }
+
+  /* Stage */
+  .stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-6);
+    min-height: 460px; padding: var(--space-12) var(--space-6) var(--space-6); }
+  .stage .hero { width: 240px; height: 240px; }
+  .readout { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2) var(--space-4); color: var(--ink-2); }
+  .readout b { color: var(--ink); font-weight: 500; }
+  .note { min-height: 20px; text-align: center; }
+  .note.dropped { color: var(--partial-ink); }
+
+  /* Controls */
+  button { font: inherit; color: inherit; }
+  .btn { appearance: none; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-2); height: 32px;
+    padding: 0 var(--space-3); border-radius: var(--radius-pill); background: var(--surface-2); color: var(--ink);
+    font-size: 13px; font-weight: 500; letter-spacing: 0; transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+  .btn:hover { background: var(--surface-3); }
+  .btn:active { transform: scale(0.97); }
+  .btn[aria-pressed="true"] { background: var(--accent-wash); color: var(--accent-ink); box-shadow: inset 0 0 0 1px var(--accent); }
+  .btn .mono { color: var(--ink-3); }
+  .btn[aria-pressed="true"] .mono { color: var(--accent-ink); }
+  .btn.primary { background: var(--accent); color: var(--on-accent); font-weight: 600; height: 40px; padding: 0 var(--space-4); }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn.primary:active { background: var(--accent-press); }
+  .btn.quiet { background: transparent; box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .switch { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-2) 0; cursor: pointer; }
+  .switch + .switch { border-top: 1px solid var(--hairline); }
+  .switch span:first-child { font-size: 15px; }
+  .switch small { display: block; color: var(--ink-3); font-size: 13px; }
+  .switch input { appearance: none; flex: none; width: 40px; height: 24px; border-radius: var(--radius-pill); background: var(--surface-3);
+    position: relative; cursor: pointer; margin: 0; transition: background-color var(--dur-small) var(--ease-out); }
+  .switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--ink);
+    transition: transform var(--dur-small) var(--ease-out); }
+  .switch input:checked { background: var(--accent); }
+  .switch input:checked::after { transform: translateX(16px); background: #000; }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: var(--radius-pill); background: var(--surface-2); }
+  .seg .btn { height: 28px; background: transparent; box-shadow: none; }
+  .seg .btn[aria-pressed="true"] { background: var(--surface-3); color: var(--ink); box-shadow: none; }
+
+  /* Demo steps */
+  .steps { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: center; margin-top: var(--space-4); }
+  .steps span { font-size: 13px; color: var(--ink-3); transition: color var(--dur-small) var(--ease-out); }
+  .steps span.on { color: var(--accent-ink); font-weight: 600; }
+  .steps span.done { color: var(--ink-2); }
+  .steps i { font-style: normal; color: var(--ink-3); font-size: 12px; }
+
+  /* Scrubber */
+  .scrub { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; margin-top: var(--space-4); }
+  select { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface-2); border: 0; border-radius: var(--radius-sm);
+    height: 32px; padding: 0 var(--space-3); }
+  .track { position: relative; padding-top: 14px; }
+  .ticks { position: absolute; left: 9px; right: 9px; top: 0; height: 10px; }
+  .ticks span { position: absolute; top: 2px; width: 2px; height: 6px; margin-left: -1px; border-radius: 1px; background: var(--ink-3); }
+  .ticks span.key { background: var(--accent); height: 10px; top: 0; }
+  input[type=range] { width: 100%; margin: 0; accent-color: var(--accent); height: 20px; }
+  .ms { min-width: 108px; text-align: right; color: var(--ink-2); }
+
+  /* Rig sliders */
+  .params { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3) var(--space-6); margin-top: var(--space-4); }
+  .param { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--space-2); align-items: baseline; }
+  .param label { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--ink); }
+  .param output { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .param.set output { color: var(--accent-ink); }
+  .param input, .param select { grid-column: 1 / -1; }
+
+  /* Size ladder */
+  .ladders { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin-top: var(--space-4); }
+  .ladder { border-radius: var(--radius-md); padding: var(--space-6) var(--space-4) var(--space-4); display: flex; flex-wrap: wrap;
+    align-items: flex-end; gap: var(--space-6) var(--space-4); }
+  .ladder.black { background: #000; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); color: #A6A6A6; }
+  .ladder.white { background: #FFF; color: #5E5E5E; }
+  .ladder figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+  .ladder figcaption { font-family: var(--font-mono); font-size: 11px; line-height: 1.3; text-align: center; font-variant-numeric: tabular-nums; }
+  .ladder figcaption b { display: block; font-weight: 600; font-size: 12px; }
+  .ladder.black figcaption b { color: #F2F2F2; }
+  .ladder.white figcaption b { color: #000; }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .params { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .page { padding: var(--space-8) var(--space-4); }
+    .card { padding: var(--space-4); }
+    .stage { min-height: 380px; }
+    .params { grid-template-columns: minmax(0, 1fr); }
+    .scrub { grid-template-columns: minmax(0, 1fr); }
+    .ms { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <h1>Pinch lab</h1>
+      <p class="lede">Test bench for <span class="mono">pinch.js</span>. Every mood and clip, the size ladder, both themes, reduced motion, the rig and a frame scrubber.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Page theme">
+      <button class="btn" data-theme-btn="dark" aria-pressed="true">Dark</button>
+      <button class="btn" data-theme-btn="light" aria-pressed="false">Light</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card stage" aria-label="Pinch at 240 px">
+      <div class="hero" id="hero"></div>
+      <div class="readout small">
+        <span>Mood <b id="r-mood">idle</b></span>
+        <span>Clip <b id="r-clip">none</b></span>
+        <span>Mode <b id="r-mode">live</b></span>
+        <span>Cooldown <b id="r-cool" class="mono">ready</b></span>
+      </div>
+      <p class="note small" id="note" aria-live="polite"></p>
+    </section>
+
+    <div class="stack">
+      <section class="card">
+        <div class="group">
+          <span class="label">Moods, held and looping</span>
+          <div class="row" id="moods"></div>
+        </div>
+        <div class="group">
+          <span class="label">Clips, one-shot, with priority</span>
+          <div class="row" id="clips"></div>
+        </div>
+      </section>
+      <section class="card">
+        <label class="switch"><span>Camera on<small>The lens glows while the camera samples.</small></span><input type="checkbox" id="o-camera"></label>
+        <label class="switch"><span>Reduced motion<small>No loop; clips crossfade key poses over 200 ms.</small></span><input type="checkbox" id="o-rm"></label>
+        <label class="switch"><span>Bypass the cooldown<small>Off: the 90 s cooldown and priority rules apply.</small></span><input type="checkbox" id="o-force" checked></label>
+        <label class="switch"><span>Follow the pointer<small>Gaze through lookAt().</small></span><input type="checkbox" id="o-look" checked></label>
+        <label class="switch"><span>Rim on dark<small>Opt-in #8FD400 outline.</small></span><input type="checkbox" id="o-rim"></label>
+      </section>
+    </div>
+  </div>
+
+  <section class="card section">
+    <div class="row" style="justify-content: space-between">
+      <div>
+        <h2>Demo sequence</h2>
+        <p class="small" style="margin: var(--space-1) 0 0">B-roll for the video: about 16 s, everything on screen at once.</p>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="demo">Play the demo sequence</button>
+        <button class="btn quiet" id="demo-stop" disabled>Stop</button>
+      </div>
+    </div>
+    <div class="steps" id="steps"></div>
+  </section>
+
+  <section class="card section">
+    <h2>Frame scrubber</h2>
+    <p class="small">Drives <span class="mono">seek()</span>: one deterministic frame per position. Green tick is the key frame; grey ticks are keyframes in the tracks.</p>
+    <div class="scrub">
+      <select id="s-name" aria-label="Mood or clip to scrub"></select>
+      <div class="track"><div class="ticks" id="ticks"></div><input type="range" id="s-ms" min="0" max="1400" step="10" value="0" aria-label="Time in ms"></div>
+      <span class="ms mono" id="s-out">0 / 1400 ms</span>
+    </div>
+    <div class="row" style="margin-top: var(--space-4)">
+      <button class="btn" id="s-key">Key frame</button>
+      <button class="btn" id="s-back">−20 ms</button>
+      <button class="btn" id="s-fwd">+20 ms</button>
+      <button class="btn" id="s-slow" aria-pressed="false">Play at ¼ speed</button>
+      <button class="btn quiet" id="s-live">Back to live</button>
+    </div>
+  </section>
+
+  <section class="card section">
+    <div class="row" style="justify-content: space-between">
+      <div>
+        <h2>Rig</h2>
+        <p class="small" style="margin: var(--space-1) 0 0">The held pose layer. The mood loop adds on top and clips override it.</p>
+      </div>
+      <button class="btn quiet" id="p-reset">Reset all</button>
+    </div>
+    <div class="params" id="params"></div>
+  </section>
+
+  <section class="card section">
+    <h2>Size ladder</h2>
+    <p class="small">Same moods and clips as the hero. Each rung picks its own level of detail; 16 and 20 are still glyphs.</p>
+    <div class="ladders">
+      <div class="ladder black" data-theme="dark" id="ladder-dark"></div>
+      <div class="ladder white" data-theme="light" id="ladder-light"></div>
+    </div>
+  </section>
+</div>
+
+<script src="pinch.js"></script>
+<script>
+(function () {
+  'use strict';
+  var P = window.AlibiPinch;
+  var $ = function (id) { return document.getElementById(id); };
+  var SIZES = [16, 20, 24, 28, 32, 44, 56, 64, 96, 160];
+  var RUNG = { full: 'full', m56: 'no legs', lod24: 'lod24', g20: 'lod20', g16: 'lod16' };
+
+  var hero = P.mount($('hero'), { size: 240, mood: 'idle' });
+  var ladder = [];
+  ['dark', 'light'].forEach(function (theme) {
+    var host = $('ladder-' + theme);
+    SIZES.forEach(function (s) {
+      var fig = document.createElement('figure'), slot = document.createElement('div'), cap = document.createElement('figcaption');
+      fig.appendChild(slot); fig.appendChild(cap); host.appendChild(fig);
+      var inst = P.mount(slot, { size: s, mood: 'idle' });
+      cap.innerHTML = '<b>' + s + '</b>' + RUNG[inst.state().rung];
+      ladder.push(inst);
+    });
+  });
+  var all = [hero].concat(ladder);
+
+  /* ---------- readout ---------- */
+  var note = $('note');
+  function say(text, dropped) { note.textContent = text; note.classList.toggle('dropped', !!dropped); }
+  function readout() {
+    var s = hero.state();
+    $('r-mood').textContent = s.mood;
+    $('r-clip').textContent = s.clip || 'none';
+    $('r-mode').textContent = s.mode;
+    $('r-cool').textContent = s.cooldownLeft > 0 ? Math.ceil(s.cooldownLeft / 1000) + ' s' : 'ready';
+  }
+  setInterval(readout, 250);
+
+  /* ---------- moods and clips ---------- */
+  function pressed(container, value) {
+    container.querySelectorAll('[data-v]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === value)); });
+  }
+  P.moods.forEach(function (m) {
+    var b = document.createElement('button');
+    b.className = 'btn'; b.setAttribute('data-v', m); b.textContent = m; b.setAttribute('aria-pressed', String(m === 'idle'));
+    b.addEventListener('click', function () { stopDemo(); setMood(m); });
+    $('moods').appendChild(b);
+  });
+  var PRIO = { hello: 1, connected: 2, surprise: 3, sideeye: 4, nudge: 4, partial: 5, supportive: 5, celebrate: 5 };
+  P.clips.forEach(function (c) {
+    var b = document.createElement('button');
+    b.className = 'btn'; b.setAttribute('data-v', c);
+    b.innerHTML = c + ' <span class="mono">p' + PRIO[c] + ' · ' + P.duration(c) + '</span>';
+    b.addEventListener('click', function () { stopDemo(); playClip(c, { chain: false }); });
+    $('clips').appendChild(b);
+  });
+  function setMood(m) {
+    all.forEach(function (i) { i.set(m); });
+    pressed($('moods'), m);
+    say('');
+    readout();
+  }
+  function playClip(c, opts) {
+    var force = $('o-force').checked;
+    var o = { force: force, chain: opts && opts.chain };
+    ladder.forEach(function (i) { i.play(c, o); });
+    pressed($('clips'), c);
+    var p = hero.play(c, o).then(function (ok) {
+      pressed($('clips'), null);
+      if (!ok && !hero.state().clip) say(c + ' was dropped: an equal or higher clip played less than 90 s ago.', true);
+      readout();
+      return ok;
+    });
+    say(''); readout();
+    return p;
+  }
+
+  /* ---------- options ---------- */
+  $('o-rm').checked = P.reducedMotion();
+  $('o-rm').addEventListener('change', function (e) { P.reducedMotion(e.target.checked); readout(); });
+  $('o-camera').addEventListener('change', function (e) { all.forEach(function (i) { i.camera(e.target.checked); }); });
+  $('o-rim').addEventListener('change', function (e) {
+    all.forEach(function (i) { i.theme(null, e.target.checked); });
+  });
+  document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = b.getAttribute('data-theme-btn');
+      document.documentElement.setAttribute('data-theme', t);
+      document.querySelectorAll('[data-theme-btn]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!$('o-look').checked) return;
+    var r = $('hero').getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * 0.45;
+    hero.lookAt((e.clientX - cx) / (window.innerWidth * 0.4), (e.clientY - cy) / (window.innerHeight * 0.45));
+  });
+  document.documentElement.addEventListener('pointerleave', function () { hero.lookAt(null); });
+  $('o-look').addEventListener('change', function (e) { if (!e.target.checked) hero.lookAt(null); });
+
+  /* ---------- demo sequence: hello, listening, focused, sideeye, nudge, surprise, celebrate, sleepy ---------- */
+  var STEPS = ['hello', 'listening', 'focused', 'sideeye', 'nudge', 'surprise', 'celebrate', 'sleepy'];
+  STEPS.forEach(function (s, i) {
+    if (i) { var a = document.createElement('i'); a.textContent = '→'; a.setAttribute('aria-hidden', 'true'); $('steps').appendChild(a); }
+    var e = document.createElement('span'); e.textContent = s; e.setAttribute('data-step', s); $('steps').appendChild(e);
+  });
+  var run = 0;
+  function mark(step) {
+    var hit = false;
+    $('steps').querySelectorAll('span').forEach(function (e) {
+      var on = e.getAttribute('data-step') === step;
+      e.classList.toggle('on', on); e.classList.toggle('done', !on && !hit && step !== null);
+      if (on) hit = true;
+    });
+  }
+  function wait(ms, id) { return new Promise(function (res, rej) { setTimeout(function () { id === run ? res() : rej('stopped'); }, ms); }); }
+  function alive(id) { return function (v) { if (id !== run) throw 'stopped'; return v; }; }
+  function camera(on) { $('o-camera').checked = on; all.forEach(function (i) { i.camera(on); }); }
+  function force(c) { ladder.forEach(function (i) { i.play(c, { force: true, chain: false }); }); pressed($('clips'), c); return hero.play(c, { force: true, chain: false }); }
+  function stopDemo() {
+    if (!run) return;
+    run = 0; mark(null);
+    $('demo').disabled = false; $('demo-stop').disabled = true;
+  }
+  $('demo-stop').addEventListener('click', stopDemo);
+  $('demo').addEventListener('click', function () {
+    var id = run = Date.now();
+    $('demo').disabled = true; $('demo-stop').disabled = false;
+    hero.resume(); camera(false); setMood('idle');
+    say('');
+    wait(400, id)
+      .then(function () { mark('hello'); return force('hello'); }).then(alive(id))
+      .then(function () { mark('listening'); setMood('listening'); return wait(2200, id); })
+      .then(function () { mark('focused'); camera(true); setMood('focused'); return wait(2600, id); })
+      .then(function () { mark('sideeye'); return force('sideeye'); }).then(alive(id))
+      .then(function () { mark('nudge'); return force('nudge'); }).then(alive(id))
+      .then(function () { return wait(900, id); })
+      .then(function () { mark('surprise'); return force('surprise'); }).then(alive(id))
+      .then(function () { return wait(700, id); })
+      .then(function () { mark('celebrate'); camera(false); setMood('idle'); return force('celebrate'); }).then(alive(id))
+      .then(function () { return wait(600, id); })
+      .then(function () { mark('sleepy'); setMood('sleepy'); return wait(3200, id); })
+      .then(function () { stopDemo(); pressed($('clips'), null); }, function () { pressed($('clips'), null); });
+  });
+
+  /* ---------- frame scrubber ---------- */
+  var sel = $('s-name'), ms = $('s-ms');
+  [['Moods', P.moods], ['Clips', P.clips]].forEach(function (g) {
+    var og = document.createElement('optgroup'); og.label = g[0];
+    g[1].forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; og.appendChild(o); });
+    sel.appendChild(og);
+  });
+  sel.value = 'celebrate';
+  function ticks() {
+    var n = sel.value, d = P.duration(n), k = P.keyFrame(n);
+    ms.max = d;
+    $('ticks').innerHTML = '';
+    P.keyTimes(n).concat([k]).forEach(function (t, i, arr) {
+      if (t > d) return;
+      var s = document.createElement('span');
+      if (i === arr.length - 1) s.className = 'key';
+      s.style.left = (100 * t / d) + '%';
+      $('ticks').appendChild(s);
+    });
+  }
+  var slow = 0;
+  function seek() {
+    stopDemo();
+    hero.seek(sel.value, +ms.value);
+    $('s-out').textContent = ms.value + ' / ' + P.duration(sel.value) + ' ms';
+    readout();
+  }
+  function stopSlow() { if (slow) { cancelAnimationFrame(slow); slow = 0; $('s-slow').setAttribute('aria-pressed', 'false'); } }
+  sel.addEventListener('change', function () { stopSlow(); ticks(); ms.value = P.keyFrame(sel.value); seek(); });
+  ms.addEventListener('input', function () { stopSlow(); seek(); });
+  $('s-key').addEventListener('click', function () { stopSlow(); ms.value = P.keyFrame(sel.value); seek(); });
+  $('s-back').addEventListener('click', function () { stopSlow(); ms.value = Math.max(0, +ms.value - 20); seek(); });
+  $('s-fwd').addEventListener('click', function () { stopSlow(); ms.value = Math.min(+ms.max, +ms.value + 20); seek(); });
+  $('s-live').addEventListener('click', function () { stopSlow(); hero.resume(); readout(); });
+  $('s-slow').addEventListener('click', function () {
+    if (slow) { stopSlow(); return; }
+    $('s-slow').setAttribute('aria-pressed', 'true');
+    var last = 0, t = +ms.value >= +ms.max ? 0 : +ms.value;
+    (function tick(now) {
+      if (last) t += (now - last) / 4;
+      last = now;
+      if (t > +ms.max) t = 0;
+      ms.value = Math.round(t); hero.seek(sel.value, t);
+      $('s-out').textContent = Math.round(t) + ' / ' + P.duration(sel.value) + ' ms';
+      slow = requestAnimationFrame(tick);
+    })(0);
+  });
+  ticks(); ms.value = P.keyFrame('celebrate');
+  $('s-out').textContent = ms.value + ' / ' + P.duration('celebrate') + ' ms';
+
+  /* ---------- rig sliders: the held pose layer ---------- */
+  var held = {};
+  P.params.forEach(function (d) {
+    var w = document.createElement('div'), id = 'p-' + d.name;
+    w.className = 'param';
+    var out = '<output id="' + id + '-v">' + d['default'] + '</output>';
+    if (typeof d['default'] === 'number') {
+      var step = (d.max - d.min) <= 2.5 ? 0.01 : 0.5;
+      w.innerHTML = '<label for="' + id + '">' + d.name + '</label>' + out +
+        '<input type="range" id="' + id + '" min="' + d.min + '" max="' + d.max + '" step="' + step + '" value="' + d['default'] + '" title="' + d.drives.replace(/"/g, '&quot;') + '">';
+    } else {
+      w.innerHTML = '<label for="' + id + '">' + d.name + '</label>' + out +
+        '<select id="' + id + '"><option>smile</option><option>flat</option><option>open</option><option>o</option></select>';
+    }
+    $('params').appendChild(w);
+    var input = w.querySelector('input,select');
+    input.addEventListener('input', function () {
+      var v = input.tagName === 'SELECT' ? input.value : +input.value;
+      if (v === d['default']) delete held[d.name]; else held[d.name] = v;
+      w.classList.toggle('set', d.name in held);
+      $(id + '-v').textContent = v;
+      hero.pose(held);
+    });
+  });
+  $('p-reset').addEventListener('click', function () {
+    held = {};
+    P.params.forEach(function (d) {
+      var input = $('p-' + d.name);
+      input.value = d['default'];
+      $('p-' + d.name + '-v').textContent = d['default'];
+      input.parentNode.classList.remove('set');
+    });
+    hero.pose(null);
+  });
+
+  window.lab = { hero: hero, ladder: ladder, all: all, setMood: setMood, playClip: playClip };
+  readout();
+})();
+</script>
+</body>
+</html>

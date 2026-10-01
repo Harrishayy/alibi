@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>iPhone Lock Screen activity</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/alibi/components/bundle.css">
+<script src="ds/alibi/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--accent-ink)}a:hover{color:var(--ink)}
+@keyframes ph-arrive{from{opacity:0;transform:translateY(12px) scale(0.97);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes ph-swap{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:none}}
+</style>
+</helmet>
+<div data-theme="dark" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--bg); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased;">
+
+<div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;">
+<div style="position: absolute; left: -160px; top: 300px; width: 560px; height: 560px; border-radius: var(--radius-pill); background: var(--surface-1); filter: blur(30px);"></div>
+<div style="position: absolute; left: 150px; top: 90px; width: 380px; height: 380px; border-radius: var(--radius-pill); background: var(--surface-2); filter: blur(40px); opacity: 0.6;"></div>
+<div style="position: absolute; left: 40px; top: 620px; width: 260px; height: 260px; border-radius: var(--radius-pill); background: var(--surface-1); filter: blur(28px); opacity: 0.7;"></div>
+</div>
+
+<div style="position: absolute; top: 76px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; color: var(--ink);">
+<p style="margin: 0; font-size: 20px; line-height: 25px; font-weight: 600; color: var(--ink-2);">Thursday 1 October</p>
+<p style="margin: 0; font-size: 96px; line-height: 100px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;">{{ clock }}</p>
+</div>
+
+<section aria-label="{{ activityLabel }}" style="position: absolute; left: 14px; right: 14px; top: 560px; box-sizing: border-box; padding: 14px 16px 14px 14px; border-radius: var(--radius-lg); background: var(--island); box-shadow: inset 0 0 0 1px var(--hairline); display: flex; flex-direction: column; animation: ph-arrive var(--spring-smooth-dur) var(--spring-smooth) both;">
+
+<div style="height: 44px; display: flex; align-items: center; gap: 10px;">
+<span style="width: 32px; height: 32px; flex: none; display: inline-flex;"><x-import component-from-global-scope="Alibi.Pinch" mood="{{ mood }}" play="{{ clip }}" still="{{ yes }}" size="{{ pinch32 }}" theme="dark"></x-import></span>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+<span style="font-size: 11px; line-height: 13px; font-weight: 600; color: var(--ink-3);">Alibi</span>
+<span style="font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Drawing</span>
+</div>
+<sc-if value="{{ ticking }}" hint-placeholder-val="{{ true }}">
+<span role="timer" aria-label="{{ timerLabel }}" style="width: 104px; flex: none; text-align: right; font-family: var(--font-rounded); font-size: 34px; line-height: 40px; font-weight: 600; letter-spacing: 0; font-variant-numeric: tabular-nums; color: {{ timerInk }};">{{ timer }}</span>
+</sc-if>
+<sc-if value="{{ verdict }}" hint-placeholder-val="{{ false }}">
+<span style="flex: none; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-rounded); font-size: 22px; line-height: 28px; font-weight: 600; color: {{ verdictInk }}; animation: ph-swap var(--dur-medium) var(--ease-out) both;">
+<sc-if value="{{ done }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Alibi.Icon" name="check" size="{{ icon20 }}"></x-import></sc-if>
+<sc-if value="{{ partly }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: relative; width: 16px; height: 16px; margin: 2px; box-sizing: border-box; border-radius: var(--radius-pill); border: 2px solid currentColor; overflow: hidden;"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: currentColor;"></span></span></sc-if>
+<sc-if value="{{ slacked }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Alibi.Icon" name="x" size="{{ icon20 }}"></x-import></sc-if>
+<span>{{ verdictWord }}</span>
+</span>
+</sc-if>
+</div>
+
+<div aria-hidden="true" style="margin-top: 10px; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden;">
+<div style="height: 6px; width: 100%; border-radius: 3px; background: {{ barInk }}; transform-origin: left center; transform: scaleX({{ progress }}); transition: transform 1000ms linear;"></div>
+</div>
+
+<div style="margin-top: 10px; min-height: 18px; display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+<sc-if value="{{ live }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="Alibi.StatusDot" label="{{ dotLabel }}" size="{{ dot }}"></x-import></sc-if>
+<sc-if value="{{ drift }}" hint-placeholder-val="{{ false }}"><span><span style="color: var(--warn-ink); font-weight: 600;">Phone</span> · 3 min</span></sc-if>
+<sc-if value="{{ plain }}" hint-placeholder-val="{{ true }}"><span>{{ line }}</span></sc-if>
+</div>
+
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"status":{"editor":"enum","options":["on","drift","break","done","partial","slacked"],"default":"on","section":"Live Activity"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    this.tick = setInterval(() => {
+      const s = this.state || {};
+      const left = s.left != null ? s.left : 1122;
+      const pause = s.pause != null ? s.pause : 252;
+      this.setState({ left: Math.max(0, left - 1), pause: Math.max(0, pause - 1) });
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.tick); }
+  renderVals() {
+    const status = this.props.status ?? 'on';
+    const s = this.state || {};
+    const total = 25 * 60;
+    const left = s.left != null ? s.left : 1122;
+    const pause = s.pause != null ? s.pause : 252;
+    const fmt = (sec) => Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+    const onBreak = status === 'break';
+    const shown = onBreak ? pause : left;
+    const verdicts = {
+      done: { word: 'Done', ink: 'var(--accent-ink)', bar: 'var(--done)', ratio: 23 / 25, line: '23 of 25 min on task', clip: 'celebrate' },
+      partial: { word: 'Partly', ink: 'var(--partial-ink)', bar: 'var(--partly)', ratio: 17 / 25, line: '17 of 25 min on task', clip: 'partial' },
+      slacked: { word: 'Slacked', ink: 'var(--warn-ink)', bar: 'var(--slacked)', ratio: 6 / 25, line: '6 of 25 min on task', clip: 'supportive' }
+    };
+    const v = verdicts[status];
+    const lines = { on: 'On task 92% · last seen 19:26', break: 'On a break · back 19:31' };
+    const clockMin = 27 + Math.floor((1122 - left) / 60);
+    return {
+      clock: v ? '19:47' : '19:' + String(Math.min(59, clockMin)).padStart(2, '0'),
+      timer: fmt(shown),
+      timerLabel: Math.floor(shown / 60) + ' minutes ' + (shown % 60) + ' seconds ' + (onBreak ? 'of break left' : 'left'),
+      timerInk: onBreak ? 'var(--partial-ink)' : 'var(--ink)',
+      ticking: !v,
+      verdict: !!v,
+      verdictWord: v ? v.word : '',
+      verdictInk: v ? v.ink : 'var(--ink)',
+      done: status === 'done',
+      partly: status === 'partial',
+      slacked: status === 'slacked',
+      barInk: v ? v.bar : onBreak ? 'var(--partial)' : 'var(--accent)',
+      progress: v ? v.ratio : (total - left) / total,
+      live: !v,
+      drift: status === 'drift',
+      plain: status !== 'drift',
+      line: v ? v.line : lines[status] || lines.on,
+      dotLabel: status === 'drift' ? 'phone' : onBreak ? 'idle' : 'on_task',
+      mood: status === 'on' ? 'focused' : onBreak ? 'sleepy' : 'idle',
+      clip: status === 'drift' ? 'sideeye' : v ? v.clip : null,
+      activityLabel: 'Alibi Live Activity: Drawing, ' + (v ? v.word.toLowerCase() + ', ' + v.line : status === 'drift' ? 'phone for 3 minutes' : onBreak ? 'on a break' : 'on task'),
+      pinch32: 32,
+      icon20: 20,
+      dot: 8,
+      yes: true
+    };
+  }
+}
+</script>
+</body>
+</html>

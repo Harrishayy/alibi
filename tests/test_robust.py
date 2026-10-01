@@ -79,8 +79,8 @@ daemon.tick(con)
 s4b = db.get_session(con, s4["id"])
 check(s4b["status"] == "done" and abs(s4b["ended_at"] - s4b["ends_at"]) < 1, "slept through bell -> ended_at = ends_at")
 check(len(db.session_events(con, s4["id"], "camera")) == n_before, "no post-wake camera sample")
-check(notify.recent_alerts()[-1].get("missed") and "While you were away" in notify.recent_alerts()[-1]["text"],
-      notify.recent_alerts()[-1]["text"])
+away = [a for a in notify.recent_alerts() if a.get("kind") != "report"]   # run near 20:00, the jump crosses 22:00
+check(away[-1].get("missed") and "While you were away" in away[-1]["text"], away[-1]["text"])
 
 # R5: a correction drops the stale reel; it's rebuilt with ?v= cache-buster
 daemon.join_reels()

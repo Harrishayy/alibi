@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pinch still</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="cards.css">
+<style>html, body { background: transparent; }</style>
+<script src="pinch-data.js"></script>
+<script src="../../pinch/rig.js"></script>
+<script src="card.js"></script>
+</head>
+<body>
+<main class="solo" id="pinch"></main>
+<script>
+/* A transparent Pinch still at a clip's key pose (its most readable frame), for the reel title card (ask A4).
+   ?clip=celebrate|partial|supportive|hello|... &size=512 */
+var q = new URLSearchParams(location.search);
+var C = window.PINCH_DATA.clips, clip = q.get('clip') || 'hello', size = +(q.get('size') || 512);
+Card.init({ duration: 1 });
+Card.pinch(document.getElementById('pinch'), C.clips[clip]
+  ? { size: Math.round(size * 0.86), mood: 'idle', cues: [{ clip: clip, at: -C.clips[clip].key }] }
+  : { size: Math.round(size * 0.86), mood: C.moods[clip] ? clip : 'idle' });
+Card.ready = true;
+</script>
+</body>
+</html>

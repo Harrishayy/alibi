@@ -41,12 +41,31 @@ REMOTE_TOKEN = os.getenv("ALIBI_REMOTE_TOKEN", "")
 ALERTS_PATH = DATA_DIR / "alerts.jsonl"
 
 # No key yet? Everything still runs: text falls back to rules, vision to Apple's on-device Vision framework.
-# A self-hosted endpoint (the Spark relay over Tailscale) takes its own bearer token instead of an nvapi- key.
-_SELF_HOSTED = "integrate.api.nvidia.com" not in LLM_BASE_URL
-TEXT_READY = bool((NVIDIA_API_KEY.startswith("nvapi-") and len(NVIDIA_API_KEY) > 12 or _SELF_HOSTED and NVIDIA_API_KEY)
-                  and LLM_MODEL and "<" not in LLM_MODEL)
-VISION_BACKEND = os.getenv("VISION_BACKEND") or (
-    "nvidia" if TEXT_READY and VLM_MODEL and "<" not in VLM_MODEL else "apple")   # nvidia | apple | mock
+def _local_llm(base_url: str) -> bool:
+    """A self-hosted OpenAI-compatible server (e.g. the Spark over Tailscale) needs no nvapi key."""
+    from urllib.parse import urlparse
+    host = (urlparse(base_url).hostname or "").lower()
+    return bool(host) and host != "nvidia.com" and not host.endswith(".nvidia.com")
+
+
+_MODEL_OK = bool(LLM_MODEL and "<" not in LLM_MODEL)
+TEXT_READY = _MODEL_OK and (
+    (NVIDIA_API_KEY.startswith("nvapi-") and len(NVIDIA_API_KEY) > 12) or _local_llm(LLM_BASE_URL))
+# Vision stays on the Mac unless asked otherwise: a text model being ready must never silently ship camera frames
+# to Build or the Spark (AGENTS.md rule 5). Set VISION_BACKEND=nvidia explicitly to use VLM_MODEL.
+VISION_BACKEND = os.getenv("VISION_BACKEND") or "apple"   # nvidia | apple | mock
+
+
+def photo_where() -> str:
+    """Where camera photos go, worded exactly (AGENTS.md rule 5): only apple/mock may say they stay on the Mac."""
+    if VISION_BACKEND != "nvidia":
+        return "Photos stay on this Mac."
+    return ("Photos go to your own model server to be checked." if _local_llm(VLM_BASE_URL)
+            else "Photos go to NVIDIA's model to be checked.")
+
+
+def photo_text(text: str) -> str:
+    return text.replace("Photos stay on this Mac.", photo_where())
 
 # --- added: limits, pace reminders, drift consequences --------------------------------------------------------
 MAX_SESSION_MIN = int(os.getenv("MAX_SESSION_MIN", "240"))       # longer claims must be said in chunks
@@ -122,3 +141,9 @@ def habit_created_ts(h: dict) -> float | None:
         return float(v) if isinstance(v, (int, float)) else _dt.datetime.fromisoformat(str(v)).timestamp()
     except ValueError:
         return None
+
+# --- F5 digests: 07:30 brief, checkpoints, the night review (alibi/digest.py) ------------------------------------------
+MORNING_AT = os.getenv("MORNING_AT", "07:30")                     # HH:MM, minute-aware
+CHECK_HOURS = tuple(int(h) for h in os.getenv("CHECK_HOURS", "12,16,20").split(",") if h.strip())
+DIGESTS = os.getenv("DIGESTS", "1") == "1"                        # morning + checkpoint slots (the night one always runs)
+DIGEST_GAP_FROM, DIGEST_GAP_TO = os.getenv("DIGEST_DAY", "07:00-22:00").split("-")   # where replans may land
