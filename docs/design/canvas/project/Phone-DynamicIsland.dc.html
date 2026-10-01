@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dynamic Island activity</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/alibi/components/bundle.css">
+<script src="ds/alibi/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--accent-ink)}a:hover{color:var(--ink)}
+@keyframes ph-island{from{transform:scale(0.92,0.8);opacity:0.6}to{transform:none;opacity:1}}
+@keyframes ph-in{from{opacity:0;filter:blur(6px)}to{opacity:1;filter:none}}
+</style>
+</helmet>
+<div data-theme="dark" style="position: relative; width: 900px; height: 560px; overflow: hidden; box-sizing: border-box; padding: 40px; background: var(--bg); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px;">
+
+<div style="display: flex; flex-direction: column; gap: 36px;">
+
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
+<div style="position: relative; width: 402px; height: 170px; box-sizing: border-box; border: 6px solid var(--surface-3); border-bottom: 0; border-radius: 60px 60px 0 0; overflow: hidden; background: var(--surface-1);">
+<div aria-hidden="true" style="position: absolute; left: 160px; top: 20px; width: 300px; height: 300px; border-radius: var(--radius-pill); background: var(--surface-2); filter: blur(30px);"></div>
+<div role="img" aria-label="{{ compactLabel }}" style="position: absolute; left: 77px; top: 11px; width: 236px; height: 37px; border-radius: 18.5px; background: var(--island); transform-origin: center top; animation: ph-island var(--spring-island-dur) var(--spring-island) both;">
+<span style="position: absolute; left: 14px; top: 8.5px; width: 20px; height: 20px; display: inline-flex;"><x-import component-from-global-scope="Alibi.Pinch" mood="{{ mood }}" play="{{ clip }}" still="{{ yes }}" size="{{ pinch20 }}" theme="dark"></x-import></span>
+<span aria-hidden="true" style="position: absolute; left: 152px; top: 12.5px; width: 12px; height: 12px; border-radius: var(--radius-pill); background: var(--bg); box-shadow: inset 0 0 0 2px var(--surface-1);"></span>
+<span style="position: absolute; right: 12px; top: 0; width: 40px; height: 37px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; font-family: var(--font-rounded); font-size: 14px; line-height: 17px; font-weight: 600; font-variant-numeric: tabular-nums; color: {{ compactInk }}; white-space: nowrap; animation: ph-in var(--dur-medium) var(--ease-out) 60ms both;">
+<sc-if value="{{ compactIconOn }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Alibi.Icon" name="{{ compactIcon }}" size="{{ icon14 }}"></x-import></sc-if>
+<sc-if value="{{ partly }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: relative; width: 12px; height: 12px; box-sizing: border-box; border-radius: var(--radius-pill); border: 1.5px solid currentColor; overflow: hidden;"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: currentColor;"></span></span></sc-if>
+<span>{{ compactText }}</span>
+</span>
+</div>
+</div>
+<figcaption style="display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 18px;">
+<span style="font-weight: 600; color: var(--ink-2);">Compact</span>
+<span style="color: var(--ink-3);">While a session runs</span>
+</figcaption>
+</figure>
+
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
+<div style="position: relative; width: 402px; height: 170px; box-sizing: border-box; border: 6px solid var(--surface-3); border-bottom: 0; border-radius: 60px 60px 0 0; overflow: hidden; background: var(--surface-1);">
+<div aria-hidden="true" style="position: absolute; left: -60px; top: 40px; width: 280px; height: 280px; border-radius: var(--radius-pill); background: var(--surface-2); filter: blur(30px);"></div>
+<div aria-hidden="true" style="position: absolute; left: 132px; top: 11px; width: 126px; height: 37px; border-radius: 18.5px; background: var(--island);">
+<span style="position: absolute; right: 13px; top: 12.5px; width: 12px; height: 12px; border-radius: var(--radius-pill); background: var(--bg); box-shadow: inset 0 0 0 2px var(--surface-1);"></span>
+</div>
+<div role="img" aria-label="{{ minimalLabel }}" style="position: absolute; left: 264px; top: 11px; width: 37px; height: 37px; border-radius: var(--radius-pill); background: var(--island); display: flex; align-items: center; justify-content: center; animation: ph-island var(--spring-island-dur) var(--spring-island) 80ms both;">
+<svg width="27" height="27" viewBox="0 0 27 27" aria-hidden="true" style="position: absolute; left: 5px; top: 5px; transform: rotate(-90deg);">
+<circle cx="13.5" cy="13.5" r="12.25" fill="none" stroke="var(--surface-2)" stroke-width="2.5"></circle>
+<circle cx="13.5" cy="13.5" r="12.25" fill="none" stroke="{{ ringInk }}" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="76.97" stroke-dashoffset="{{ ringOffset }}" style="transition: stroke-dashoffset 1000ms linear;"></circle>
+</svg>
+<span style="position: relative; width: 10px; height: 10px; display: inline-flex;"><x-import component-from-global-scope="Alibi.Pinch" mood="{{ mood }}" still="{{ yes }}" size="{{ pinch10 }}" theme="dark"></x-import></span>
+</div>
+</div>
+<figcaption style="display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 18px;">
+<span style="font-weight: 600; color: var(--ink-2);">Minimal</span>
+<span style="color: var(--ink-3);">When another app&#39;s activity shares the island</span>
+</figcaption>
+</figure>
+
+</div>
+
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 12px;">
+<div style="position: relative; width: 402px; height: 426px; box-sizing: border-box; border: 6px solid var(--surface-3); border-bottom: 0; border-radius: 60px 60px 0 0; overflow: hidden; background: var(--surface-1);">
+<div aria-hidden="true" style="position: absolute; left: 120px; top: 150px; width: 380px; height: 380px; border-radius: var(--radius-pill); background: var(--surface-2); filter: blur(34px);"></div>
+<div aria-hidden="true" style="position: absolute; left: -80px; top: 230px; width: 260px; height: 260px; border-radius: var(--radius-pill); background: var(--bg); filter: blur(26px); opacity: 0.5;"></div>
+<section aria-label="{{ expandedLabel }}" style="position: absolute; left: 11px; top: 11px; width: 368px; height: 160px; box-sizing: border-box; border-radius: 44px; background: var(--island); box-shadow: inset 0 0 0 1px var(--accent-wash); transform-origin: center top; animation: ph-island var(--spring-island-dur) var(--spring-island) both;">
+<span aria-hidden="true" style="position: absolute; left: 230px; top: 12.5px; width: 12px; height: 12px; border-radius: var(--radius-pill); background: var(--bg); box-shadow: inset 0 0 0 2px var(--surface-1);"></span>
+<span style="position: absolute; left: 22px; top: 14px; width: 44px; height: 44px; display: inline-flex; animation: ph-in var(--dur-medium) var(--ease-out) 70ms both;"><x-import component-from-global-scope="Alibi.Pinch" mood="{{ mood }}" play="{{ clip }}" still="{{ yes }}" size="{{ pinch44 }}" theme="dark"></x-import></span>
+<div style="position: absolute; left: 92px; right: 92px; top: 46px; display: flex; flex-direction: column; align-items: center; text-align: center; animation: ph-in var(--dur-medium) var(--ease-out) 100ms both;">
+<span style="font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: 0;">Drawing</span>
+<span style="font-size: 13px; line-height: 18px; font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ centerLine }}</span>
+</div>
+<div style="position: absolute; right: 24px; top: 16px; height: 30px; display: flex; align-items: center; justify-content: flex-end; animation: ph-in var(--dur-medium) var(--ease-out) 70ms both;">
+<sc-if value="{{ ticking }}" hint-placeholder-val="{{ true }}">
+<span role="timer" style="width: 64px; text-align: right; font-family: var(--font-rounded); font-size: 22px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums; color: {{ timerInk }};">{{ timer }}</span>
+</sc-if>
+<sc-if value="{{ verdict }}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-rounded); font-size: 17px; line-height: 22px; font-weight: 600; color: {{ verdictInk }};">
+<sc-if value="{{ compactIconOn }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Alibi.Icon" name="{{ compactIcon }}" size="{{ icon18 }}"></x-import></sc-if>
+<sc-if value="{{ partly }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: relative; width: 14px; height: 14px; margin: 2px; box-sizing: border-box; border-radius: var(--radius-pill); border: 2px solid currentColor; overflow: hidden;"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: currentColor;"></span></span></sc-if>
+<span>{{ verdictWord }}</span>
+</span>
+</sc-if>
+</div>
+<div aria-hidden="true" style="position: absolute; left: 24px; right: 24px; top: 96px; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden;">
+<div style="height: 6px; width: 100%; border-radius: 3px; background: {{ barInk }}; transform-origin: left center; transform: scaleX({{ barScale }}); transition: transform 1000ms linear;"></div>
+</div>
+<div style="position: absolute; left: 24px; right: 24px; top: 108px; height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; animation: ph-in var(--dur-medium) var(--ease-out) 130ms both;">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap;">
+<sc-if value="{{ live }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="Alibi.StatusDot" label="{{ dotLabel }}" size="{{ dot }}"></x-import></sc-if>
+<sc-if value="{{ drift }}" hint-placeholder-val="{{ false }}"><span><span style="color: var(--warn-ink); font-weight: 600;">Phone</span> · 3 min</span></sc-if>
+<sc-if value="{{ plain }}" hint-placeholder-val="{{ true }}"><span>{{ line }}</span></sc-if>
+</span>
+<sc-if value="{{ drift }}" hint-placeholder-val="{{ false }}">
+<button type="button" style="height: 44px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: var(--radius-pill); background: var(--surface-2); color: var(--ink); font: 600 13px/18px var(--font-sans); white-space: nowrap; cursor: pointer;">
+<x-import component-from-global-scope="Alibi.Icon" name="arrow-right" size="{{ icon16 }}"></x-import>
+<span>I&#39;m back</span>
+</button>
+</sc-if>
+</div>
+</section>
+</div>
+<figcaption style="display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 18px;">
+<span style="font-weight: 600; color: var(--ink-2);">Expanded</span>
+<span style="color: var(--ink-3);">Touch and hold the island</span>
+</figcaption>
+</figure>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"status":{"editor":"enum","options":["on","drift","break","done","partial","slacked"],"default":"on","section":"Live Activity"},"$preview":{"width":900,"height":560}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    this.tick = setInterval(() => {
+      const st = this.state || {};
+      const left = st.left != null ? st.left : 1122;
+      const pause = st.pause != null ? st.pause : 252;
+      this.setState({ left: Math.max(0, left - 1), pause: Math.max(0, pause - 1) });
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.tick); }
+  renderVals() {
+    const status = this.props.status ?? 'on';
+    const st = this.state || {};
+    const total = 25 * 60;
+    const left = st.left != null ? st.left : 1122;
+    const pause = st.pause != null ? st.pause : 252;
+    const fmt = (sec) => Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+    const drift = status === 'drift';
+    const onBreak = status === 'break';
+    const verdicts = {
+      done: { word: 'Done', icon: 'check', ink: 'var(--accent-ink)', bar: 'var(--done)', ratio: 23 / 25, line: '23 of 25 min on task', clip: 'celebrate' },
+      partial: { word: 'Partly', icon: null, ink: 'var(--partial-ink)', bar: 'var(--partly)', ratio: 17 / 25, line: '17 of 25 min on task', clip: 'partial' },
+      slacked: { word: 'Slacked', icon: 'x', ink: 'var(--warn-ink)', bar: 'var(--slacked)', ratio: 6 / 25, line: '6 of 25 min on task', clip: 'supportive' }
+    };
+    const v = verdicts[status];
+    const progress = v ? 1 : (total - left) / total;
+    const timer = fmt(onBreak ? pause : left);
+    const compactIcon = v ? v.icon : drift ? 'phone' : onBreak ? 'cup' : null;
+    return {
+      timer: timer,
+      timerInk: onBreak ? 'var(--partial-ink)' : 'var(--ink)',
+      ticking: !v,
+      verdict: !!v,
+      verdictWord: v ? v.word : '',
+      verdictInk: v ? v.ink : 'var(--ink)',
+      partly: status === 'partial',
+      drift: drift,
+      live: !v,
+      plain: !drift,
+      line: v ? v.line : onBreak ? 'On a break · back 19:31' : 'Last seen 19:26',
+      centerLine: v ? 'On task ' + Math.round(v.ratio * 100) + '%' : onBreak ? 'On a break' : 'On task 92%',
+      compactIcon: compactIcon || 'check',
+      compactIconOn: !!compactIcon,
+      compactText: v ? '' : drift ? '3m' : onBreak ? Math.ceil(pause / 60) + 'm' : timer,
+      compactInk: v ? v.ink : drift ? 'var(--warn-ink)' : onBreak ? 'var(--partial-ink)' : 'var(--accent-ink)',
+      ringInk: drift || status === 'slacked' ? 'var(--warn)' : onBreak || status === 'partial' ? 'var(--partial)' : 'var(--accent)',
+      ringOffset: (76.97 * (1 - progress)).toFixed(2),
+      barScale: v ? v.ratio : progress,
+      barInk: v ? v.bar : onBreak ? 'var(--partial)' : 'var(--accent)',
+      dotLabel: drift ? 'phone' : onBreak ? 'idle' : 'on_task',
+      mood: status === 'on' ? 'focused' : onBreak ? 'sleepy' : 'idle',
+      clip: drift ? 'sideeye' : v ? v.clip : null,
+      compactLabel: 'Alibi, Drawing, ' + (v ? v.word.toLowerCase() : drift ? 'phone for 3 minutes' : onBreak ? 'on a break, ' + Math.ceil(pause / 60) + ' minutes left' : timer + ' left'),
+      minimalLabel: 'Alibi, Drawing, ' + Math.round(progress * 100) + '% of the time gone',
+      expandedLabel: 'Alibi Live Activity, expanded',
+      pinch10: 10,
+      pinch20: 20,
+      pinch44: 44,
+      icon14: 14,
+      icon16: 16,
+      icon18: 18,
+      dot: 8,
+      yes: true
+    };
+  }
+}
+</script>
+</body>
+</html>

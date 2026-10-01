@@ -1,0 +1,21 @@
+<!-- @dsCard group="Pinch" height=188 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>PinchLine — preview</title>
+<style>
+.al-stack { gap: var(--space-4); }
+</style>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(A.PinchLine, null, 'Nothing claimed yet. What are you about to do?'),
+    h(A.PinchLine, { mood: 'focused' }, 'You said drawing. I\u2019ve seen your ', h('span', { className: 'al-cause' }, 'phone'), ' for 3 minutes.'),
+    h(A.PinchLine, null, 'Fair. I\u2019ve changed that one.'),
+    h(A.PinchLine, { compact: true, mood: 'sleepy' }, 'On a break. Back at 18:20.')));
+</script>
+</body>
+</html>

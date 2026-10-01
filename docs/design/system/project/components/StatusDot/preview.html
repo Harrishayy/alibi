@@ -1,0 +1,20 @@
+<!-- @dsCard group="Status" height=96 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>StatusDot — preview</title>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, ['div', { style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-3)' } }].concat([].slice.call(arguments))); };
+
+  var L = ['on_task', 'idle', 'phone', 'off_task', 'absent'];
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    row.apply(null, L.map(function (l) { return h('span', { key: l, style: { marginRight: 'var(--space-3)' } }, h(A.StatusDot, { label: l, text: true })); })),
+    row.apply(null, L.map(function (l) { return h(A.StatusDot, { key: l, label: l, size: 16 }); })
+      .concat([h('span', { key: 'gap', style: { width: 'var(--space-3)' } })])
+      .concat(L.map(function (l) { return h(A.StatusDot, { key: l + '24', label: l, size: 24 }); })))));
+</script>
+</body>
+</html>

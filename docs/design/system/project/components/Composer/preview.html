@@ -1,0 +1,19 @@
+<!-- @dsCard group="Inputs" height=212 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Composer — preview</title>
+<style>
+.al-stack { gap: var(--space-6); max-width: 560px; }
+</style>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(A.Composer, { chips: ['Drawing', 'C++', 'Reading'] }),
+    h(A.Composer, { value: 'Draw for 25 min', focused: true })));
+</script>
+</body>
+</html>

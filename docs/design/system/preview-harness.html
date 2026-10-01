@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alibi previews</title>
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+  body { padding: var(--space-6); }
+  header { display: flex; gap: var(--space-6); align-items: baseline; margin-bottom: var(--space-6); }
+  header h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
+  header p, .cols span { margin: 0; color: var(--ink-2); font-size: 13px; }
+  .cols, .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .cols { margin-bottom: var(--space-2); }
+  .row { margin-bottom: var(--space-8); }
+  .row h2 { margin: 0 0 var(--space-2); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .row h2 span { color: var(--ink-3); font-weight: 500; font-size: 13px; margin-left: var(--space-2); }
+  .pair.wide { grid-template-columns: 960px; }
+  iframe { width: 100%; border: 1px solid var(--hairline); border-radius: var(--radius-sm); display: block; background: var(--bg); }
+</style>
+</head>
+<body>
+<header><h1>Alibi components</h1><p>Each preview.html in the artifact's preview frame: tokens, bundle.css, React 18.3.1, bundle.js. Dark left, light right.</p></header>
+<div class="cols"><span>dark</span><span>light</span></div>
+<section class="row"><h2>Cover <span></span></h2><div class="pair wide"><iframe title="Cover, dark" data-h="288" style="height:288px" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot; data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Cover/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Alibi&lt;/title&gt;
+&lt;style&gt;
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--surface-1); color: var(--ink); font-family: var(--font-sans); overflow: hidden; }
+  .cover { position: relative; width: 960px; height: 288px; overflow: hidden; }
+  /* the composition: the right half of the 960 layout, clear of the name */
+  .art { position: absolute; top: 0; left: 480px; width: 480px; height: 288px; overflow: hidden; }
+  .art svg { display: block; width: 480px; height: 288px; }
+  .deep { fill: var(--island); }
+  .brand { fill: var(--accent); }
+  .tint { fill: var(--green-300); }
+  .state { fill: var(--partial); }
+  .slab { rx: var(--radius-xl); }
+  .tile { rx: var(--radius-md); }
+  .pill { rx: var(--space-3); }
+  .arc { fill: none; stroke: var(--island); stroke-width: var(--space-2); stroke-linecap: butt; }
+  .lens { fill: none; stroke: var(--accent); stroke-width: var(--space-1); }
+  /* name and tagline pinned to the bottom-left, on the ground */
+  .words { position: absolute; left: var(--space-6); bottom: var(--space-6); max-width: 440px; }
+  .name { margin: 0; font-size: 120px; line-height: 0.9; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
+  .tag { margin: var(--space-3) 0 0 6px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;cover&quot;&gt;
+&lt;div class=&quot;art&quot; aria-hidden=&quot;true&quot;&gt;
+&lt;svg viewBox=&quot;0 0 480 288&quot; width=&quot;480&quot; height=&quot;288&quot;&gt;
+&lt;!--
+  blocks      island 232 x 180 hung from the top edge (the notch, black in both themes) . accent 232 x 268 bled off the top and right (the brand, largest) . green-300 120 x 104 (the tint, Pinch&#x27;s belly) . partial 48 x 24 once (it only ever means partly or a break), about 36% of 960 x 288
+  arrangement two slabs hanging from the top edge like the island from the bezel, satellites below the black one, bottoms on space-4 steps, space-4 gutters
+  pattern     quarter-circle arcs from &quot;a literal motif (lens)&quot;: the witness&#x27;s lens and the RingTimer arc, five arcs at a space-6 pitch radiating from the green slab&#x27;s corner, cut in island black, plus the island&#x27;s own lens ring
+  scales      sides in space-2 multiples; gutters space-4; arc pitch space-6, arc stroke space-2, lens stroke space-1; corners radius-xl (slabs), radius-md (tint), pill rx space-3 (half of 24)
+--&gt;
+&lt;rect class=&quot;deep slab&quot; x=&quot;16&quot; y=&quot;-28&quot; width=&quot;232&quot; height=&quot;180&quot; rx=&quot;28&quot;/&gt;
+&lt;circle class=&quot;lens&quot; cx=&quot;132&quot; cy=&quot;64&quot; r=&quot;12&quot;/&gt;
+&lt;rect class=&quot;brand slab&quot; x=&quot;264&quot; y=&quot;-28&quot; width=&quot;244&quot; height=&quot;268&quot; rx=&quot;28&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M312 240A48 48 0 0 0 264 192&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M336 240A72 72 0 0 0 264 168&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M360 240A96 96 0 0 0 264 144&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M384 240A120 120 0 0 0 264 120&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M408 240A144 144 0 0 0 264 96&quot;/&gt;
+&lt;rect class=&quot;tint tile&quot; x=&quot;16&quot; y=&quot;168&quot; width=&quot;120&quot; height=&quot;104&quot; rx=&quot;16&quot;/&gt;
+&lt;rect class=&quot;state pill&quot; x=&quot;152&quot; y=&quot;248&quot; width=&quot;48&quot; height=&quot;24&quot; rx=&quot;12&quot;/&gt;
+&lt;/svg&gt;
+&lt;/div&gt;
+&lt;div class=&quot;words&quot;&gt;
+&lt;h1 class=&quot;name&quot;&gt;Alibi&lt;/h1&gt;
+&lt;p class=&quot;tag&quot;&gt;Say what you&amp;rsquo;ll do. Pinch checks.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Cover, light" data-h="288" style="height:288px" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot; data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Cover/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Alibi&lt;/title&gt;
+&lt;style&gt;
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--surface-1); color: var(--ink); font-family: var(--font-sans); overflow: hidden; }
+  .cover { position: relative; width: 960px; height: 288px; overflow: hidden; }
+  /* the composition: the right half of the 960 layout, clear of the name */
+  .art { position: absolute; top: 0; left: 480px; width: 480px; height: 288px; overflow: hidden; }
+  .art svg { display: block; width: 480px; height: 288px; }
+  .deep { fill: var(--island); }
+  .brand { fill: var(--accent); }
+  .tint { fill: var(--green-300); }
+  .state { fill: var(--partial); }
+  .slab { rx: var(--radius-xl); }
+  .tile { rx: var(--radius-md); }
+  .pill { rx: var(--space-3); }
+  .arc { fill: none; stroke: var(--island); stroke-width: var(--space-2); stroke-linecap: butt; }
+  .lens { fill: none; stroke: var(--accent); stroke-width: var(--space-1); }
+  /* name and tagline pinned to the bottom-left, on the ground */
+  .words { position: absolute; left: var(--space-6); bottom: var(--space-6); max-width: 440px; }
+  .name { margin: 0; font-size: 120px; line-height: 0.9; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
+  .tag { margin: var(--space-3) 0 0 6px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;cover&quot;&gt;
+&lt;div class=&quot;art&quot; aria-hidden=&quot;true&quot;&gt;
+&lt;svg viewBox=&quot;0 0 480 288&quot; width=&quot;480&quot; height=&quot;288&quot;&gt;
+&lt;!--
+  blocks      island 232 x 180 hung from the top edge (the notch, black in both themes) . accent 232 x 268 bled off the top and right (the brand, largest) . green-300 120 x 104 (the tint, Pinch&#x27;s belly) . partial 48 x 24 once (it only ever means partly or a break), about 36% of 960 x 288
+  arrangement two slabs hanging from the top edge like the island from the bezel, satellites below the black one, bottoms on space-4 steps, space-4 gutters
+  pattern     quarter-circle arcs from &quot;a literal motif (lens)&quot;: the witness&#x27;s lens and the RingTimer arc, five arcs at a space-6 pitch radiating from the green slab&#x27;s corner, cut in island black, plus the island&#x27;s own lens ring
+  scales      sides in space-2 multiples; gutters space-4; arc pitch space-6, arc stroke space-2, lens stroke space-1; corners radius-xl (slabs), radius-md (tint), pill rx space-3 (half of 24)
+--&gt;
+&lt;rect class=&quot;deep slab&quot; x=&quot;16&quot; y=&quot;-28&quot; width=&quot;232&quot; height=&quot;180&quot; rx=&quot;28&quot;/&gt;
+&lt;circle class=&quot;lens&quot; cx=&quot;132&quot; cy=&quot;64&quot; r=&quot;12&quot;/&gt;
+&lt;rect class=&quot;brand slab&quot; x=&quot;264&quot; y=&quot;-28&quot; width=&quot;244&quot; height=&quot;268&quot; rx=&quot;28&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M312 240A48 48 0 0 0 264 192&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M336 240A72 72 0 0 0 264 168&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M360 240A96 96 0 0 0 264 144&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M384 240A120 120 0 0 0 264 120&quot;/&gt;
+&lt;path class=&quot;arc&quot; d=&quot;M408 240A144 144 0 0 0 264 96&quot;/&gt;
+&lt;rect class=&quot;tint tile&quot; x=&quot;16&quot; y=&quot;168&quot; width=&quot;120&quot; height=&quot;104&quot; rx=&quot;16&quot;/&gt;
+&lt;rect class=&quot;state pill&quot; x=&quot;152&quot; y=&quot;248&quot; width=&quot;48&quot; height=&quot;24&quot; rx=&quot;12&quot;/&gt;
+&lt;/svg&gt;
+&lt;/div&gt;
+&lt;div class=&quot;words&quot;&gt;
+&lt;h1 class=&quot;name&quot;&gt;Alibi&lt;/h1&gt;
+&lt;p class=&quot;tag&quot;&gt;Say what you&amp;rsquo;ll do. Pinch checks.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Button <span>Actions</span></h2><div class="pair"><iframe title="Button, dark" data-h="128" style="height:128px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Button/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Button — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, [&#x27;div&#x27;, { style: { display: &#x27;flex&#x27;, flexWrap: &#x27;wrap&#x27;, alignItems: &#x27;center&#x27;, gap: &#x27;var(--space-3)&#x27; } }].concat([].slice.call(arguments))); };
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    row(
+      h(A.Button, { variant: &#x27;primary&#x27;, icon: &#x27;play&#x27; }, &#x27;Start session&#x27;),
+      h(A.Button, { variant: &#x27;secondary&#x27; }, &#x27;Fix a moment&#x27;),
+      h(A.Button, { variant: &#x27;ghost&#x27;, icon: &#x27;film&#x27; }, &#x27;See proof&#x27;),
+      h(A.Button, { variant: &#x27;quiet&#x27; }, &#x27;Quiet 5 min&#x27;)),
+    row(
+      h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27;, icon: &#x27;plus&#x27; }, &#x27;10 min&#x27;),
+      h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;md&#x27;, icon: &#x27;cup&#x27; }, &#x27;Break&#x27;),
+      h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;lg&#x27;, icon: &#x27;stop&#x27; }, &#x27;Finish&#x27;),
+      h(A.Button, { variant: &#x27;ghost&#x27;, icon: &#x27;settings&#x27;, iconOnly: true, ariaLabel: &#x27;Open setup&#x27; }),
+      h(A.Button, { variant: &#x27;primary&#x27;, disabled: true }, &#x27;Go again&#x27;))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Button, light" data-h="128" style="height:128px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Button/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Button — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, [&#x27;div&#x27;, { style: { display: &#x27;flex&#x27;, flexWrap: &#x27;wrap&#x27;, alignItems: &#x27;center&#x27;, gap: &#x27;var(--space-3)&#x27; } }].concat([].slice.call(arguments))); };
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    row(
+      h(A.Button, { variant: &#x27;primary&#x27;, icon: &#x27;play&#x27; }, &#x27;Start session&#x27;),
+      h(A.Button, { variant: &#x27;secondary&#x27; }, &#x27;Fix a moment&#x27;),
+      h(A.Button, { variant: &#x27;ghost&#x27;, icon: &#x27;film&#x27; }, &#x27;See proof&#x27;),
+      h(A.Button, { variant: &#x27;quiet&#x27; }, &#x27;Quiet 5 min&#x27;)),
+    row(
+      h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27;, icon: &#x27;plus&#x27; }, &#x27;10 min&#x27;),
+      h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;md&#x27;, icon: &#x27;cup&#x27; }, &#x27;Break&#x27;),
+      h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;lg&#x27;, icon: &#x27;stop&#x27; }, &#x27;Finish&#x27;),
+      h(A.Button, { variant: &#x27;ghost&#x27;, icon: &#x27;settings&#x27;, iconOnly: true, ariaLabel: &#x27;Open setup&#x27; }),
+      h(A.Button, { variant: &#x27;primary&#x27;, disabled: true }, &#x27;Go again&#x27;))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>IconButton <span>Actions</span></h2><div class="pair"><iframe title="IconButton, dark" data-h="76" style="height:76px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[IconButton/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;IconButton — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.IconButton, { icon: &#x27;settings&#x27;, ariaLabel: &#x27;Open setup&#x27;, size: &#x27;sm&#x27; }),
+    h(A.IconButton, { icon: &#x27;settings&#x27;, ariaLabel: &#x27;Open setup&#x27; }),
+    h(A.IconButton, { icon: &#x27;settings&#x27;, ariaLabel: &#x27;Open setup&#x27;, size: &#x27;lg&#x27; }),
+    h(A.IconButton, { icon: &#x27;pause&#x27;, ariaLabel: &#x27;Pause session&#x27; }),
+    h(A.IconButton, { icon: &#x27;undo&#x27;, ariaLabel: &#x27;Undo correction&#x27; }),
+    h(A.IconButton, { icon: &#x27;eye&#x27;, ariaLabel: &#x27;Show frames&#x27;, &#x27;aria-pressed&#x27;: true }),
+    h(A.IconButton, { icon: &#x27;x&#x27;, ariaLabel: &#x27;Dismiss&#x27;, size: &#x27;sm&#x27; })));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="IconButton, light" data-h="76" style="height:76px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[IconButton/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;IconButton — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.IconButton, { icon: &#x27;settings&#x27;, ariaLabel: &#x27;Open setup&#x27;, size: &#x27;sm&#x27; }),
+    h(A.IconButton, { icon: &#x27;settings&#x27;, ariaLabel: &#x27;Open setup&#x27; }),
+    h(A.IconButton, { icon: &#x27;settings&#x27;, ariaLabel: &#x27;Open setup&#x27;, size: &#x27;lg&#x27; }),
+    h(A.IconButton, { icon: &#x27;pause&#x27;, ariaLabel: &#x27;Pause session&#x27; }),
+    h(A.IconButton, { icon: &#x27;undo&#x27;, ariaLabel: &#x27;Undo correction&#x27; }),
+    h(A.IconButton, { icon: &#x27;eye&#x27;, ariaLabel: &#x27;Show frames&#x27;, &#x27;aria-pressed&#x27;: true }),
+    h(A.IconButton, { icon: &#x27;x&#x27;, ariaLabel: &#x27;Dismiss&#x27;, size: &#x27;sm&#x27; })));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Icon <span>Actions</span></h2><div class="pair"><iframe title="Icon, dark" data-h="400" style="height:400px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Icon/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Icon — preview&lt;/title&gt;
+&lt;style&gt;
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: var(--space-1); padding: var(--space-4); }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-1); color: var(--ink); }
+  .cell span { font-size: 12px; line-height: 1.3; color: var(--ink-3); white-space: nowrap; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;grid&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    A.Icon.names.map(function (n) {
+      return h(&#x27;div&#x27;, { key: n, className: &#x27;cell&#x27; }, h(A.Icon, { name: n, size: 24 }), h(&#x27;span&#x27;, null, n));
+    })));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Icon, light" data-h="400" style="height:400px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Icon/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Icon — preview&lt;/title&gt;
+&lt;style&gt;
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: var(--space-1); padding: var(--space-4); }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-1); color: var(--ink); }
+  .cell span { font-size: 12px; line-height: 1.3; color: var(--ink-3); white-space: nowrap; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;grid&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    A.Icon.names.map(function (n) {
+      return h(&#x27;div&#x27;, { key: n, className: &#x27;cell&#x27; }, h(A.Icon, { name: n, size: 24 }), h(&#x27;span&#x27;, null, n));
+    })));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Chip <span>Inputs</span></h2><div class="pair"><iframe title="Chip, dark" data-h="64" style="height:64px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Chip/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Chip — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function Demo() {
+    var s = React.useState(0), sel = s[0], set = s[1];
+    var habits = [&#x27;Drawing&#x27;, &#x27;C++&#x27;, &#x27;Reading&#x27;];
+    return h(React.Fragment, null,
+      habits.map(function (t, i) {
+        return h(A.Chip, { key: t, kbd: &#x27;\u2318&#x27; + (i + 1), selected: sel === i, onClick: function () { set(sel === i ? -1 : i); } }, t);
+      }),
+      h(A.Chip, { icon: &#x27;run&#x27; }, &#x27;Run&#x27;),
+      h(A.Chip, { icon: &#x27;calendar&#x27; }, &#x27;Plan at 19:00&#x27;));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Chip, light" data-h="64" style="height:64px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Chip/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Chip — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function Demo() {
+    var s = React.useState(0), sel = s[0], set = s[1];
+    var habits = [&#x27;Drawing&#x27;, &#x27;C++&#x27;, &#x27;Reading&#x27;];
+    return h(React.Fragment, null,
+      habits.map(function (t, i) {
+        return h(A.Chip, { key: t, kbd: &#x27;\u2318&#x27; + (i + 1), selected: sel === i, onClick: function () { set(sel === i ? -1 : i); } }, t);
+      }),
+      h(A.Chip, { icon: &#x27;run&#x27; }, &#x27;Run&#x27;),
+      h(A.Chip, { icon: &#x27;calendar&#x27; }, &#x27;Plan at 19:00&#x27;));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Kbd <span>Inputs</span></h2><div class="pair"><iframe title="Kbd, dark" data-h="56" style="height:56px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Kbd/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Kbd — preview&lt;/title&gt;
+&lt;style&gt;
+.pair { display: inline-flex; align-items: center; gap: var(--space-2); margin-right: var(--space-3); font-size: 13px; color: var(--ink-2); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  var pair = function (k, t) { return h(&#x27;span&#x27;, { className: &#x27;pair&#x27; }, h(A.Kbd, null, k), h(&#x27;span&#x27;, null, t)); };
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    pair(&#x27;\u2325\u2318A&#x27;, &#x27;Toggle the island&#x27;), pair(&#x27;/&#x27;, &#x27;Type a claim&#x27;), pair(&#x27;\u21b5&#x27;, &#x27;Start&#x27;),
+    pair(&#x27;esc&#x27;, &#x27;Close&#x27;), pair(&#x27;\u23181&#x27;, &#x27;First habit&#x27;)));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Kbd, light" data-h="56" style="height:56px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Kbd/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Kbd — preview&lt;/title&gt;
+&lt;style&gt;
+.pair { display: inline-flex; align-items: center; gap: var(--space-2); margin-right: var(--space-3); font-size: 13px; color: var(--ink-2); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  var pair = function (k, t) { return h(&#x27;span&#x27;, { className: &#x27;pair&#x27; }, h(A.Kbd, null, k), h(&#x27;span&#x27;, null, t)); };
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    pair(&#x27;\u2325\u2318A&#x27;, &#x27;Toggle the island&#x27;), pair(&#x27;/&#x27;, &#x27;Type a claim&#x27;), pair(&#x27;\u21b5&#x27;, &#x27;Start&#x27;),
+    pair(&#x27;esc&#x27;, &#x27;Close&#x27;), pair(&#x27;\u23181&#x27;, &#x27;First habit&#x27;)));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Composer <span>Inputs</span></h2><div class="pair"><iframe title="Composer, dark" data-h="212" style="height:212px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Composer/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Composer — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { gap: var(--space-6); max-width: 560px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.Composer, { chips: [&#x27;Drawing&#x27;, &#x27;C++&#x27;, &#x27;Reading&#x27;] }),
+    h(A.Composer, { value: &#x27;Draw for 25 min&#x27;, focused: true })));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Composer, light" data-h="212" style="height:212px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Composer/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Composer — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { gap: var(--space-6); max-width: 560px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.Composer, { chips: [&#x27;Drawing&#x27;, &#x27;C++&#x27;, &#x27;Reading&#x27;] }),
+    h(A.Composer, { value: &#x27;Draw for 25 min&#x27;, focused: true })));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>StatusDot <span>Status</span></h2><div class="pair"><iframe title="StatusDot, dark" data-h="96" style="height:96px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[StatusDot/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;StatusDot — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, [&#x27;div&#x27;, { style: { display: &#x27;flex&#x27;, flexWrap: &#x27;wrap&#x27;, alignItems: &#x27;center&#x27;, gap: &#x27;var(--space-3)&#x27; } }].concat([].slice.call(arguments))); };
+
+  var L = [&#x27;on_task&#x27;, &#x27;idle&#x27;, &#x27;phone&#x27;, &#x27;off_task&#x27;, &#x27;absent&#x27;];
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    row.apply(null, L.map(function (l) { return h(&#x27;span&#x27;, { key: l, style: { marginRight: &#x27;var(--space-3)&#x27; } }, h(A.StatusDot, { label: l, text: true })); })),
+    row.apply(null, L.map(function (l) { return h(A.StatusDot, { key: l, label: l, size: 16 }); })
+      .concat([h(&#x27;span&#x27;, { key: &#x27;gap&#x27;, style: { width: &#x27;var(--space-3)&#x27; } })])
+      .concat(L.map(function (l) { return h(A.StatusDot, { key: l + &#x27;24&#x27;, label: l, size: 24 }); })))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="StatusDot, light" data-h="96" style="height:96px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[StatusDot/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;StatusDot — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, [&#x27;div&#x27;, { style: { display: &#x27;flex&#x27;, flexWrap: &#x27;wrap&#x27;, alignItems: &#x27;center&#x27;, gap: &#x27;var(--space-3)&#x27; } }].concat([].slice.call(arguments))); };
+
+  var L = [&#x27;on_task&#x27;, &#x27;idle&#x27;, &#x27;phone&#x27;, &#x27;off_task&#x27;, &#x27;absent&#x27;];
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    row.apply(null, L.map(function (l) { return h(&#x27;span&#x27;, { key: l, style: { marginRight: &#x27;var(--space-3)&#x27; } }, h(A.StatusDot, { label: l, text: true })); })),
+    row.apply(null, L.map(function (l) { return h(A.StatusDot, { key: l, label: l, size: 16 }); })
+      .concat([h(&#x27;span&#x27;, { key: &#x27;gap&#x27;, style: { width: &#x27;var(--space-3)&#x27; } })])
+      .concat(L.map(function (l) { return h(A.StatusDot, { key: l + &#x27;24&#x27;, label: l, size: 24 }); })))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>VerdictPill <span>Status</span></h2><div class="pair"><iframe title="VerdictPill, dark" data-h="100" style="height:100px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[VerdictPill/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;VerdictPill — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, [&#x27;div&#x27;, { style: { display: &#x27;flex&#x27;, flexWrap: &#x27;wrap&#x27;, alignItems: &#x27;center&#x27;, gap: &#x27;var(--space-3)&#x27; } }].concat([].slice.call(arguments))); };
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    row(h(A.VerdictPill, { verdict: &#x27;done&#x27;, ratio: 1 }), h(A.VerdictPill, { verdict: &#x27;partial&#x27;, ratio: 0.68 }), h(A.VerdictPill, { verdict: &#x27;slacked&#x27;, ratio: 0.24 })),
+    row(h(A.VerdictPill, { verdict: &#x27;done&#x27; }), h(A.VerdictPill, { verdict: &#x27;partial&#x27; }), h(A.VerdictPill, { verdict: &#x27;slacked&#x27; }))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="VerdictPill, light" data-h="100" style="height:100px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[VerdictPill/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;VerdictPill — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, [&#x27;div&#x27;, { style: { display: &#x27;flex&#x27;, flexWrap: &#x27;wrap&#x27;, alignItems: &#x27;center&#x27;, gap: &#x27;var(--space-3)&#x27; } }].concat([].slice.call(arguments))); };
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    row(h(A.VerdictPill, { verdict: &#x27;done&#x27;, ratio: 1 }), h(A.VerdictPill, { verdict: &#x27;partial&#x27;, ratio: 0.68 }), h(A.VerdictPill, { verdict: &#x27;slacked&#x27;, ratio: 0.24 })),
+    row(h(A.VerdictPill, { verdict: &#x27;done&#x27; }), h(A.VerdictPill, { verdict: &#x27;partial&#x27; }), h(A.VerdictPill, { verdict: &#x27;slacked&#x27; }))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>StreakBadge <span>Status</span></h2><div class="pair"><iframe title="StreakBadge, dark" data-h="64" style="height:64px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[StreakBadge/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;StreakBadge — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function Demo() {
+    var s = React.useState(6), d = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(A.StreakBadge, { days: d, freezes: 1 }),
+      h(A.StreakBadge, { days: 1 }),
+      h(A.StreakBadge, { days: 30, freezes: 2 }),
+      h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27;, icon: &#x27;plus&#x27;, onClick: function () { set(d + 1); } }, &#x27;Add a day&#x27;));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="StreakBadge, light" data-h="64" style="height:64px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[StreakBadge/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;StreakBadge — preview&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function Demo() {
+    var s = React.useState(6), d = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(A.StreakBadge, { days: d, freezes: 1 }),
+      h(A.StreakBadge, { days: 1 }),
+      h(A.StreakBadge, { days: 30, freezes: 2 }),
+      h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27;, icon: &#x27;plus&#x27;, onClick: function () { set(d + 1); } }, &#x27;Add a day&#x27;));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>SampleStrip <span>Status</span></h2><div class="pair"><iframe title="SampleStrip, dark" data-h="96" style="height:96px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[SampleStrip/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;SampleStrip — preview&lt;/title&gt;
+&lt;style&gt;
+.note { font-size: 13px; color: var(--ink-3); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, [&#x27;div&#x27;, { style: { display: &#x27;flex&#x27;, flexWrap: &#x27;wrap&#x27;, alignItems: &#x27;center&#x27;, gap: &#x27;var(--space-3)&#x27; } }].concat([].slice.call(arguments))); };
+
+  var POOL = [&#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;phone&#x27;, &#x27;on_task&#x27;, &#x27;idle&#x27;, &#x27;on_task&#x27;, &#x27;off_task&#x27;, &#x27;absent&#x27;];
+  function Demo() {
+    var s = React.useState([&#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;phone&#x27;, &#x27;on_task&#x27;, &#x27;idle&#x27;, &#x27;on_task&#x27;]), labels = s[0], set = s[1];
+    var n = React.useRef(0);
+    function sample() { n.current = (n.current + 1) % POOL.length; set(labels.slice(1).concat([POOL[n.current]])); }
+    return h(React.Fragment, null,
+      row(h(A.SampleStrip, { labels: [&#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;phone&#x27;, &#x27;phone&#x27;, &#x27;on_task&#x27;], size: 20 }),
+          h(&#x27;span&#x27;, { className: &#x27;note&#x27; }, &#x27;Last 6 samples, 20px&#x27;)),
+      row(h(A.SampleStrip, { labels: labels, develop: true }),
+          h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27;, icon: &#x27;camera&#x27;, onClick: sample }, &#x27;Take a sample&#x27;)));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="SampleStrip, light" data-h="96" style="height:96px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[SampleStrip/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;SampleStrip — preview&lt;/title&gt;
+&lt;style&gt;
+.note { font-size: 13px; color: var(--ink-3); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, [&#x27;div&#x27;, { style: { display: &#x27;flex&#x27;, flexWrap: &#x27;wrap&#x27;, alignItems: &#x27;center&#x27;, gap: &#x27;var(--space-3)&#x27; } }].concat([].slice.call(arguments))); };
+
+  var POOL = [&#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;phone&#x27;, &#x27;on_task&#x27;, &#x27;idle&#x27;, &#x27;on_task&#x27;, &#x27;off_task&#x27;, &#x27;absent&#x27;];
+  function Demo() {
+    var s = React.useState([&#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;phone&#x27;, &#x27;on_task&#x27;, &#x27;idle&#x27;, &#x27;on_task&#x27;]), labels = s[0], set = s[1];
+    var n = React.useRef(0);
+    function sample() { n.current = (n.current + 1) % POOL.length; set(labels.slice(1).concat([POOL[n.current]])); }
+    return h(React.Fragment, null,
+      row(h(A.SampleStrip, { labels: [&#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;on_task&#x27;, &#x27;phone&#x27;, &#x27;phone&#x27;, &#x27;on_task&#x27;], size: 20 }),
+          h(&#x27;span&#x27;, { className: &#x27;note&#x27; }, &#x27;Last 6 samples, 20px&#x27;)),
+      row(h(A.SampleStrip, { labels: labels, develop: true }),
+          h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27;, icon: &#x27;camera&#x27;, onClick: sample }, &#x27;Take a sample&#x27;)));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Meter <span>Data</span></h2><div class="pair"><iframe title="Meter, dark" data-h="232" style="height:232px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Meter/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Meter — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { max-width: 420px; gap: var(--space-4); }
+  .line { width: 100%; display: flex; flex-direction: column; gap: var(--space-1); }
+  .head { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); }
+  .num { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function Line(p) {
+    return h(&#x27;div&#x27;, { className: &#x27;line&#x27; },
+      h(&#x27;div&#x27;, { className: &#x27;head&#x27; }, h(&#x27;span&#x27;, null, p.name), h(&#x27;span&#x27;, { className: &#x27;num&#x27; }, Math.round(p.value * 100) + &#x27;%&#x27;)),
+      h(A.Meter, { value: p.value, label: p.name + &#x27; on task &#x27; + Math.round(p.value * 100) + &#x27;%&#x27; }));
+  }
+  function Demo() {
+    var s = React.useState(0.55), v = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(Line, { name: &#x27;Drawing&#x27;, value: 0.86 }),
+      h(Line, { name: &#x27;C++&#x27;, value: v }),
+      h(Line, { name: &#x27;Reading&#x27;, value: 0.24 }),
+      h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27;, icon: &#x27;undo&#x27;, onClick: function () { set(v === 0.55 ? 0.74 : 0.55); } }, v === 0.55 ? &#x27;Fix a moment&#x27; : &#x27;Undo the fix&#x27;));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Meter, light" data-h="232" style="height:232px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Meter/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Meter — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { max-width: 420px; gap: var(--space-4); }
+  .line { width: 100%; display: flex; flex-direction: column; gap: var(--space-1); }
+  .head { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); }
+  .num { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function Line(p) {
+    return h(&#x27;div&#x27;, { className: &#x27;line&#x27; },
+      h(&#x27;div&#x27;, { className: &#x27;head&#x27; }, h(&#x27;span&#x27;, null, p.name), h(&#x27;span&#x27;, { className: &#x27;num&#x27; }, Math.round(p.value * 100) + &#x27;%&#x27;)),
+      h(A.Meter, { value: p.value, label: p.name + &#x27; on task &#x27; + Math.round(p.value * 100) + &#x27;%&#x27; }));
+  }
+  function Demo() {
+    var s = React.useState(0.55), v = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(Line, { name: &#x27;Drawing&#x27;, value: 0.86 }),
+      h(Line, { name: &#x27;C++&#x27;, value: v }),
+      h(Line, { name: &#x27;Reading&#x27;, value: 0.24 }),
+      h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27;, icon: &#x27;undo&#x27;, onClick: function () { set(v === 0.55 ? 0.74 : 0.55); } }, v === 0.55 ? &#x27;Fix a moment&#x27; : &#x27;Undo the fix&#x27;));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>RingTimer <span>Data</span></h2><div class="pair"><iframe title="RingTimer, dark" data-h="192" style="height:192px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[RingTimer/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;RingTimer — preview&lt;/title&gt;
+&lt;style&gt;
+.al-row { gap: var(--space-8); }
+  .compact { display: flex; align-items: center; gap: var(--space-3); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.RingTimer, { progress: 0.38, value: &#x27;15:32&#x27;, caption: &#x27;of 25 min&#x27; }),
+    h(A.RingTimer, { progress: 0.7, value: &#x27;1:30&#x27;, caption: &#x27;break left&#x27;, size: 120, tone: &#x27;partial&#x27; }),
+    h(&#x27;div&#x27;, { className: &#x27;compact&#x27; },
+      h(A.RingTimer, { progress: 0.04, value: &#x27;24:07&#x27;, size: 44 }),
+      h(A.Stat, { value: &#x27;24:07&#x27;, label: &#x27;Drawing&#x27;, sub: &#x27;of 25 min&#x27; }))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="RingTimer, light" data-h="192" style="height:192px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[RingTimer/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;RingTimer — preview&lt;/title&gt;
+&lt;style&gt;
+.al-row { gap: var(--space-8); }
+  .compact { display: flex; align-items: center; gap: var(--space-3); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.RingTimer, { progress: 0.38, value: &#x27;15:32&#x27;, caption: &#x27;of 25 min&#x27; }),
+    h(A.RingTimer, { progress: 0.7, value: &#x27;1:30&#x27;, caption: &#x27;break left&#x27;, size: 120, tone: &#x27;partial&#x27; }),
+    h(&#x27;div&#x27;, { className: &#x27;compact&#x27; },
+      h(A.RingTimer, { progress: 0.04, value: &#x27;24:07&#x27;, size: 44 }),
+      h(A.Stat, { value: &#x27;24:07&#x27;, label: &#x27;Drawing&#x27;, sub: &#x27;of 25 min&#x27; }))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Stat <span>Data</span></h2><div class="pair"><iframe title="Stat, dark" data-h="112" style="height:112px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Stat/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Stat — preview&lt;/title&gt;
+&lt;style&gt;
+.al-row { gap: var(--space-8); align-items: flex-start; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function Demo() {
+    var s = React.useState(false), alt = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(A.Stat, { value: alt ? &#x27;86%&#x27; : &#x27;82%&#x27;, label: &#x27;On task&#x27;, sub: alt ? &#x27;Seen 21 of 25 min&#x27; : &#x27;Seen 20 of 25 min&#x27; }),
+      h(A.Stat, { value: alt ? &#x27;1h 58m&#x27; : &#x27;1h 52m&#x27;, label: &#x27;Seen today&#x27;, sub: &#x27;Claimed 2h 10m&#x27; }),
+      h(A.Stat, { value: alt ? 7 : 6, label: &#x27;Days in a row&#x27;, sub: &#x27;1 freeze left&#x27; }),
+      h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27;, icon: &#x27;undo&#x27;, onClick: function () { set(!alt); } }, alt ? &#x27;Undo&#x27; : &#x27;Fix a moment&#x27;));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Stat, light" data-h="112" style="height:112px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Stat/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Stat — preview&lt;/title&gt;
+&lt;style&gt;
+.al-row { gap: var(--space-8); align-items: flex-start; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-row&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function Demo() {
+    var s = React.useState(false), alt = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(A.Stat, { value: alt ? &#x27;86%&#x27; : &#x27;82%&#x27;, label: &#x27;On task&#x27;, sub: alt ? &#x27;Seen 21 of 25 min&#x27; : &#x27;Seen 20 of 25 min&#x27; }),
+      h(A.Stat, { value: alt ? &#x27;1h 58m&#x27; : &#x27;1h 52m&#x27;, label: &#x27;Seen today&#x27;, sub: &#x27;Claimed 2h 10m&#x27; }),
+      h(A.Stat, { value: alt ? 7 : 6, label: &#x27;Days in a row&#x27;, sub: &#x27;1 freeze left&#x27; }),
+      h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27;, icon: &#x27;undo&#x27;, onClick: function () { set(!alt); } }, alt ? &#x27;Undo&#x27; : &#x27;Fix a moment&#x27;));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Pinch <span>Pinch</span></h2><div class="pair"><iframe title="Pinch, dark" data-h="344" style="height:344px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Pinch/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Pinch — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { gap: var(--space-6); }
+  .moods { align-self: stretch; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: var(--space-4) var(--space-2); }
+  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+  figcaption { font-size: 13px; color: var(--ink-2); }
+  .stage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6); }
+  .hero { width: 160px; height: 160px; display: grid; place-items: center; }
+  .clips { display: flex; flex-direction: column; gap: var(--space-2); max-width: 420px; }
+  .label { font-size: 12px; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); }
+  .btns { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  var P = window.AlibiPinch;
+  var MOODS = (P &amp;&amp; P.moods) || [&#x27;idle&#x27;, &#x27;focused&#x27;, &#x27;listening&#x27;, &#x27;thinking&#x27;, &#x27;sleepy&#x27;, &#x27;reading&#x27;];
+  var CLIPS = (P &amp;&amp; P.clips) || [&#x27;hello&#x27;, &#x27;sideeye&#x27;, &#x27;nudge&#x27;, &#x27;celebrate&#x27;, &#x27;partial&#x27;, &#x27;supportive&#x27;, &#x27;surprise&#x27;, &#x27;connected&#x27;];
+  function Demo() {
+    var s = React.useState({ clip: null, key: 0 }), st = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(&#x27;div&#x27;, { className: &#x27;moods&#x27; }, MOODS.map(function (m) {
+        return h(&#x27;figure&#x27;, { key: m }, h(A.Pinch, { mood: m, size: 96 }), h(&#x27;figcaption&#x27;, null, m));
+      })),
+      h(&#x27;div&#x27;, { className: &#x27;stage&#x27; },
+        h(&#x27;div&#x27;, { className: &#x27;hero&#x27; }, h(A.Pinch, { mood: &#x27;idle&#x27;, size: 160, play: st.clip, playKey: st.key, force: true })),
+        h(&#x27;div&#x27;, { className: &#x27;clips&#x27; },
+          h(&#x27;span&#x27;, { className: &#x27;label&#x27; }, &#x27;Play a clip&#x27;),
+          h(&#x27;div&#x27;, { className: &#x27;btns&#x27; }, CLIPS.map(function (c) {
+            return h(A.Button, { key: c, variant: st.clip === c ? &#x27;ghost&#x27; : &#x27;secondary&#x27;, size: &#x27;sm&#x27;,
+              onClick: function () { set({ clip: c, key: st.key + 1 }); } }, c);
+          })))));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Pinch, light" data-h="344" style="height:344px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Pinch/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Pinch — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { gap: var(--space-6); }
+  .moods { align-self: stretch; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: var(--space-4) var(--space-2); }
+  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+  figcaption { font-size: 13px; color: var(--ink-2); }
+  .stage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6); }
+  .hero { width: 160px; height: 160px; display: grid; place-items: center; }
+  .clips { display: flex; flex-direction: column; gap: var(--space-2); max-width: 420px; }
+  .label { font-size: 12px; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); }
+  .btns { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  var P = window.AlibiPinch;
+  var MOODS = (P &amp;&amp; P.moods) || [&#x27;idle&#x27;, &#x27;focused&#x27;, &#x27;listening&#x27;, &#x27;thinking&#x27;, &#x27;sleepy&#x27;, &#x27;reading&#x27;];
+  var CLIPS = (P &amp;&amp; P.clips) || [&#x27;hello&#x27;, &#x27;sideeye&#x27;, &#x27;nudge&#x27;, &#x27;celebrate&#x27;, &#x27;partial&#x27;, &#x27;supportive&#x27;, &#x27;surprise&#x27;, &#x27;connected&#x27;];
+  function Demo() {
+    var s = React.useState({ clip: null, key: 0 }), st = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(&#x27;div&#x27;, { className: &#x27;moods&#x27; }, MOODS.map(function (m) {
+        return h(&#x27;figure&#x27;, { key: m }, h(A.Pinch, { mood: m, size: 96 }), h(&#x27;figcaption&#x27;, null, m));
+      })),
+      h(&#x27;div&#x27;, { className: &#x27;stage&#x27; },
+        h(&#x27;div&#x27;, { className: &#x27;hero&#x27; }, h(A.Pinch, { mood: &#x27;idle&#x27;, size: 160, play: st.clip, playKey: st.key, force: true })),
+        h(&#x27;div&#x27;, { className: &#x27;clips&#x27; },
+          h(&#x27;span&#x27;, { className: &#x27;label&#x27; }, &#x27;Play a clip&#x27;),
+          h(&#x27;div&#x27;, { className: &#x27;btns&#x27; }, CLIPS.map(function (c) {
+            return h(A.Button, { key: c, variant: st.clip === c ? &#x27;ghost&#x27; : &#x27;secondary&#x27;, size: &#x27;sm&#x27;,
+              onClick: function () { set({ clip: c, key: st.key + 1 }); } }, c);
+          })))));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(Demo));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>PinchLine <span>Pinch</span></h2><div class="pair"><iframe title="PinchLine, dark" data-h="188" style="height:188px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[PinchLine/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;PinchLine — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { gap: var(--space-4); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.PinchLine, null, &#x27;Nothing claimed yet. What are you about to do?&#x27;),
+    h(A.PinchLine, { mood: &#x27;focused&#x27; }, &#x27;You said drawing. I\u2019ve seen your &#x27;, h(&#x27;span&#x27;, { className: &#x27;al-cause&#x27; }, &#x27;phone&#x27;), &#x27; for 3 minutes.&#x27;),
+    h(A.PinchLine, null, &#x27;Fair. I\u2019ve changed that one.&#x27;),
+    h(A.PinchLine, { compact: true, mood: &#x27;sleepy&#x27; }, &#x27;On a break. Back at 18:20.&#x27;)));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="PinchLine, light" data-h="188" style="height:188px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[PinchLine/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;PinchLine — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { gap: var(--space-4); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.PinchLine, null, &#x27;Nothing claimed yet. What are you about to do?&#x27;),
+    h(A.PinchLine, { mood: &#x27;focused&#x27; }, &#x27;You said drawing. I\u2019ve seen your &#x27;, h(&#x27;span&#x27;, { className: &#x27;al-cause&#x27; }, &#x27;phone&#x27;), &#x27; for 3 minutes.&#x27;),
+    h(A.PinchLine, null, &#x27;Fair. I\u2019ve changed that one.&#x27;),
+    h(A.PinchLine, { compact: true, mood: &#x27;sleepy&#x27; }, &#x27;On a break. Back at 18:20.&#x27;)));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Card <span>Surfaces</span></h2><div class="pair"><iframe title="Card, dark" data-h="312" style="height:312px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Card/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Card — preview&lt;/title&gt;
+&lt;style&gt;
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-6); padding: var(--space-4); align-items: start; }
+  .grid p, .grid h3 { margin: 0 0 var(--space-2); }
+  .ink2 { color: var(--ink-2); }
+  .al-card--warn p { margin-bottom: var(--space-3); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;grid&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.Card, null,
+      h(&#x27;p&#x27;, { className: &#x27;t-label ink2&#x27; }, &#x27;Latest verdict&#x27;),
+      h(&#x27;h3&#x27;, { className: &#x27;t-h3&#x27; }, &#x27;Drawing, 18:04 to 18:29&#x27;),
+      h(&#x27;p&#x27;, { className: &#x27;t-small ink2&#x27; }, &#x27;Claimed 25 min. Seen 25 min at the desk.&#x27;)),
+    h(A.Card, { tone: &#x27;raised&#x27;, padding: &#x27;sm&#x27; },
+      h(A.Stat, { value: &#x27;1h 52m&#x27;, label: &#x27;Seen today&#x27;, sub: &#x27;Claimed 2h 10m&#x27; })),
+    h(A.Card, { tone: &#x27;accent&#x27; },
+      h(&#x27;p&#x27;, { className: &#x27;t-voice&#x27; }, &#x27;A week of alibis that checked out.&#x27;)),
+    h(A.Card, { tone: &#x27;warn&#x27;, padding: &#x27;sm&#x27; },
+      h(&#x27;p&#x27;, { className: &#x27;t-small&#x27; }, &#x27;The desk camera stopped answering at 18:12.&#x27;),
+      h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27;, icon: &#x27;camera&#x27; }, &#x27;Check the camera&#x27;))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Card, light" data-h="312" style="height:312px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Card/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Card — preview&lt;/title&gt;
+&lt;style&gt;
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-6); padding: var(--space-4); align-items: start; }
+  .grid p, .grid h3 { margin: 0 0 var(--space-2); }
+  .ink2 { color: var(--ink-2); }
+  .al-card--warn p { margin-bottom: var(--space-3); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;grid&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.Card, null,
+      h(&#x27;p&#x27;, { className: &#x27;t-label ink2&#x27; }, &#x27;Latest verdict&#x27;),
+      h(&#x27;h3&#x27;, { className: &#x27;t-h3&#x27; }, &#x27;Drawing, 18:04 to 18:29&#x27;),
+      h(&#x27;p&#x27;, { className: &#x27;t-small ink2&#x27; }, &#x27;Claimed 25 min. Seen 25 min at the desk.&#x27;)),
+    h(A.Card, { tone: &#x27;raised&#x27;, padding: &#x27;sm&#x27; },
+      h(A.Stat, { value: &#x27;1h 52m&#x27;, label: &#x27;Seen today&#x27;, sub: &#x27;Claimed 2h 10m&#x27; })),
+    h(A.Card, { tone: &#x27;accent&#x27; },
+      h(&#x27;p&#x27;, { className: &#x27;t-voice&#x27; }, &#x27;A week of alibis that checked out.&#x27;)),
+    h(A.Card, { tone: &#x27;warn&#x27;, padding: &#x27;sm&#x27; },
+      h(&#x27;p&#x27;, { className: &#x27;t-small&#x27; }, &#x27;The desk camera stopped answering at 18:12.&#x27;),
+      h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27;, icon: &#x27;camera&#x27; }, &#x27;Check the camera&#x27;))));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>Toast <span>Surfaces</span></h2><div class="pair"><iframe title="Toast, dark" data-h="492" style="height:492px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Toast/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Toast — preview&lt;/title&gt;
+&lt;style&gt;
+.toasts { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-6); padding: var(--space-6); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;toasts&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  var noop = function () {};
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.Toast, { kind: &#x27;nudge&#x27;, title: &#x27;Drawing \u00b7 12 of 25 min&#x27;, onClose: noop,
+      actions: [{ label: &#x27;Back to it&#x27;, variant: &#x27;primary&#x27; }, { label: &#x27;This counts&#x27;, variant: &#x27;secondary&#x27; }, { label: &#x27;Quiet 5 min&#x27;, variant: &#x27;quiet&#x27; }] },
+      &#x27;You said drawing. I\u2019ve seen your &#x27;, h(&#x27;span&#x27;, { className: &#x27;al-cause&#x27; }, &#x27;phone&#x27;), &#x27; for 3 minutes.&#x27;),
+    h(A.Toast, { kind: &#x27;verdict&#x27;, title: &#x27;Drawing \u00b7 18:29&#x27;, mood: &#x27;idle&#x27;,
+      actions: [{ label: &#x27;See proof&#x27;, variant: &#x27;secondary&#x27;, icon: &#x27;film&#x27; }, { label: &#x27;Fix a moment&#x27;, variant: &#x27;quiet&#x27; }] },
+      &#x27;Partly. 17 of 25 minutes on task. The phone had the rest.&#x27;),
+    h(A.Toast, { kind: &#x27;info&#x27;, icon: &#x27;run&#x27;, title: &#x27;Strava&#x27;, onClose: noop }, &#x27;Strava\u2019s in: 5.2 km run, 28 min.&#x27;)));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="Toast, light" data-h="492" style="height:492px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[Toast/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;Toast — preview&lt;/title&gt;
+&lt;style&gt;
+.toasts { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-6); padding: var(--space-6); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;toasts&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  var noop = function () {};
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(A.Toast, { kind: &#x27;nudge&#x27;, title: &#x27;Drawing \u00b7 12 of 25 min&#x27;, onClose: noop,
+      actions: [{ label: &#x27;Back to it&#x27;, variant: &#x27;primary&#x27; }, { label: &#x27;This counts&#x27;, variant: &#x27;secondary&#x27; }, { label: &#x27;Quiet 5 min&#x27;, variant: &#x27;quiet&#x27; }] },
+      &#x27;You said drawing. I\u2019ve seen your &#x27;, h(&#x27;span&#x27;, { className: &#x27;al-cause&#x27; }, &#x27;phone&#x27;), &#x27; for 3 minutes.&#x27;),
+    h(A.Toast, { kind: &#x27;verdict&#x27;, title: &#x27;Drawing \u00b7 18:29&#x27;, mood: &#x27;idle&#x27;,
+      actions: [{ label: &#x27;See proof&#x27;, variant: &#x27;secondary&#x27;, icon: &#x27;film&#x27; }, { label: &#x27;Fix a moment&#x27;, variant: &#x27;quiet&#x27; }] },
+      &#x27;Partly. 17 of 25 minutes on task. The phone had the rest.&#x27;),
+    h(A.Toast, { kind: &#x27;info&#x27;, icon: &#x27;run&#x27;, title: &#x27;Strava&#x27;, onClose: noop }, &#x27;Strava\u2019s in: 5.2 km run, 28 min.&#x27;)));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<section class="row"><h2>NotchIsland <span>Surfaces</span></h2><div class="pair"><iframe title="NotchIsland, dark" data-h="1192" style="height:1192px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;dark&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[NotchIsland/dark] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;NotchIsland — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { gap: var(--space-6); }
+  .shots { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; }
+  .shot { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .shot figcaption { font-size: 13px; color: var(--ink-2); }
+  .screen { position: relative; overflow: hidden; border-radius: 0 0 var(--radius-md) var(--radius-md); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline); }
+  .live { display: flex; flex-direction: column; gap: var(--space-3); }
+  .picker { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .say { display: flex; align-items: center; gap: var(--space-3); }
+  .say .al-pinch { flex: none; }
+  .col { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+  .acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .frames { display: flex; gap: var(--space-2); }
+  .frame { position: relative; width: 96px; height: 54px; border-radius: var(--radius-xs); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline-strong); display: flex; align-items: flex-end; justify-content: space-between; padding: var(--space-1) 6px; box-sizing: border-box; }
+  .frame .t { font-family: var(--font-mono); font-size: 11px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function wing(state) {
+    if (state === &#x27;break&#x27;) return { leading: h(A.Pinch, { mood: &#x27;sleepy&#x27;, size: 16, theme: &#x27;dark&#x27;, still: true }), trailing: [h(A.Icon, { key: &#x27;i&#x27;, name: &#x27;cup&#x27;, size: 16 }), &#x27;4m&#x27;] };
+    return { leading: h(A.Pinch, { mood: &#x27;focused&#x27;, size: 16, theme: &#x27;dark&#x27;, still: true }), trailing: &#x27;24m&#x27; };
+  }
+  function header(withPinch) {
+    return {
+      leading: [h(&#x27;span&#x27;, { key: &#x27;w&#x27;, className: &#x27;al-wordmark&#x27; }, &#x27;ALIBI&#x27;), h(A.StatusDot, { key: &#x27;d&#x27;, label: &#x27;on_task&#x27;, size: 8 })],
+      trailing: withPinch ? h(A.Pinch, { mood: &#x27;listening&#x27;, size: 28, theme: &#x27;dark&#x27; }) : null
+    };
+  }
+  function frames() {
+    return h(&#x27;div&#x27;, { className: &#x27;frames&#x27; }, [&#x27;18:06&#x27;, &#x27;18:15&#x27;, &#x27;18:27&#x27;].map(function (t) {
+      return h(&#x27;div&#x27;, { key: t, className: &#x27;frame&#x27; }, h(&#x27;span&#x27;, { className: &#x27;al-island-secondary t&#x27; }, t), h(A.StatusDot, { label: &#x27;on_task&#x27;, size: 10 }));
+    }));
+  }
+  function content(state) {
+    if (state === &#x27;idle&#x27;) return {};
+    if (state === &#x27;live&#x27; || state === &#x27;peek&#x27; || state === &#x27;break&#x27;) return wing(state);
+    if (state === &#x27;expanded&#x27;) return Object.assign(header(true), { children: [
+      h(A.Composer, { key: &#x27;c&#x27;, chips: [&#x27;Drawing&#x27;, &#x27;C++&#x27;, &#x27;Reading&#x27;] }),
+      h(&#x27;p&#x27;, { key: &#x27;n&#x27;, className: &#x27;al-island-secondary&#x27; }, &#x27;Next up: Drawing at 19:00 \u00b7 6 days in a row&#x27;)] });
+    if (state === &#x27;nudge&#x27;) return Object.assign(header(false), { children: [
+      h(&#x27;div&#x27;, { key: &#x27;l&#x27;, className: &#x27;say&#x27; }, h(A.Pinch, { mood: &#x27;focused&#x27;, size: 56, theme: &#x27;dark&#x27;, play: &#x27;sideeye&#x27;, force: true }),
+        h(&#x27;p&#x27;, { className: &#x27;al-island-voice&#x27; }, &#x27;You said drawing. I\u2019ve seen your &#x27;, h(&#x27;span&#x27;, { className: &#x27;al-cause&#x27; }, &#x27;phone&#x27;), &#x27; for 3 minutes.&#x27;)),
+      h(&#x27;div&#x27;, { key: &#x27;a&#x27;, className: &#x27;acts&#x27; },
+        h(A.Button, { variant: &#x27;primary&#x27;, size: &#x27;sm&#x27; }, &#x27;Back to it&#x27;),
+        h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27; }, &#x27;This counts&#x27;),
+        h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27; }, &#x27;Quiet 5 min&#x27;))] });
+    return Object.assign(header(false), { children: [
+      h(&#x27;div&#x27;, { key: &#x27;v&#x27;, className: &#x27;say&#x27; }, h(A.Pinch, { mood: &#x27;idle&#x27;, size: 64, theme: &#x27;dark&#x27;, play: &#x27;celebrate&#x27;, force: true }),
+        h(&#x27;div&#x27;, { className: &#x27;col&#x27; }, h(A.VerdictPill, { verdict: &#x27;done&#x27;, ratio: 1 }),
+          h(&#x27;p&#x27;, { className: &#x27;al-island-voice&#x27; }, &#x27;Done. 25 of 25 minutes at the desk, pencil in hand.&#x27;))),
+      h(&#x27;div&#x27;, { key: &#x27;f&#x27; }, frames()),
+      h(&#x27;div&#x27;, { key: &#x27;a&#x27;, className: &#x27;acts&#x27; },
+        h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27;, icon: &#x27;film&#x27; }, &#x27;See proof&#x27;),
+        h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27; }, &#x27;Fix a moment&#x27;))] });
+  }
+  function Screen(p) {
+    var c = content(p.state);
+    return h(&#x27;figure&#x27;, { className: &#x27;shot&#x27; },
+      h(&#x27;div&#x27;, { className: &#x27;screen&#x27;, style: { width: p.w, height: p.h } },
+        h(A.NotchIsland, { state: p.state, leading: c.leading, trailing: c.trailing, shake: p.shake }, c.children)),
+      p.caption === false ? null : h(&#x27;figcaption&#x27;, null, p.state));
+  }
+  var STATES = [&#x27;idle&#x27;, &#x27;live&#x27;, &#x27;peek&#x27;, &#x27;break&#x27;, &#x27;expanded&#x27;, &#x27;nudge&#x27;, &#x27;verdict&#x27;];
+  function Live() {
+    var s = React.useState(&#x27;nudge&#x27;), st = s[0], set = s[1];
+    var c = content(st);
+    return h(&#x27;div&#x27;, { className: &#x27;live&#x27; },
+      h(&#x27;div&#x27;, { className: &#x27;picker&#x27;, role: &#x27;group&#x27;, &#x27;aria-label&#x27;: &#x27;Island state&#x27; }, STATES.map(function (x) {
+        return h(A.Chip, { key: x, selected: st === x, onClick: function () { set(x); } }, x);
+      })),
+      h(&#x27;div&#x27;, { className: &#x27;screen&#x27;, style: { width: 560, height: 280 } },
+        h(A.NotchIsland, { state: st, leading: c.leading, trailing: c.trailing, shake: true }, c.children)));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(&#x27;div&#x27;, { className: &#x27;shots&#x27; },
+      h(Screen, { state: &#x27;idle&#x27;, w: 300, h: 64 }), h(Screen, { state: &#x27;live&#x27;, w: 300, h: 64 }),
+      h(Screen, { state: &#x27;peek&#x27;, w: 300, h: 64 }), h(Screen, { state: &#x27;break&#x27;, w: 300, h: 64 })),
+    h(&#x27;div&#x27;, { className: &#x27;shots&#x27; },
+      h(Screen, { state: &#x27;expanded&#x27;, w: 456, h: 240 }), h(Screen, { state: &#x27;verdict&#x27;, w: 496, h: 270 })),
+    h(Live)));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe><iframe title="NotchIsland, light" data-h="1192" style="height:1192px" srcdoc="&lt;!doctype html&gt;
+&lt;html data-theme=&quot;light&quot;&gt;
+&lt;head&gt;&lt;script&gt;window.addEventListener(&#x27;error&#x27;,function(e){parent.console.error(&#x27;[NotchIsland/light] &#x27;+e.message)});&lt;/script&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;project/components/bundle.css&quot;&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;&lt;script src=&quot;project/components/bundle.js&quot;&gt;&lt;/script&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;title&gt;NotchIsland — preview&lt;/title&gt;
+&lt;style&gt;
+.al-stack { gap: var(--space-6); }
+  .shots { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; }
+  .shot { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .shot figcaption { font-size: 13px; color: var(--ink-2); }
+  .screen { position: relative; overflow: hidden; border-radius: 0 0 var(--radius-md) var(--radius-md); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline); }
+  .live { display: flex; flex-direction: column; gap: var(--space-3); }
+  .picker { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .say { display: flex; align-items: center; gap: var(--space-3); }
+  .say .al-pinch { flex: none; }
+  .col { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+  .acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .frames { display: flex; gap: var(--space-2); }
+  .frame { position: relative; width: 96px; height: 54px; border-radius: var(--radius-xs); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline-strong); display: flex; align-items: flex-end; justify-content: space-between; padding: var(--space-1) 6px; box-sizing: border-box; }
+  .frame .t { font-family: var(--font-mono); font-size: 11px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;root&quot; class=&quot;al-stack&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  var A = window.Alibi, h = React.createElement;
+
+  function wing(state) {
+    if (state === &#x27;break&#x27;) return { leading: h(A.Pinch, { mood: &#x27;sleepy&#x27;, size: 16, theme: &#x27;dark&#x27;, still: true }), trailing: [h(A.Icon, { key: &#x27;i&#x27;, name: &#x27;cup&#x27;, size: 16 }), &#x27;4m&#x27;] };
+    return { leading: h(A.Pinch, { mood: &#x27;focused&#x27;, size: 16, theme: &#x27;dark&#x27;, still: true }), trailing: &#x27;24m&#x27; };
+  }
+  function header(withPinch) {
+    return {
+      leading: [h(&#x27;span&#x27;, { key: &#x27;w&#x27;, className: &#x27;al-wordmark&#x27; }, &#x27;ALIBI&#x27;), h(A.StatusDot, { key: &#x27;d&#x27;, label: &#x27;on_task&#x27;, size: 8 })],
+      trailing: withPinch ? h(A.Pinch, { mood: &#x27;listening&#x27;, size: 28, theme: &#x27;dark&#x27; }) : null
+    };
+  }
+  function frames() {
+    return h(&#x27;div&#x27;, { className: &#x27;frames&#x27; }, [&#x27;18:06&#x27;, &#x27;18:15&#x27;, &#x27;18:27&#x27;].map(function (t) {
+      return h(&#x27;div&#x27;, { key: t, className: &#x27;frame&#x27; }, h(&#x27;span&#x27;, { className: &#x27;al-island-secondary t&#x27; }, t), h(A.StatusDot, { label: &#x27;on_task&#x27;, size: 10 }));
+    }));
+  }
+  function content(state) {
+    if (state === &#x27;idle&#x27;) return {};
+    if (state === &#x27;live&#x27; || state === &#x27;peek&#x27; || state === &#x27;break&#x27;) return wing(state);
+    if (state === &#x27;expanded&#x27;) return Object.assign(header(true), { children: [
+      h(A.Composer, { key: &#x27;c&#x27;, chips: [&#x27;Drawing&#x27;, &#x27;C++&#x27;, &#x27;Reading&#x27;] }),
+      h(&#x27;p&#x27;, { key: &#x27;n&#x27;, className: &#x27;al-island-secondary&#x27; }, &#x27;Next up: Drawing at 19:00 \u00b7 6 days in a row&#x27;)] });
+    if (state === &#x27;nudge&#x27;) return Object.assign(header(false), { children: [
+      h(&#x27;div&#x27;, { key: &#x27;l&#x27;, className: &#x27;say&#x27; }, h(A.Pinch, { mood: &#x27;focused&#x27;, size: 56, theme: &#x27;dark&#x27;, play: &#x27;sideeye&#x27;, force: true }),
+        h(&#x27;p&#x27;, { className: &#x27;al-island-voice&#x27; }, &#x27;You said drawing. I\u2019ve seen your &#x27;, h(&#x27;span&#x27;, { className: &#x27;al-cause&#x27; }, &#x27;phone&#x27;), &#x27; for 3 minutes.&#x27;)),
+      h(&#x27;div&#x27;, { key: &#x27;a&#x27;, className: &#x27;acts&#x27; },
+        h(A.Button, { variant: &#x27;primary&#x27;, size: &#x27;sm&#x27; }, &#x27;Back to it&#x27;),
+        h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27; }, &#x27;This counts&#x27;),
+        h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27; }, &#x27;Quiet 5 min&#x27;))] });
+    return Object.assign(header(false), { children: [
+      h(&#x27;div&#x27;, { key: &#x27;v&#x27;, className: &#x27;say&#x27; }, h(A.Pinch, { mood: &#x27;idle&#x27;, size: 64, theme: &#x27;dark&#x27;, play: &#x27;celebrate&#x27;, force: true }),
+        h(&#x27;div&#x27;, { className: &#x27;col&#x27; }, h(A.VerdictPill, { verdict: &#x27;done&#x27;, ratio: 1 }),
+          h(&#x27;p&#x27;, { className: &#x27;al-island-voice&#x27; }, &#x27;Done. 25 of 25 minutes at the desk, pencil in hand.&#x27;))),
+      h(&#x27;div&#x27;, { key: &#x27;f&#x27; }, frames()),
+      h(&#x27;div&#x27;, { key: &#x27;a&#x27;, className: &#x27;acts&#x27; },
+        h(A.Button, { variant: &#x27;secondary&#x27;, size: &#x27;sm&#x27;, icon: &#x27;film&#x27; }, &#x27;See proof&#x27;),
+        h(A.Button, { variant: &#x27;quiet&#x27;, size: &#x27;sm&#x27; }, &#x27;Fix a moment&#x27;))] });
+  }
+  function Screen(p) {
+    var c = content(p.state);
+    return h(&#x27;figure&#x27;, { className: &#x27;shot&#x27; },
+      h(&#x27;div&#x27;, { className: &#x27;screen&#x27;, style: { width: p.w, height: p.h } },
+        h(A.NotchIsland, { state: p.state, leading: c.leading, trailing: c.trailing, shake: p.shake }, c.children)),
+      p.caption === false ? null : h(&#x27;figcaption&#x27;, null, p.state));
+  }
+  var STATES = [&#x27;idle&#x27;, &#x27;live&#x27;, &#x27;peek&#x27;, &#x27;break&#x27;, &#x27;expanded&#x27;, &#x27;nudge&#x27;, &#x27;verdict&#x27;];
+  function Live() {
+    var s = React.useState(&#x27;nudge&#x27;), st = s[0], set = s[1];
+    var c = content(st);
+    return h(&#x27;div&#x27;, { className: &#x27;live&#x27; },
+      h(&#x27;div&#x27;, { className: &#x27;picker&#x27;, role: &#x27;group&#x27;, &#x27;aria-label&#x27;: &#x27;Island state&#x27; }, STATES.map(function (x) {
+        return h(A.Chip, { key: x, selected: st === x, onClick: function () { set(x); } }, x);
+      })),
+      h(&#x27;div&#x27;, { className: &#x27;screen&#x27;, style: { width: 560, height: 280 } },
+        h(A.NotchIsland, { state: st, leading: c.leading, trailing: c.trailing, shake: true }, c.children)));
+  }
+  ReactDOM.createRoot(document.getElementById(&#x27;root&#x27;)).render(h(React.Fragment, null,
+    h(&#x27;div&#x27;, { className: &#x27;shots&#x27; },
+      h(Screen, { state: &#x27;idle&#x27;, w: 300, h: 64 }), h(Screen, { state: &#x27;live&#x27;, w: 300, h: 64 }),
+      h(Screen, { state: &#x27;peek&#x27;, w: 300, h: 64 }), h(Screen, { state: &#x27;break&#x27;, w: 300, h: 64 })),
+    h(&#x27;div&#x27;, { className: &#x27;shots&#x27; },
+      h(Screen, { state: &#x27;expanded&#x27;, w: 456, h: 240 }), h(Screen, { state: &#x27;verdict&#x27;, w: 496, h: 270 })),
+    h(Live)));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div></section>
+<script>
+  function fit(f) {
+    try {
+      var d = f.contentDocument; if (!d || !d.documentElement) return;
+      var h = Math.max(Number(f.dataset.h) || 0, d.documentElement.scrollHeight);
+      f.style.height = h + 'px';
+    } catch (e) { console.error('fit: ' + e.message); }
+  }
+  document.querySelectorAll('iframe').forEach(function (f) {
+    f.addEventListener('load', function () { fit(f); setTimeout(function () { fit(f); }, 400); });
+  });
+</script>
+</body>
+</html>

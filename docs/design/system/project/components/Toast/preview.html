@@ -1,0 +1,25 @@
+<!-- @dsCard group="Surfaces" height=492 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Toast — preview</title>
+<style>
+.toasts { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-6); padding: var(--space-6); }
+</style>
+</head>
+<body>
+<div id="root" class="toasts"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  var noop = function () {};
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(A.Toast, { kind: 'nudge', title: 'Drawing \u00b7 12 of 25 min', onClose: noop,
+      actions: [{ label: 'Back to it', variant: 'primary' }, { label: 'This counts', variant: 'secondary' }, { label: 'Quiet 5 min', variant: 'quiet' }] },
+      'You said drawing. I\u2019ve seen your ', h('span', { className: 'al-cause' }, 'phone'), ' for 3 minutes.'),
+    h(A.Toast, { kind: 'verdict', title: 'Drawing \u00b7 18:29', mood: 'idle',
+      actions: [{ label: 'See proof', variant: 'secondary', icon: 'film' }, { label: 'Fix a moment', variant: 'quiet' }] },
+      'Partly. 17 of 25 minutes on task. The phone had the rest.'),
+    h(A.Toast, { kind: 'info', icon: 'run', title: 'Strava', onClose: noop }, 'Strava\u2019s in: 5.2 km run, 28 min.')));
+</script>
+</body>
+</html>

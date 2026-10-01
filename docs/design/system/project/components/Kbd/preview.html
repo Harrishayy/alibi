@@ -1,0 +1,20 @@
+<!-- @dsCard group="Inputs" height=56 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Kbd — preview</title>
+<style>
+.pair { display: inline-flex; align-items: center; gap: var(--space-2); margin-right: var(--space-3); font-size: 13px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div id="root" class="al-row"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  var pair = function (k, t) { return h('span', { className: 'pair' }, h(A.Kbd, null, k), h('span', null, t)); };
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    pair('\u2325\u2318A', 'Toggle the island'), pair('/', 'Type a claim'), pair('\u21b5', 'Start'),
+    pair('esc', 'Close'), pair('\u23181', 'First habit')));
+</script>
+</body>
+</html>

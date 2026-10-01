@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Demo story</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/alibi/components/bundle.css">
+<script src="ds/alibi/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--ink-2)}a:hover{color:var(--ink)}
+</style>
+</helmet>
+<div data-theme="dark" style="width: 1600px; height: 1000px; box-sizing: border-box; padding: 28px 40px 32px; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); font-family: var(--font-sans); overflow: hidden;">
+
+  <header style="display: flex; align-items: flex-end; justify-content: space-between; gap: 32px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <h1 style="margin: 0; font-size: 32px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance;">Demo story</h1>
+      <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums; text-wrap: pretty;">90 seconds, 14 shots, three surfaces: I said X, Alibi saw Y, here is the proof, it was fair to me. Trimming to 75 s? Cut the dashed shots, never the bright ones.</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; flex: none;">
+      <a href="Main.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 8px; font-size: 13px; line-height: 1.45; text-decoration: none;">All boards</a>
+      <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="md" icon="play" onClick="{{ play }}">Play the story</x-import>
+    </div>
+  </header>
+
+  <ol aria-label="Shot list, to scale" style="margin: 16px 0 0; padding: 0; list-style: none; display: flex; gap: 6px;">
+    <sc-for list="{{ beats }}" as="b" hint-placeholder-count="8">
+      <li style="flex: {{ b.grow }}; min-width: 0; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; gap: 2px;">
+          <sc-for list="{{ b.shots }}" as="s" hint-placeholder-count="2">
+            <div style="flex: {{ s.grow }}; min-width: 0; box-sizing: border-box; height: 26px; padding: 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 4px; border: 1px {{ s.line }} {{ s.edge }}; border-radius: var(--radius-xs); background: {{ s.fill }}; overflow: hidden; white-space: nowrap;">
+              <span style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: {{ s.ink }}; font-variant-numeric: tabular-nums;">{{ s.n }}<span class="al-sr">{{ s.spoken }}</span></span>
+              <span aria-hidden="true" style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ s.len }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div aria-hidden="true" style="position: relative; height: 2px; border-radius: 1px; background: var(--hairline); overflow: hidden;">
+          <div style="position: absolute; inset: 0; border-radius: 1px; background: var(--ink); transform-origin: 0 50%; transform: scaleX({{ b.fill }}); transition: transform {{ b.ms }} linear;"></div>
+        </div>
+        <span style="display: inline-flex; gap: 6px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap;"><span style="color: var(--ink);">{{ b.n }}</span><span>{{ b.at }}</span></span>
+      </li>
+    </sc-for>
+  </ol>
+
+  <div style="margin-top: 16px; flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 16px;">
+
+    <!-- 1 · Title card -->
+    <article aria-label="Beat 1, title card" style="display: flex; flex-direction: column; min-height: 0; padding: 6px; border: 1px solid {{ edge.b1 }}; border-radius: var(--radius-md); background: var(--surface-1); opacity: {{ dim.b1 }}; transition: opacity 260ms var(--ease-out), border-color 260ms var(--ease-out);">
+      <div style="position: relative; height: 196px; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border-radius: var(--radius-sm); background: var(--bg); overflow: hidden;">
+        <x-import component-from-global-scope="Alibi.Pinch" mood="idle" size="{{ s64 }}" play="hello" play-key="{{ k1 }}" force="{{ forced }}" theme="dark"></x-import>
+        <span class="al-wordmark" style="font-size: 28px;">ALIBI</span>
+        <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2);">The habit tracker that checks your alibi.</span>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+          <span style="display: inline-flex; align-items: center; gap: 8px;"><span style="color: var(--ink);">1</span><span>0:00–0:04</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><x-import component-from-global-scope="Alibi.Icon" name="film" size="{{ i16 }}"></x-import>Title card</span>
+        </div>
+        <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;">The habit tracker that checks your alibi</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; font-variant-numeric: tabular-nums;">Black. ALIBI fades up at 0.3 s, Pinch pops in on the celebrate spring at 0.8 s and waves, the line settles at 1.6 s.</p>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;"><code style="flex: none; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-2); white-space: nowrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">K6</code><span>Pinch <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">hello</code> at 160</span></span>
+          <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="sm" icon="play" onClick="{{ r1 }}">Replay<span class="al-sr"> beat 1</span></x-import>
+        </div>
+      </div>
+    </article>
+
+    <!-- 2 · Island bloom -->
+    <article aria-label="Beat 2, the island blooms" style="display: flex; flex-direction: column; min-height: 0; padding: 6px; border: 1px solid {{ edge.b2 }}; border-radius: var(--radius-md); background: var(--surface-1); opacity: {{ dim.b2 }}; transition: opacity 260ms var(--ease-out), border-color 260ms var(--ease-out);">
+      <div style="position: relative; height: 196px; flex: none; border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 50%; width: 440px; height: 240px; transform: translateX(-50%) scale(0.74); transform-origin: 50% 0;">
+          <x-import component-from-global-scope="Alibi.NotchIsland" state="expanded" label="Alibi island, expanded" style="display: block; width: 440px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px;">
+              <span class="al-wordmark">ALIBI</span>
+              <x-import component-from-global-scope="Alibi.Pinch" mood="listening" size="{{ s28 }}" theme="dark"></x-import>
+            </div>
+            <x-import component-from-global-scope="Alibi.Composer" value="draw for 25 min" focused="{{ yes }}" chips="{{ chips }}"></x-import>
+          </x-import>
+        </div>
+        <div style="position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2);">
+          <x-import component-from-global-scope="Alibi.Kbd">↵</x-import>
+          <span>folds the panel; wings slide out with</span>
+          <span style="font-family: var(--font-rounded); font-size: 13px; line-height: 1.2; font-weight: 600; color: var(--accent-ink); font-variant-numeric: tabular-nums;">25m</span>
+        </div>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+          <span style="display: inline-flex; align-items: center; gap: 8px;"><span style="color: var(--ink);">2</span><span>0:04–0:15</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><x-import component-from-global-scope="Alibi.Icon" name="laptop" size="{{ i16 }}"></x-import>Mac notch</span>
+        </div>
+        <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;">Say what you're about to do.</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; font-variant-numeric: tabular-nums;">Rest the pointer on the notch: it blooms to 400 pt, shape first. Type, Enter, the wings slide out. Then “It watches quietly while you work.”</p>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;"><code style="flex: none; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-2); white-space: nowrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">M1</code><span>Pinch <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">listening</code> at 28, still at 16</span></span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 3 · Dashboard Now -->
+    <article aria-label="Beat 3, the dashboard watches" style="display: flex; flex-direction: column; min-height: 0; padding: 6px; border: 1px solid {{ edge.b3 }}; border-radius: var(--radius-md); background: var(--surface-1); opacity: {{ dim.b3 }}; transition: opacity 260ms var(--ease-out), border-color 260ms var(--ease-out);">
+      <div style="position: relative; height: 196px; flex: none; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; border-radius: var(--radius-sm); background: var(--bg); overflow: hidden;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">Now · Drawing</span>
+          <x-import component-from-global-scope="Alibi.StatusDot" label="on_task" size="{{ dot }}" text="{{ yes }}" style="font-size: 12px;"></x-import>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <x-import component-from-global-scope="Alibi.RingTimer" progress="{{ ring3 }}" value="24:07" caption="left" size="{{ ring }}"></x-import>
+          <x-import component-from-global-scope="Alibi.Stat" value="100%" label="On task"></x-import>
+          <div style="margin-left: auto; display: flex;">
+            <x-import component-from-global-scope="Alibi.Pinch" mood="focused" size="{{ s64 }}" theme="dark"></x-import>
+          </div>
+        </div>
+        <x-import component-from-global-scope="Alibi.SampleStrip" labels="{{ strip3 }}" size="{{ strip }}" develop="{{ yes }}"></x-import>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+          <span style="display: inline-flex; align-items: center; gap: 8px;"><span style="color: var(--ink);">3</span><span>0:15–0:22</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><x-import component-from-global-scope="Alibi.Icon" name="laptop" size="{{ i16 }}"></x-import>Dashboard, Now</span>
+        </div>
+        <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;">Judged on this Mac by Apple Vision.</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; font-variant-numeric: tabular-nums;">The ring ticks, a desk frame develops from grey to sharp, its dot pops. If status says nvidia, the caption names the NVIDIA VLM.</p>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;"><code style="flex: none; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-2); white-space: nowrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">M2</code><span>Pinch <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">focused</code> at 96, lens lit</span></span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 4 · iPhone Lock Screen and Dynamic Island -->
+    <article aria-label="Beat 4, the iPhone keeps time" style="display: flex; flex-direction: column; min-height: 0; padding: 6px; border: 1px solid {{ edge.b4 }}; border-radius: var(--radius-md); background: var(--surface-1); opacity: {{ dim.b4 }}; transition: opacity 260ms var(--ease-out), border-color 260ms var(--ease-out);">
+      <div style="position: relative; height: 196px; flex: none; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden;">
+        <div role="img" aria-label="Dynamic Island compact: Pinch and 18:42" style="width: 236px; height: 37px; flex: none; box-sizing: border-box; padding: 0 14px 0 9px; display: flex; align-items: center; justify-content: space-between; border-radius: var(--radius-pill); background: var(--island);">
+          <x-import component-from-global-scope="Alibi.Pinch" mood="focused" size="{{ s20 }}" still="{{ yes }}" theme="dark"></x-import>
+          <span style="width: 40px; text-align: right; font-family: var(--font-rounded); font-size: 14px; line-height: 1; font-weight: 600; color: var(--accent-ink); font-variant-numeric: tabular-nums;">18:42</span>
+        </div>
+        <div role="img" aria-label="Lock Screen Live Activity: Drawing, 18:42 left, on task 100%" style="width: 100%; box-sizing: border-box; padding: 14px; display: flex; flex-direction: column; gap: 10px; border-radius: var(--radius-lg); background: var(--island);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <x-import component-from-global-scope="Alibi.Pinch" mood="focused" size="{{ s32 }}" still="{{ yes }}" theme="dark"></x-import>
+            <span style="flex: 1; font-size: 15px; line-height: 1.3; font-weight: 600; color: var(--ink);">Drawing</span>
+            <span style="font-family: var(--font-rounded); font-size: 34px; line-height: 1; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums;">18:42</span>
+          </div>
+          <div style="position: relative; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden;">
+            <div style="position: absolute; inset: 0; border-radius: 3px; background: var(--accent); transform: scaleX(0.25); transform-origin: 0 50%;"></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+            <x-import component-from-global-scope="Alibi.StatusDot" label="on_task" size="{{ dot }}"></x-import>
+            <span>On task 100% · last seen 19:21</span>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+          <span style="display: inline-flex; align-items: center; gap: 8px;"><span style="color: var(--ink);">4</span><span>0:22–0:31</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><x-import component-from-global-scope="Alibi.Icon" name="phone" size="{{ i16 }}"></x-import>iPhone Live Activity</span>
+        </div>
+        <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;">Your Lock Screen keeps the time.</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; font-variant-numeric: tabular-nums;">At 0:30 of the take, lift the phone: the countdown ticks on its own. A 0.3 s whip to the simulator: “And in the Dynamic Island.”</p>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;"><code style="flex: none; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-2); white-space: nowrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">M2 · S1</code><span>Pinch still at 32, 20 and 44</span></span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 5 · Nudge drop -->
+    <article aria-label="Beat 5, the nudge" style="display: flex; flex-direction: column; min-height: 0; padding: 6px; border: 1px solid {{ edge.b5 }}; border-radius: var(--radius-md); background: var(--surface-1); opacity: {{ dim.b5 }}; transition: opacity 260ms var(--ease-out), border-color 260ms var(--ease-out);">
+      <div style="position: relative; height: 196px; flex: none; border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 50%; width: 440px; height: 220px; transform: translateX(-50%) scale(0.76); transform-origin: 50% 0;">
+          <x-import component-from-global-scope="Alibi.NotchIsland" state="nudge" shake="{{ shake }}" label="Alibi island, nudge" style="display: block; width: 440px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <x-import component-from-global-scope="Alibi.Pinch" mood="focused" size="{{ s56 }}" play="sideeye" play-key="{{ k5 }}" force="{{ forced }}" theme="dark"></x-import>
+              <p class="al-island-voice" style="font-variant-numeric: tabular-nums;">You said drawing. I've seen your <span style="color: var(--warn-ink);">phone</span> for 3 minutes.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <x-import component-from-global-scope="Alibi.Button" variant="primary" size="sm">Back to it</x-import>
+              <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="sm">This counts</x-import>
+              <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="sm">Quiet 5 min</x-import>
+            </div>
+          </x-import>
+        </div>
+        <div role="img" aria-label="Desk camera picture-in-picture: phone in hand at 19:31" style="position: absolute; right: 12px; bottom: 12px; width: 132px; box-sizing: border-box; padding: 10px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface-1);">
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);"><x-import component-from-global-scope="Alibi.Icon" name="camera" size="{{ i16 }}"></x-import>Desk, live</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; line-height: 1.45; color: var(--ink); font-variant-numeric: tabular-nums;"><x-import component-from-global-scope="Alibi.StatusDot" label="phone" size="{{ dot }}"></x-import>Phone · 19:31</span>
+        </div>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+          <span style="display: inline-flex; align-items: center; gap: 8px;"><span style="color: var(--ink);">5</span><span>0:31–0:42</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><x-import component-from-global-scope="Alibi.Icon" name="camera" size="{{ i16 }}"></x-import>Desk, then notch</span>
+        </div>
+        <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;">Drift gets a nudge, not a lecture.</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; font-variant-numeric: tabular-nums;">At 1:00 the phone comes up in camera view, sped 4×. The alert drops on the bouncy spring and shakes once. No sound. Back to it.</p>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;"><code style="flex: none; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-2); white-space: nowrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">M2</code><span>Pinch <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">sideeye</code>, <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">nudge</code> at 56</span></span>
+          <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="sm" icon="play" onClick="{{ r5 }}">Replay<span class="al-sr"> beat 5</span></x-import>
+        </div>
+      </div>
+    </article>
+
+    <!-- 6 · Verdict -->
+    <article aria-label="Beat 6, the verdict" style="display: flex; flex-direction: column; min-height: 0; padding: 6px; border: 1px solid {{ edge.b6 }}; border-radius: var(--radius-md); background: var(--surface-1); opacity: {{ dim.b6 }}; transition: opacity 260ms var(--ease-out), border-color 260ms var(--ease-out);">
+      <div style="position: relative; height: 196px; flex: none; border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 50%; width: 440px; height: 260px; transform: translateX(-50%) scale(0.74); transform-origin: 50% 0;">
+          <x-import component-from-global-scope="Alibi.NotchIsland" state="verdict" label="Alibi island, verdict" style="display: block; width: 440px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <x-import component-from-global-scope="Alibi.Pinch" mood="idle" size="{{ s64 }}" play="celebrate" play-key="{{ k6 }}" force="{{ forced }}" theme="dark"></x-import>
+              <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0;">
+                <x-import component-from-global-scope="Alibi.VerdictPill" verdict="done" ratio="{{ ratio6 }}"></x-import>
+                <p class="al-island-voice" style="font-variant-numeric: tabular-nums;">Done. 23 of 25 minutes at the desk, pencil in hand.</p>
+              </div>
+            </div>
+            <x-import component-from-global-scope="Alibi.SampleStrip" labels="{{ strip6 }}" size="{{ stripBig }}"></x-import>
+            <div style="display: flex; gap: 8px;">
+              <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="sm" icon="eye">See proof</x-import>
+              <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="sm">Fix a moment</x-import>
+            </div>
+          </x-import>
+        </div>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+          <span style="display: inline-flex; align-items: center; gap: 8px;"><span style="color: var(--ink);">6</span><span>0:42–0:57</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><x-import component-from-global-scope="Alibi.Icon" name="laptop" size="{{ i16 }}"></x-import>Notch, then dashboard</span>
+        </div>
+        <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;">Done only when the evidence agrees.</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; font-variant-numeric: tabular-nums;">The verdict blooms to 440 pt on the done chime. Cut to the dashboard: the % counts up, claw confetti. “Every verdict comes with proof.”</p>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;"><code style="flex: none; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-2); white-space: nowrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">M2 · M3</code><span>Pinch <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">celebrate</code> at 64</span></span>
+          <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="sm" icon="play" onClick="{{ r6 }}">Replay<span class="al-sr"> beat 6</span></x-import>
+        </div>
+      </div>
+    </article>
+
+    <!-- 7 · Fix a moment -->
+    <article aria-label="Beat 7, one-click correction" style="display: flex; flex-direction: column; min-height: 0; padding: 6px; border: 1px solid {{ edge.b7 }}; border-radius: var(--radius-md); background: var(--surface-1); opacity: {{ dim.b7 }}; transition: opacity 260ms var(--ease-out), border-color 260ms var(--ease-out);">
+      <div style="position: relative; height: 196px; flex: none; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; border-radius: var(--radius-sm); background: var(--bg); overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <x-import component-from-global-scope="Alibi.Pinch" mood="idle" size="{{ s44 }}" play="surprise" play-key="{{ k7 }}" force="{{ forced }}" theme="dark"></x-import>
+          <p style="margin: 0; font-size: 20px; line-height: 1.45; font-weight: 500; letter-spacing: -0.01em; color: var(--ink);">Fair. I've changed that one.</p>
+        </div>
+        <div style="box-sizing: border-box; padding: 12px; display: flex; flex-direction: column; gap: 10px; border-radius: var(--radius-md); background: var(--surface-2); box-shadow: var(--shadow-float);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span style="font-size: 13px; line-height: 1.45; color: var(--ink); font-variant-numeric: tabular-nums;">Relabel 19:24</span>
+            <x-import component-from-global-scope="Alibi.VerdictPill" verdict="done" ratio="{{ ratio7 }}"></x-import>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <x-import component-from-global-scope="Alibi.Chip" selected="{{ yes }}">On task</x-import>
+            <x-import component-from-global-scope="Alibi.Chip">Idle</x-import>
+            <x-import component-from-global-scope="Alibi.Chip">Phone</x-import>
+            <x-import component-from-global-scope="Alibi.Chip">Away</x-import>
+          </div>
+        </div>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+          <span style="display: inline-flex; align-items: center; gap: 8px;"><span style="color: var(--ink);">7</span><span>0:57–1:04</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><x-import component-from-global-scope="Alibi.Icon" name="laptop" size="{{ i16 }}"></x-import>Dashboard, contact sheet</span>
+        </div>
+        <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;">Wrong call? One click fixes it.</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; font-variant-numeric: tabular-nums;">A hand reaching for the eraser was marked idle. Relabel it, slowly: the popover scales from the dot and 92% ticks to 96%.</p>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;"><code style="flex: none; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-2); white-space: nowrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">M3</code><span>Pinch <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">surprise</code>, then a nod</span></span>
+          <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="sm" icon="play" onClick="{{ r7 }}">Replay<span class="al-sr"> beat 7</span></x-import>
+        </div>
+      </div>
+    </article>
+
+    <!-- 8 · Claimed versus seen, then the end card -->
+    <article aria-label="Beat 8, claimed versus seen and the end card" style="display: flex; flex-direction: column; min-height: 0; padding: 6px; border: 1px solid {{ edge.b8 }}; border-radius: var(--radius-md); background: var(--surface-1); opacity: {{ dim.b8 }}; transition: opacity 260ms var(--ease-out), border-color 260ms var(--ease-out);">
+      <div style="position: relative; height: 196px; flex: none; box-sizing: border-box; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; border-radius: var(--radius-sm); background: var(--bg); overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <x-import component-from-global-scope="Alibi.Pinch" mood="reading" size="{{ s64 }}" theme="dark"></x-import>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0;">
+            <p style="margin: 0; display: flex; flex-direction: column; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em; font-variant-numeric: tabular-nums;"><span>Claimed 2h 10m.</span><span>Seen 1h 52m.</span></p>
+            <x-import component-from-global-scope="Alibi.StreakBadge" days="{{ streak }}" freezes="{{ freezes }}"></x-import>
+          </div>
+        </div>
+        <div role="img" aria-label="This week, claimed versus seen minutes: Monday 45 and 41, Tuesday 30 and 22, Wednesday 25 and 25, Thursday 30 and 24." style="flex: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end;">
+          <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+              <div style="height: 40px; display: flex; align-items: flex-end; gap: 3px;">
+                <span style="width: 10px; height: {{ d.claimedH }}; box-sizing: border-box; border: 1px solid var(--hairline-strong); border-radius: 3px;"></span>
+                <span style="width: 10px; height: {{ d.seenH }}; border-radius: 3px; background: var(--accent);"></span>
+              </div>
+              <span style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: {{ d.ink }};">{{ d.day }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex: 1; box-sizing: border-box; padding: 14px 12px 6px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); font-variant-numeric: tabular-nums;">
+          <span style="display: inline-flex; align-items: center; gap: 8px;"><span style="color: var(--ink);">8</span><span>1:04–1:30</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><x-import component-from-global-scope="Alibi.Icon" name="calendar" size="{{ i16 }}"></x-import>Week, iPhone, end card</span>
+        </div>
+        <h2 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance;">Claimed versus seen, every single night.</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; font-variant-numeric: tabular-nums;">One slow scroll to the week, the iPhone's Today and Week, partial and slacked side by side, then the end card: “Say it. Do it. Alibi checks.”</p>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;"><code style="flex: none; padding: 1px 6px; border-radius: var(--radius-xs); background: var(--surface-2); white-space: nowrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">M4 · P1 · W1</code><span>Pinch <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">reading</code>, then <code style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink);">idle</code> at 160</span></span>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.timers = [];
+    this.state = { k1: 0, k5: 0, k6: 0, k7: 0, forced: false, active: 0, shake: false };
+  }
+  componentWillUnmount() {
+    this.timers.forEach((h) => clearTimeout(h));
+  }
+  bump(key) {
+    const next = { forced: true };
+    next[key] = this.state[key] + 1;
+    if (key === 'k5') next.shake = true;
+    this.setState(next);
+  }
+  play() {
+    // DEMO.md's 90 s cut, played at 1/7 speed (each beat at least 1.4 s so its clip can finish), then lights up.
+    this.timers.forEach((h) => clearTimeout(h));
+    this.timers = [];
+    const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let at = 0;
+    this.beats.forEach((b, i) => {
+      const ms = Math.max(1400, b.sec * 150);
+      this.timers.push(setTimeout(() => {
+        const next = { active: i + 1, beatMs: reduce ? 0 : ms };
+        if (b.clip) {
+          next[b.clip] = this.state[b.clip] + 1;
+          next.forced = true;
+          if (b.clip === 'k5') next.shake = true;
+        }
+        this.setState(next);
+      }, at));
+      at += ms;
+    });
+    this.timers.push(setTimeout(() => this.setState({ active: 0 }), at + 400));
+    this.setState({ active: 0 });
+  }
+  renderVals() {
+    this.beats = [
+      { sec: 4, clip: 'k1', shots: [[0, 4, 'The habit tracker that checks your alibi', '']] },
+      { sec: 11, shots: [[1, 6, "Say what you're about to do.", 'keep'], [2, 5, 'It watches quietly while you work.', '']] },
+      { sec: 7, shots: [[3, 7, 'Judged on this Mac by Apple Vision.', '']] },
+      { sec: 9, shots: [[4, 5, 'Your Lock Screen keeps the time.', ''], [5, 4, 'And in the Dynamic Island.', 'trim']] },
+      { sec: 11, clip: 'k5', shots: [[6, 11, 'Drift gets a nudge, not a lecture.', 'keep']] },
+      { sec: 15, clip: 'k6', shots: [[7, 7, 'Done only when the evidence agrees.', 'keep'], [8, 8, 'Every verdict comes with proof.', 'keep']] },
+      { sec: 7, clip: 'k7', shots: [[9, 7, 'Wrong call? One click fixes it.', 'keep']] },
+      { sec: 26, shots: [[10, 8, 'Claimed versus seen, every single night.', 'trim'], [11, 7, 'Phone, laptop and desk: one honest record.', ''],
+                         [12, 5, 'Bad days get honesty, never shame.', 'trim'], [13, 6, 'Say it. Do it. Alibi checks.', '']] }
+    ];
+    const active = this.state.active;
+    const playing = active > 0;
+    const clock = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    let start = 0;
+    const beats = this.beats.map((b, i) => {
+      const at = clock(start);
+      start += b.sec;
+      return {
+        n: i + 1,
+        at: at,
+        grow: b.sec + ' 1 0px',
+        fill: playing && i + 1 <= active ? 1 : 0,
+        ms: playing && i + 1 === active ? this.state.beatMs + 'ms' : '0ms',
+        shots: b.shots.map((s) => {
+          const keep = s[3] === 'keep';
+          const trim = s[3] === 'trim';
+          const lit = playing && i + 1 === active;
+          return {
+            n: s[0],
+            len: s[1] + ' s',
+            grow: s[1] + ' 1 0px',
+            spoken: ', ' + s[1] + ' seconds: ' + s[2] + (keep ? ' Never cut.' : trim ? ' Cut first when trimming.' : ''),
+            line: trim ? 'dashed' : 'solid',
+            edge: trim ? 'var(--hairline-strong)' : 'var(--hairline)',
+            fill: trim ? 'transparent' : lit || keep ? 'var(--surface-3)' : 'var(--surface-1)',
+            ink: keep || lit ? 'var(--ink)' : 'var(--ink-2)'
+          };
+        })
+      };
+    });
+    const dim = {};
+    const edge = {};
+    for (let i = 1; i <= 8; i++) {
+      dim['b' + i] = playing && i !== active ? 0.45 : 1;
+      edge['b' + i] = playing && i === active ? 'var(--hairline-strong)' : 'var(--hairline)';
+    }
+    const max = 45;
+    const bar = (m) => (m === 0 ? '0px' : Math.max(4, Math.round((m / max) * 40)) + 'px');
+    const week = [
+      { day: 'M', claimed: 45, seen: 41 },
+      { day: 'T', claimed: 30, seen: 22 },
+      { day: 'W', claimed: 25, seen: 25 },
+      { day: 'T', claimed: 30, seen: 24, today: true },
+      { day: 'F', claimed: 0, seen: 0 },
+      { day: 'S', claimed: 0, seen: 0 },
+      { day: 'S', claimed: 0, seen: 0 }
+    ].map((d) => ({
+      day: d.day,
+      claimedH: bar(d.claimed),
+      seenH: bar(d.seen),
+      ink: d.today ? 'var(--ink)' : 'var(--ink-3)'
+    }));
+    return {
+      yes: true,
+      forced: this.state.forced,
+      shake: this.state.shake,
+      k1: this.state.k1, k5: this.state.k5, k6: this.state.k6, k7: this.state.k7,
+      r1: () => this.bump('k1'),
+      r5: () => this.bump('k5'),
+      r6: () => this.bump('k6'),
+      r7: () => this.bump('k7'),
+      play: () => this.play(),
+      beats: beats,
+      dim: dim,
+      edge: edge,
+      s20: 20, s28: 28, s32: 32, s44: 44, s56: 56, s64: 64,
+      i16: 16,
+      dot: 12,
+      ring: 96,
+      ring3: 0.04,
+      strip: 20,
+      stripBig: 28,
+      chips: ['Drawing 25 min', 'C++ 30 min', 'Internship apps 45 min'],
+      strip3: ['on_task', 'on_task', 'on_task', 'on_task', 'on_task', 'on_task'],
+      strip6: ['on_task', 'phone', 'on_task'],
+      ratio6: 0.92,
+      ratio7: 0.96,
+      streak: 6,
+      freezes: 1,
+      week: week
+    };
+  }
+}
+</script>
+</body>
+</html>

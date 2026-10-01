@@ -1,0 +1,21 @@
+<!-- @dsCard group="Actions" height=76 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>IconButton — preview</title>
+</head>
+<body>
+<div id="root" class="al-row"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(A.IconButton, { icon: 'settings', ariaLabel: 'Open setup', size: 'sm' }),
+    h(A.IconButton, { icon: 'settings', ariaLabel: 'Open setup' }),
+    h(A.IconButton, { icon: 'settings', ariaLabel: 'Open setup', size: 'lg' }),
+    h(A.IconButton, { icon: 'pause', ariaLabel: 'Pause session' }),
+    h(A.IconButton, { icon: 'undo', ariaLabel: 'Undo correction' }),
+    h(A.IconButton, { icon: 'eye', ariaLabel: 'Show frames', 'aria-pressed': true }),
+    h(A.IconButton, { icon: 'x', ariaLabel: 'Dismiss', size: 'sm' })));
+</script>
+</body>
+</html>

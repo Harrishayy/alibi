@@ -1,0 +1,531 @@
+{
+ "viewBox": [0, 0, 160, 160],
+ "units": "viewBox user units; every transform is an SVG transform attribute about the listed pivot (equivalent to transform-box: view-box)",
+ "feet": [80, 148],
+ "order": "bloom, pinch-root > [tail, legs, body > [antenna-l, antenna-r, torso, belly, blush, eye-l > lid-l, eye-r > lid-r, mouth], arm-l > claw-l > [jaw-l-bottom, jaw-l-top, palm, paper], arm-r > claw-r > [jaw-r-bottom, lens > [lens-glow, lens-view > lens-eye, rim, lens-glint], jaw-r-top, palm], sweat, zzz], sparkle",
+ "parts": {
+  "pinch-root": {
+   "pivot": [80, 148],
+   "parent": null,
+   "transforms": "translate(0,bodyY) rotate(tilt + 2*lookX, feet) scale(1/sqrt(bodySquash), bodySquash, feet)"
+  },
+  "bloom": {
+   "pivot": [80, 86],
+   "parent": null,
+   "transforms": "opacity bloom; scale 0.8+0.2*bloom"
+  },
+  "tail": {
+   "pivot": [48, 133],
+   "parent": "pinch-root",
+   "transforms": "static (LOD: hidden below 40 px)"
+  },
+  "legs": {
+   "pivot": [80, 140],
+   "parent": "pinch-root",
+   "transforms": "static (LOD: hidden below 96 px)"
+  },
+  "body": {
+   "pivot": [80, 144],
+   "parent": "pinch-root",
+   "transforms": "static carrier for face parts"
+  },
+  "antenna-l": {
+   "pivot": [74.5, 38],
+   "parent": "body",
+   "transforms": "rotate(antennaLift + antennaSway)"
+  },
+  "antenna-r": {
+   "pivot": [85.5, 38],
+   "parent": "body",
+   "transforms": "rotate(-antennaLift + 0.85*antennaSway)"
+  },
+  "belly": {
+   "pivot": [80, 122.5],
+   "parent": "body",
+   "transforms": "static"
+  },
+  "blush": {
+   "pivot": [80, 94.5],
+   "parent": "body",
+   "transforms": "opacity blush"
+  },
+  "eye-l": {
+   "pivot": [66, 80],
+   "parent": "body",
+   "transforms": "translate(lookX*3.5, lookY*2.5) scale(max(1,eyeOpen))"
+  },
+  "eye-r": {
+   "pivot": [94, 80],
+   "parent": "body",
+   "transforms": "translate(lookX*3.5, lookY*2.5) scale(max(1,eyeOpen))"
+  },
+  "lid-l": {
+   "pivot": [66, 66.0],
+   "parent": "eye-l",
+   "transforms": "translate(0, coverage*lidSpan) rotate(-browL, lid edge); clipped to the eye"
+  },
+  "lid-r": {
+   "pivot": [94, 66.0],
+   "parent": "eye-r",
+   "transforms": "translate(0, coverage*lidSpan) rotate(browR, lid edge)"
+  },
+  "mouth": {
+   "pivot": [80, 97],
+   "parent": "body",
+   "transforms": "rotate(mouthTilt); child shape by mouth; smile scaleY(mouthCurve) about its corners"
+  },
+  "arm-l": {
+   "pivot": [51.5, 104.5],
+   "parent": "pinch-root",
+   "transforms": "rotate(clawL)"
+  },
+  "claw-l": {
+   "pivot": [31.5, 89],
+   "parent": "arm-l",
+   "transforms": "rotate(-0.8*clawL + wristL)"
+  },
+  "jaw-l-top": {
+   "pivot": [13.8, 69.9],
+   "parent": "claw-l",
+   "transforms": "rotate(jaw angle) about jaws.top.local (dactyl)"
+  },
+  "jaw-l-bottom": {
+   "pivot": [29.2, 63.1],
+   "parent": "claw-l",
+   "transforms": "rotate(jaw angle) about jaws.bottom.local (fixed finger)"
+  },
+  "paper": {
+   "pivot": [31.5, 89],
+   "parent": "claw-l",
+   "transforms": "opacity paper"
+  },
+  "arm-r": {
+   "pivot": [108, 105],
+   "parent": "pinch-root",
+   "transforms": "rotate(-clawR + lens*lensRaise.arm)"
+  },
+  "claw-r": {
+   "pivot": [125.5, 115],
+   "parent": "arm-r",
+   "transforms": "rotate(0.8*clawR - wristR + lens*lensRaise.claw)"
+  },
+  "jaw-r-top": {
+   "pivot": [136.3, 98.2],
+   "parent": "claw-r",
+   "transforms": "as jaw-l-top (the claw frame is mirrored, same signed angle closes)"
+  },
+  "jaw-r-bottom": {
+   "pivot": [123.8, 95.1],
+   "parent": "claw-r",
+   "transforms": "as jaw-l-bottom"
+  },
+  "lens": {
+   "pivot": [130.49, 94.97],
+   "parent": "claw-r",
+   "transforms": "translate(lens*lensRaise.slide) scale(lensZoom, glass) scale(1-0.35*lensOut, grip); opacity 1-lensOut"
+  },
+  "lens-glow": {
+   "pivot": [140.73, 61.5],
+   "parent": "lens",
+   "transforms": "children lens-ring, lens-wash: opacity lensGlow"
+  },
+  "lens-glint": {
+   "pivot": [140.73, 61.5],
+   "parent": "lens",
+   "transforms": "static specular arcs at 10 and 2 o'clock"
+  },
+  "lens-sweep": {
+   "pivot": [140.73, 61.5],
+   "parent": "lens",
+   "transforms": "translate along the 45 deg diagonal (-1.25..1.25)*r by glint; opacity sin(pi*glint); clipped to the glass"
+  },
+  "lens-view": {
+   "pivot": [140.73, 61.5],
+   "parent": "lens",
+   "transforms": "opacity smoothstep(0.72,0.96,lens); clipped to the glass"
+  },
+  "lens-eye": {
+   "pivot": [94, 80],
+   "parent": "lens-view",
+   "transforms": "matrix = inverse(world(lens)) * scale(1.5 about the glass centre in world) * world(eye-r)"
+  },
+  "sweat": {
+   "pivot": [60.5, 57],
+   "parent": "pinch-root",
+   "transforms": "opacity sweat; translateY 3.5*(sweat-1)"
+  },
+  "zzz": {
+   "pivot": [121, 25],
+   "parent": "pinch-root",
+   "transforms": "opacity zzz; z0..z2 drift (5,-11)*phase on a 2400 ms cycle"
+  },
+  "sparkle": {
+   "pivot": [80, 64],
+   "parent": null,
+   "transforms": "opacity 1.6*sparkle; scale 0.72+0.34*sparkle about the centre"
+  }
+ },
+ "jaws": {
+  "l": {
+   "top": {
+    "local": [-7.5, -22],
+    "world": [13.8, 69.9],
+    "close_deg": 13.5,
+    "open_deg": -16
+   },
+   "bottom": {
+    "local": [7.5, -22],
+    "world": [29.2, 63.1],
+    "close_deg": -3.0,
+    "open_deg": 5
+   }
+  },
+  "r": {
+   "top": {
+    "local": [-7.5, -22],
+    "world": [136.3, 98.2],
+    "close_deg": 13.5,
+    "open_deg": -16
+   },
+   "bottom": {
+    "local": [7.5, -22],
+    "world": [123.8, 95.1],
+    "close_deg": -3.0,
+    "open_deg": 5
+   }
+  }
+ },
+ "params": [
+  {
+   "name": "bodySquash",
+   "default": 1,
+   "min": 0.85,
+   "max": 1.15,
+   "unit": "scaleY",
+   "drives": "pinch-root scale about the feet [80,148]; scaleX = 1/sqrt(scaleY)"
+  },
+  {
+   "name": "bodyY",
+   "default": 0,
+   "min": -24,
+   "max": 8,
+   "unit": "px",
+   "drives": "pinch-root translateY (hops: ease-out up, ease-in down)"
+  },
+  {
+   "name": "tilt",
+   "default": 0,
+   "min": -12,
+   "max": 12,
+   "unit": "deg",
+   "drives": "pinch-root rotate about the feet; lookX adds a 2 deg lean"
+  },
+  {
+   "name": "clawL",
+   "default": 0,
+   "min": -40,
+   "max": 45,
+   "unit": "deg",
+   "drives": "arm-l rotate about the shoulder (+ raises); claw-l counter-rotates -0.8x so it stays upright"
+  },
+  {
+   "name": "clawR",
+   "default": 0,
+   "min": -40,
+   "max": 86,
+   "unit": "deg",
+   "drives": "arm-r rotate about the shoulder (+ raises, mirrored sign); claw-r counter-rotates -0.8x"
+  },
+  {
+   "name": "wristL",
+   "default": 0,
+   "min": -60,
+   "max": 140,
+   "unit": "deg",
+   "drives": "extra claw-l rotate about the wrist (+ turns the crusher in toward the face: thinking, clap)"
+  },
+  {
+   "name": "wristR",
+   "default": 0,
+   "min": -60,
+   "max": 140,
+   "unit": "deg",
+   "drives": "extra claw-r rotate about the wrist, mirrored sense"
+  },
+  {
+   "name": "pinch",
+   "default": 0,
+   "min": -1,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "both claws: -1 wide open, 0 rest gap, 1 jaws meet (close_deg)"
+  },
+  {
+   "name": "pinchL",
+   "default": 0,
+   "min": -1,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "crusher only, added to pinch and clamped"
+  },
+  {
+   "name": "pinchR",
+   "default": 0,
+   "min": -1,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "cutter only (grips the lens handle), added to pinch and clamped"
+  },
+  {
+   "name": "eyeOpen",
+   "default": 1,
+   "min": 0,
+   "max": 1.3,
+   "unit": "0..1.3",
+   "drives": "both lids: coverage = 1 - eyeOpen; above 1 the eyes scale up (surprise 1.15)"
+  },
+  {
+   "name": "lidL",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "extra lid coverage on eye-l, combined 1-(1-a)(1-b) with eyeOpen (sideeye dry lid 0.4)"
+  },
+  {
+   "name": "lidR",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "extra lid coverage on eye-r"
+  },
+  {
+   "name": "browL",
+   "default": 0,
+   "min": -8,
+   "max": 14,
+   "unit": "deg",
+   "drives": "lid-l tilt: + kind (outer corner down), - dry; never a frown"
+  },
+  {
+   "name": "browR",
+   "default": 0,
+   "min": -8,
+   "max": 14,
+   "unit": "deg",
+   "drives": "lid-r tilt, same sense mirrored"
+  },
+  {
+   "name": "joy",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "crossfade the eyes to happy closed ^ ^ arcs (celebrate)"
+  },
+  {
+   "name": "lookX",
+   "default": 0,
+   "min": -1,
+   "max": 1,
+   "unit": "-1..1",
+   "drives": "eye-l/eye-r translateX +-3.5 (lids ride along), body lean 2 deg"
+  },
+  {
+   "name": "lookY",
+   "default": 0,
+   "min": -1,
+   "max": 1,
+   "unit": "-1..1",
+   "drives": "eye-l/eye-r translateY +-2.5"
+  },
+  {
+   "name": "mouth",
+   "default": "smile",
+   "min": null,
+   "max": null,
+   "unit": "shape",
+   "drives": "the only shape swap: smile | flat | open | o (step)"
+  },
+  {
+   "name": "mouthCurve",
+   "default": 1,
+   "min": -0.2,
+   "max": 1.4,
+   "unit": "scaleY",
+   "drives": "smile height (0 = flat line, 1 = rest smile); clamped at -0.2, never a frown"
+  },
+  {
+   "name": "mouthTilt",
+   "default": 0,
+   "min": -14,
+   "max": 14,
+   "unit": "deg",
+   "drives": "mouth rotate about its centre (half smile)"
+  },
+  {
+   "name": "blush",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "blush opacity (pinch-blush already carries its alpha)"
+  },
+  {
+   "name": "antennaSway",
+   "default": 0,
+   "min": -16,
+   "max": 16,
+   "unit": "deg",
+   "drives": "both antennae rotate the same way (right one x0.85)"
+  },
+  {
+   "name": "antennaLift",
+   "default": 0,
+   "min": -16,
+   "max": 24,
+   "unit": "deg",
+   "drives": "antennae perk up (+) or droop (-), mirrored"
+  },
+  {
+   "name": "sparkle",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "sparkle opacity and burst scale 0.72 -> 1.06"
+  },
+  {
+   "name": "sweat",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "sweat drop opacity, slides 3.5 px down as it appears"
+  },
+  {
+   "name": "zzz",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "z opacity; the three z's drift on a 2400 ms cycle of engine time"
+  },
+  {
+   "name": "lens",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "0 lowered in the cutter -> 1 glass on eye-r (IK macro on arm-r, claw-r, lens); lens-view shows the magnified eye from 0.72"
+  },
+  {
+   "name": "lensGlow",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "camera light: green wash in the glass + a ring outside the rim. Carries information: never animate it for decoration"
+  },
+  {
+   "name": "lensZoom",
+   "default": 1,
+   "min": 0.8,
+   "max": 1.4,
+   "unit": "scale",
+   "drives": "lens scale about the glass centre (the tap toward the viewer)"
+  },
+  {
+   "name": "lensOut",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "lens tucked away (opacity 0, scale 0.65 about the grip) so both claws can clap"
+  },
+  {
+   "name": "glint",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "one green glint sweeps across the glass, opacity sin(pi*glint) (connected)"
+  },
+  {
+   "name": "paper",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "paper slip in the crusher (reading)"
+  },
+  {
+   "name": "bloom",
+   "default": 0,
+   "min": 0,
+   "max": 1,
+   "unit": "0..1",
+   "drives": "the one allowed gradient, behind Pinch, celebrate only"
+  }
+ ],
+ "geom": {
+  "eyes": {
+   "l": [66, 80],
+   "r": [94, 80]
+  },
+  "eyeR": [9.4, 11.2],
+  "look": [3.5, 2.5],
+  "lookLean": 2,
+  "lidSpan": 26.4,
+  "lidEdge": {
+   "l": 66.0,
+   "r": 66.0
+  },
+  "mouth": [80, 97],
+  "smileY": 95.4,
+  "antenna": {
+   "l": [74.5, 38],
+   "r": [85.5, 38]
+  },
+  "shoulder": {
+   "l": [51.5, 104.5],
+   "r": [108, 105]
+  },
+  "wrist": {
+   "l": [31.5, 89],
+   "r": [125.5, 115]
+  },
+  "clawFollow": -0.8,
+  "clawFrame": {
+   "l": "translate(31.5 89) rotate(-24) scale(1.12 1.12)",
+   "r": "translate(125.5 115) rotate(14) scale(-0.86 0.86)"
+  },
+  "jaws": {
+   "top": {
+    "local": [-7.5, -22],
+    "close_deg": 13.5,
+    "open_deg": -16
+   },
+   "bottom": {
+    "local": [7.5, -22],
+    "close_deg": -3.0,
+    "open_deg": 5
+   }
+  },
+  "glass": [140.73, 61.5],
+  "glassR": 12.5,
+  "grip": [130.49, 94.97],
+  "lensMag": 1.5,
+  "lensRaise": {
+   "arm": 18.29,
+   "claw": -67.85,
+   "slide": [-2.047, 6.694],
+   "target": [94.4, 79.6]
+  },
+  "sweat": [60.5, 57],
+  "sparkleC": [80, 64],
+  "bloom": [80, 86],
+  "zzzPeriod": 2400
+ }
+}

@@ -1,0 +1,29 @@
+<!-- @dsCard group="Status" height=96 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>SampleStrip — preview</title>
+<style>
+.note { font-size: 13px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, ['div', { style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-3)' } }].concat([].slice.call(arguments))); };
+
+  var POOL = ['on_task', 'on_task', 'on_task', 'phone', 'on_task', 'idle', 'on_task', 'off_task', 'absent'];
+  function Demo() {
+    var s = React.useState(['on_task', 'on_task', 'phone', 'on_task', 'idle', 'on_task']), labels = s[0], set = s[1];
+    var n = React.useRef(0);
+    function sample() { n.current = (n.current + 1) % POOL.length; set(labels.slice(1).concat([POOL[n.current]])); }
+    return h(React.Fragment, null,
+      row(h(A.SampleStrip, { labels: ['on_task', 'on_task', 'on_task', 'phone', 'phone', 'on_task'], size: 20 }),
+          h('span', { className: 'note' }, 'Last 6 samples, 20px')),
+      row(h(A.SampleStrip, { labels: labels, develop: true }),
+          h(A.Button, { variant: 'secondary', size: 'sm', icon: 'camera', onClick: sample }, 'Take a sample')));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

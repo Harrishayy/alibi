@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Pinch, Alibi's detective lobster">
+<style>
+.pb{fill:var(--pinch-body,#76B900)}
+.pl{fill:var(--pinch-belly,#97DC42)}
+.ps{fill:var(--pinch-shade,#588C05)}
+.po{stroke:var(--pinch-outline,#365900);stroke-width:var(--pinch-outline-w,2.6px);stroke-linejoin:round;stroke-linecap:round}
+.pe{fill:var(--pinch-eye,#000)}
+.pw{fill:var(--pinch-shine,#FFF)}
+.pk{fill:var(--pinch-blush,#F2A900);opacity:.4}
+.pz{fill:var(--pinch-spark,#AAF059)}
+.pn{fill:none;stroke:var(--pinch-shade,#588C05);stroke-linecap:round}
+.pm{fill:none;stroke:var(--pinch-eye,#000);stroke-width:2.6px;stroke-linecap:round;stroke-linejoin:round}
+.pc{fill:#5E5E5E}
+.pcs{fill:none;stroke:var(--pinch-lens,#D7D7D7);stroke-opacity:.5;stroke-width:1.6px;stroke-linecap:round}
+.lr{fill:none;stroke:var(--pinch-lens,#D7D7D7)}
+.lh{fill:#5E5E5E}
+.lg{fill:#FFF;fill-opacity:.15}
+.lglow{fill:none;stroke:var(--pinch-lens-glow,#76B900);stroke-opacity:.45}
+.sw{fill:var(--pinch-lens,#D7D7D7)}
+</style>
+<g id="pinch-root" transform="translate(0 -8) translate(80 146) scale(0.981 1.040) translate(-80 -146)">
+<g id="tail" transform="rotate(-10 110 124)"><path class="pb po" d="M103 122L116 115C117 111 117.5 109 119 108Q126 105 125.6 112.6Q133.3 113.2 129.5 119.9Q136 124 129.5 128.1C127 128.5 124 127 121.5 125L109 133Z"/><path class="po" fill="none" style="stroke-width:2px" d="M120.2 117.6L125.2 113.3"/><path class="po" fill="none" style="stroke-width:2px" d="M122 121.6L128.6 120.1"/></g>
+<g id="legs"><path class="pb po" d="M58 141C58 136 64 134 69 135C74 136 76 141 75 145C74 149 68 150 63 149C59 148 58 145 58 141Z"/><path class="pb po" d="M102 141 C102 136 96 134 91 135 C86 136 84 141 85 145 C86 149 92 150 97 149 C101 148 102 145 102 141 Z"/></g>
+<g id="body"><path class="pb po" d="M80 50C101 50 117 63 120 86C123 109 117 129 104 138C97 143 89 145 80 145C71 145 63 143 56 138C43 129 37 109 40 86C43 63 59 50 80 50Z"/><path class="ps" d="M112 74C120 90 121 116 106 134C99 140 90 143 80 143C95 138 108 126 111 108C113 96 113 84 112 74Z"/><path class="pl" opacity=".7" d="M50 76C51 66 58 58 66 56C62 61 58 68 56 76C55 80 50 80 50 76Z"/>
+<g id="belly"><path class="pl" d="M80 103C94 103 103 112 102 124C101 135 92 141 80 141C68 141 59 135 58 124C57 112 66 103 80 103Z"/><path class="pn" style="stroke-width:2px" d="M65 121Q80 126 95 121"/><path class="pn" style="stroke-width:2px" d="M68 131.5Q80 135.5 92 131.5"/></g>
+<g id="antenna-l" transform="rotate(-10 72 42)"><path class="pn" style="stroke-width:2.8px" d="M72 42C67 30 60 20 49 15C45 13 42 15 43 18"/></g>
+<g id="antenna-r" transform="rotate(10 88 42)"><path class="pn" style="stroke-width:2.8px" d="M88 42 C93 30 100 20 111 15 C115 13 118 15 117 18"/></g>
+<g id="cap" transform="rotate(-7 80 52)"><path class="pc po" d="M58 52C49 52 40 56 34 62C42 64.5 53 63.5 62 59Z"/><path class="pc po" d="M102 52 C111 52 120 56 126 62 C118 64.5 107 63.5 98 59 Z"/><path class="pc po" d="M54 58C52 40 64 27 80 27C96 27 108 40 106 58C97 62.5 63 62.5 54 58Z"/><path class="pcs" d="M55 51C65 56 95 56 105 51"/><path class="pcs" d="M80 28C77 38 76 50 78 60"/><path class="pc po" d="M80 23.5C82.5 23.5 84 25 84 27C84 29 82.5 30 80 30C77.5 30 76 29 76 27C76 25 77.5 23.5 80 23.5Z"/></g>
+<g id="eye-l"><ellipse class="pe" cx="61.5" cy="87" rx="11" ry="13"/><circle class="pw" cx="58.1" cy="81.8" r="3.9"/><path class="pb" d="M46.5 104L46.5 91.8Q61.5 82.8 76.5 91.8L76.5 104Z"/><g id="lid-l" opacity="0"><path class="pb" d="M47.5 71L75.5 71L75.5 74Q61.5 75.5 47.5 74Z"/><path class="pm" style="stroke-width:2.2px" d="M51 74Q61.5 75.5 72 74"/></g></g>
+<g id="eye-r"><ellipse class="pe" cx="98.5" cy="87" rx="11" ry="13"/><circle class="pw" cx="95.1" cy="81.8" r="3.9"/><path class="pb" d="M83.5 104L83.5 91.8Q98.5 82.8 113.5 91.8L113.5 104Z"/><g id="lid-r" opacity="0"><path class="pb" d="M84.5 71L112.5 71L112.5 74Q98.5 75.5 84.5 74Z"/><path class="pm" style="stroke-width:2.2px" d="M88 74Q98.5 75.5 109 74"/></g></g>
+<g id="blush" opacity="1"><ellipse class="pk" cx="50" cy="102" rx="7" ry="4.2"/><ellipse class="pk" cx="110" cy="102" rx="7" ry="4.2"/></g>
+<g id="mouth"><path class="pe" d="M72 99Q80 100 88 99C88 106 84 110 80 110C76 110 72 106 72 99Z"/></g>
+</g>
+
+<g id="arm-l" transform="rotate(10 45 96)"><path class="pb" d="M51 91L37 75.5C34 73 28 76 29 81L43 99Z"/><path class="po" fill="none" d="M40.6 97L29.3 83.3"/><path class="po" fill="none" d="M41.4 81.4L37.6 76.9"/><g id="claw-l" transform="rotate(-22 32 82)"><g id="jaw-l-bottom" transform="rotate(18 33.5 69.1)"><path class="pb po" d="M31.7 66.5 C30.5 58.5 32.1 49.7 37.6 47.1 C42.1 44.8 45.4 49 46.1 55.1 C47.4 63 44.5 71.1 39.3 74.7 C35.7 76.8 32.4 72.5 31.7 66.5 Z"/></g><g id="jaw-l-top" transform="rotate(-6.3 33.5 69.1)"><path class="pb po" d="M35.7 84.1 C24.5 88.3 13.3 82.2 9.7 69.7 C5.9 56.2 10.3 42.5 19.9 39.7 C25.6 38.1 29.6 41.1 28.1 46.7 C26.6 52.3 27.3 58.4 29.6 62.9 C32 67.4 35.7 69.5 38.9 69.6 C42.4 74.8 42.2 81.2 35.7 84.1 Z"/><path class="pl" d="M13.3 60.3 C11.4 53.6 13.6 46.7 18.1 44.4 C16.8 48.9 16.2 54.3 16.9 60.3 C17.1 62.9 14.1 63.2 13.3 60.3 Z"/></g></g></g>
+<g id="arm-r" transform="rotate(-10 115 96)"><path class="pb" d="M109 91 L123 75.5 C126 73 132 76 131 81 L117 99 Z"/><path class="po" fill="none" d="M119.4 97 L130.7 83.3"/><path class="po" fill="none" d="M118.6 81.4 L122.4 76.9"/><g id="claw-r" transform="rotate(22 128 82)"><g id="jaw-r-bottom" transform="rotate(-18 126.5 69.1)"><path class="pb po" d="M128.3 66.5 C129.5 58.5 127.9 49.7 122.4 47.1 C117.9 44.8 114.6 49 113.9 55.1 C112.6 63 115.5 71.1 120.7 74.7 C124.3 76.8 127.6 72.5 128.3 66.5 Z"/></g><g id="jaw-r-top" transform="rotate(6.3 126.5 69.1)"><path class="pb po" d="M124.3 84.1 C135.5 88.3 146.7 82.2 150.3 69.7 C154.1 56.2 149.7 42.5 140.1 39.7 C134.4 38.1 130.4 41.1 131.9 46.7 C133.4 52.3 132.7 58.4 130.4 62.9 C128 67.4 124.3 69.5 121.1 69.6 C117.6 74.8 117.8 81.2 124.3 84.1 Z"/><path class="pl" d="M146.7 60.3 C148.6 53.6 146.4 46.7 141.9 44.4 C143.2 48.9 143.8 54.3 143.1 60.3 C142.9 62.9 145.9 63.2 146.7 60.3 Z"/></g></g></g>
+<g id="lens" opacity="0" transform="translate(128 44) rotate(-150)"><path class="lh po" d="M-3 14L3 14L3.4 29Q0 32-3.4 29Z"/><circle class="lg" cx="0" cy="0" r="13"/><path fill="none" stroke="#FFF" stroke-opacity=".55" stroke-width="2" stroke-linecap="round" d="M-7.5-6A10 10 0 0 1-2-10"/><circle class="lr po" cx="0" cy="0" r="13" style="stroke-width:6.6px"/><circle class="lr" cx="0" cy="0" r="13" style="stroke-width:3.6px"/></g>
+<g id="sparkle"><path class="pz" d="M30 19Q32 24 37 26Q32 28 30 33Q28 28 23 26Q28 24 30 19Z"/><path class="pz" d="M136 24.5Q137.5 28.5 141.5 30Q137.5 31.5 136 35.5Q134.5 31.5 130.5 30Q134.5 28.5 136 24.5Z"/><path class="pw" d="M20 54Q21.1 56.9 24 58Q21.1 59.1 20 62Q18.9 59.1 16 58Q18.9 56.9 20 54Z"/><path class="pz" d="M146 60Q147.1 62.9 150 64Q147.1 65.1 146 68Q144.9 65.1 142 64Q144.9 62.9 146 60Z"/><path class="pw" d="M128 6.5Q129 9 131.5 10Q129 11 128 13.5Q127 11 124.5 10Q127 9 128 6.5Z"/></g>
+<g id="sweat" opacity="0"><path class="sw po" style="stroke-width:2px" d="M42 62C45 67 47 70 47 73C47 76 45 78 42 78C39 78 37 76 37 73C37 70 39 67 42 62Z"/><circle class="pw" cx="40.5" cy="73" r="1.4"/></g>
+</g>
+</svg>

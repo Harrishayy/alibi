@@ -1,0 +1,17 @@
+<!-- @dsCard group="Status" height=100 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>VerdictPill — preview</title>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+var row = function () { return h.apply(null, ['div', { style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-3)' } }].concat([].slice.call(arguments))); };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    row(h(A.VerdictPill, { verdict: 'done', ratio: 1 }), h(A.VerdictPill, { verdict: 'partial', ratio: 0.68 }), h(A.VerdictPill, { verdict: 'slacked', ratio: 0.24 })),
+    row(h(A.VerdictPill, { verdict: 'done' }), h(A.VerdictPill, { verdict: 'partial' }), h(A.VerdictPill, { verdict: 'slacked' }))));
+</script>
+</body>
+</html>

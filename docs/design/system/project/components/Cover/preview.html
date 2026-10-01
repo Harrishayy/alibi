@@ -1,0 +1,57 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Alibi</title>
+<style>
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--surface-1); color: var(--ink); font-family: var(--font-sans); overflow: hidden; }
+  .cover { position: relative; width: 960px; height: 288px; overflow: hidden; }
+  /* the composition: the right half of the 960 layout, clear of the name */
+  .art { position: absolute; top: 0; left: 480px; width: 480px; height: 288px; overflow: hidden; }
+  .art svg { display: block; width: 480px; height: 288px; }
+  .deep { fill: var(--island); }
+  .brand { fill: var(--accent); }
+  .tint { fill: var(--green-300); }
+  .state { fill: var(--partial); }
+  .slab { rx: var(--radius-xl); }
+  .tile { rx: var(--radius-md); }
+  .pill { rx: var(--space-3); }
+  .arc { fill: none; stroke: var(--island); stroke-width: var(--space-2); stroke-linecap: butt; }
+  .lens { fill: none; stroke: var(--accent); stroke-width: var(--space-1); }
+  /* name and tagline pinned to the bottom-left, on the ground */
+  .words { position: absolute; left: var(--space-6); bottom: var(--space-6); max-width: 440px; }
+  .name { margin: 0; font-size: 120px; line-height: 0.9; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
+  .tag { margin: var(--space-3) 0 0 6px; font-size: 14px; line-height: 20px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      island 232 x 180 hung from the top edge (the notch, black in both themes) . accent 232 x 268 bled off the top and right (the brand, largest) . green-300 120 x 104 (the tint, Pinch's belly) . partial 48 x 24 once (it only ever means partly or a break), about 36% of 960 x 288
+  arrangement two slabs hanging from the top edge like the island from the bezel, satellites below the black one, bottoms on space-4 steps, space-4 gutters
+  pattern     quarter-circle arcs from "a literal motif (lens)": the witness's lens and the RingTimer arc, five arcs at a space-6 pitch radiating from the green slab's corner, cut in island black, plus the island's own lens ring
+  scales      sides in space-2 multiples; gutters space-4; arc pitch space-6, arc stroke space-2, lens stroke space-1; corners radius-xl (slabs), radius-md (tint), pill rx space-3 (half of 24)
+-->
+<rect class="deep slab" x="16" y="-28" width="232" height="180" rx="28"/>
+<circle class="lens" cx="132" cy="64" r="12"/>
+<rect class="brand slab" x="264" y="-28" width="244" height="268" rx="28"/>
+<path class="arc" d="M312 240A48 48 0 0 0 264 192"/>
+<path class="arc" d="M336 240A72 72 0 0 0 264 168"/>
+<path class="arc" d="M360 240A96 96 0 0 0 264 144"/>
+<path class="arc" d="M384 240A120 120 0 0 0 264 120"/>
+<path class="arc" d="M408 240A144 144 0 0 0 264 96"/>
+<rect class="tint tile" x="16" y="168" width="120" height="104" rx="16"/>
+<rect class="state pill" x="152" y="248" width="48" height="24" rx="12"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">Alibi</h1>
+<p class="tag">Say what you&rsquo;ll do. Pinch checks.</p>
+</div>
+</div>
+</body>
+</html>

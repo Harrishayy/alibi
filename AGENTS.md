@@ -30,7 +30,7 @@ Dashboard: http://127.0.0.1:8765. Phone API: :8766 (needs the `X-Alibi-Secret` h
 ```
 alibi/            Python daemon + FastAPI (api.py, routes_*.py), verifier, witness, evidence, nudges, report, …
   db.py           FROZEN data contract: tables `sessions`, `events`
-  web/index.html  dashboard (single file; colour tokens in :root)
+  web/            dashboard: index.html + css/*.css + js/*.js (tokens in css/tokens.css), fixtures/ for ?stage=
   pinch.py        mascot mood rulebook (pure function of state)
 native/           Swift: Island.swift (notch island, hosts the daemon in Alibi.app), witness.swift (Apple Vision),
                   sense.swift (macOS signals), calendar.swift
@@ -94,8 +94,10 @@ mascot **Pinch** (original green detective lobster — not NVIDIA artwork).
 | Warn | `#E5484D` (ink `#C4161C` / `#FF7A7E`) | phone, slacked, errors — never the accent |
 | Partial / idle | `#F2A900` | partial verdicts, idle, breaks |
 
-Token copies: `docs/design/tokens/tokens.css`, `alibi/web/index.html` `:root`, `native/Island.swift` palette,
-`alibi/evidence.py` `COLOURS`, `alibi/routes_integrations.py` `CSS`. Change one → change all.
+Tokens: source in `docs/design/tokens/` (`tokens.css`, `Theme.swift`). Copies: `alibi/web/css/tokens.css`,
+`native/shared/Theme.swift` (copied into `ios/AlibiPhone/Views/Shared/` by `scripts/sync_shared_swift.sh`; never edit
+those copies), `alibi/evidence.py` `COLOURS`, the page CSS in `alibi/routes_integrations.py`. Change one → change all.
+Usage rules and components: `docs/design/system/project/README.md`. Pinch's mood always comes from `alibi/pinch.py`.
 
 Island (Dynamic-Island-like): idle = exactly the notch size, no wings. Live = two 46 pt wings (one glyph left,
 one short value right). Open = 400 pt wide (verdict 440). Hover opens after 0.35 s dwell, folds 0.8 s after leaving

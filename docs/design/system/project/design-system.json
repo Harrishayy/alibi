@@ -1,0 +1,87 @@
+{
+  "v": 3,
+  "layout": "files",
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-01T16:20:00Z"
+  },
+  "title": "Alibi",
+  "namespace": "Alibi",
+  "libraries": [
+    {
+      "name": "react",
+      "version": "18"
+    },
+    {
+      "name": "react-dom",
+      "version": "18"
+    }
+  ],
+  "sections": {},
+  "groups": [
+    "Pinch"
+  ],
+  "assetGroups": {
+    "Pinch": {
+      "name": "Pinch",
+      "tile": "m",
+      "order": [
+        "pinch.svg",
+        "pinch-focused.svg",
+        "pinch-celebrate.svg",
+        "pinch-sideeye.svg",
+        "pinch-supportive.svg",
+        "pinch-lod16.svg"
+      ],
+      "files": {
+        "pinch.svg": {
+          "name": "pinch.svg",
+          "blob": "dde146f35f2469c9ed978173bb0476b0",
+          "size": 22569,
+          "type": "image/svg+xml"
+        },
+        "pinch-focused.svg": {
+          "name": "pinch-focused.svg",
+          "blob": "a6402bdec037621135a5833871ea5157",
+          "size": 22631,
+          "type": "image/svg+xml"
+        },
+        "pinch-celebrate.svg": {
+          "name": "pinch-celebrate.svg",
+          "blob": "76e96f8c9a27d1fae6c8ebd658bab694",
+          "size": 22681,
+          "type": "image/svg+xml"
+        },
+        "pinch-sideeye.svg": {
+          "name": "pinch-sideeye.svg",
+          "blob": "1665a5d0368e5151c2a8ea4d4b8ce6c6",
+          "size": 22771,
+          "type": "image/svg+xml"
+        },
+        "pinch-supportive.svg": {
+          "name": "pinch-supportive.svg",
+          "blob": "0d36844d222141c0f6b58a6409506518",
+          "size": 22699,
+          "type": "image/svg+xml"
+        },
+        "pinch-lod16.svg": {
+          "name": "pinch-lod16.svg",
+          "blob": "c8675f48459b690469192caad7dadd33",
+          "size": 1960,
+          "type": "image/svg+xml"
+        }
+      }
+    }
+  },
+  "blobs": {},
+  "docs": {
+    "readme": "project/README.md",
+    "sections": []
+  },
+  "lastChange": {
+    "by": "Harrish Ayyanar",
+    "at": "2026-10-01T18:04:58Z",
+    "via": "Claude Code",
+    "note": "Published: tokens (dark + light), brand book, 18 components with previews, Pinch engine and stills"
+  }
+}

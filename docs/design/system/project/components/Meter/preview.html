@@ -1,0 +1,33 @@
+<!-- @dsCard group="Data" height=232 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Meter — preview</title>
+<style>
+.al-stack { max-width: 420px; gap: var(--space-4); }
+  .line { width: 100%; display: flex; flex-direction: column; gap: var(--space-1); }
+  .head { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); }
+  .num { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="root" class="al-stack"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  function Line(p) {
+    return h('div', { className: 'line' },
+      h('div', { className: 'head' }, h('span', null, p.name), h('span', { className: 'num' }, Math.round(p.value * 100) + '%')),
+      h(A.Meter, { value: p.value, label: p.name + ' on task ' + Math.round(p.value * 100) + '%' }));
+  }
+  function Demo() {
+    var s = React.useState(0.55), v = s[0], set = s[1];
+    return h(React.Fragment, null,
+      h(Line, { name: 'Drawing', value: 0.86 }),
+      h(Line, { name: 'C++', value: v }),
+      h(Line, { name: 'Reading', value: 0.24 }),
+      h(A.Button, { variant: 'quiet', size: 'sm', icon: 'undo', onClick: function () { set(v === 0.55 ? 0.74 : 0.55); } }, v === 0.55 ? 'Fix a moment' : 'Undo the fix'));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

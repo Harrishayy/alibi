@@ -1,0 +1,23 @@
+<!-- @dsCard group="Data" height=192 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>RingTimer — preview</title>
+<style>
+.al-row { gap: var(--space-8); }
+  .compact { display: flex; align-items: center; gap: var(--space-3); }
+</style>
+</head>
+<body>
+<div id="root" class="al-row"></div>
+<script>
+  var A = window.Alibi, h = React.createElement;
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(A.RingTimer, { progress: 0.38, value: '15:32', caption: 'of 25 min' }),
+    h(A.RingTimer, { progress: 0.7, value: '1:30', caption: 'break left', size: 120, tone: 'partial' }),
+    h('div', { className: 'compact' },
+      h(A.RingTimer, { progress: 0.04, value: '24:07', size: 44 }),
+      h(A.Stat, { value: '24:07', label: 'Drawing', sub: 'of 25 min' }))));
+</script>
+</body>
+</html>
