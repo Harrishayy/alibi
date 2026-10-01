@@ -746,6 +746,7 @@ def session_info(con) -> dict:
     except Exception as e:                       # the mirror is a nicety; coupling must never fail because of it
         print(f"[alibi] phone mirror failed: {e!r}", flush=True)
     out["pinch"] = pinch.from_db(con)
+    out["capabilities"] = {"say": True, "end": True, "ask": False}   # what the phone may write (routes_phone.py)
     return out
 
 
@@ -841,6 +842,8 @@ def phone_app():
         from . import routes_integrations as ri
         return ri.phone_page_html(on_phone=True)
 
+    from . import routes_phone                   # F7 writes: say and end, tailnet/loopback + header only
+    app.include_router(routes_phone.router)
     return app
 
 

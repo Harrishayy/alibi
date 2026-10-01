@@ -7,6 +7,8 @@ batch that arrives after the session ended still lands on the right session.
   day_summary(con, day)         -> today's screen time, pickups, motion, notifications, heart, Mac presence, git
   live(con)                     -> last value per source/kind + freshness
   status(con)                   -> which sources are flowing, what's missing, and a plain-language fix
+  hourly(con, keys, hours=24)   -> rows per hour per "source.kind" (a reporting read, like live())
+  egress()                      -> what leaves the Mac and where it goes, from config + a cached Spark probe
   cap(con, session, ratio, cov) -> signals may LOWER a score (with a stated reason); never raise it
   nudge_reason(con, session, since, now) -> a mid-session nudge from the phone/Mac, or None
 """
@@ -547,6 +549,10 @@ def status(con, now: float | None = None) -> dict:
                                       "media": "Nothing yet — shows up when music or video plays.",
                                       "switches": "Nothing yet — fills in once a session runs."}[kind]
             fix = None
+        elif key == "mac.git" and not (x and x["fresh"]) and _git_repos(con, now):
+            # Repos are set up and simply quiet: that's waiting, not a broken source.
+            hrs = round(x["age_s"] / 3600) if x else 24
+            state, text, fix = "waiting", f"No commits in the last {hrs} h.", None
         elif x is None:
             state, text = "missing", fix
         elif x["fresh"]:
@@ -581,6 +587,144 @@ def status(con, now: float | None = None) -> dict:
     return {"now": now, "sources": out, "flowing": flowing, "missing": [x["key"] for x in missing],
             "text": (f"{len(flowing)} of {len([x for x in out if x['state'] != 'not_applicable'])} signals flowing." +
                      (f" Next: {missing[0]['label']} — {missing[0]['fix']}" if missing else ""))}
+
+
+def _git_repos(con, now: float) -> int:
+    try:
+        from . import mac_signals
+        return len(mac_signals.repos(con, now))
+    except Exception:
+        return 0
+
+
+# --- hourly counts (a reporting read, like live()) --------------------------------------------------------------------
+
+def hourly(con, keys, hours: int = 24, now: float | None = None) -> dict[str, list[int]]:
+    """Rows per hour for each "source.kind" key over the last `hours` whole hours (oldest first, the current hour
+    last). A reporting read for the Signals page, same precedent as live(); the verifier never sees it."""
+    now = now or time.time()
+    hours = max(1, min(int(hours), 168))
+    end = math.floor(now / 3600) * 3600 + 3600
+    t0 = end - hours * 3600
+    out = {}
+    for key in keys:
+        src, _, kind = str(key).partition(".")
+        n = [0] * hours
+        for (ts,) in con.execute("SELECT ts FROM events WHERE source=? AND kind=? AND ts>=? AND ts<?",
+                                 (src, kind, t0, end)):
+            i = int((_f(ts, t0) - t0) // 3600)
+            if 0 <= i < hours:
+                n[i] += 1
+        out[key] = n
+    return out
+
+
+# --- egress: what leaves the Mac, derived from config at call time (AGENTS.md rule 5) --------------------------------
+
+PROBE_TTL_S = 60
+_probe_cache: dict[str, tuple[float, bool]] = {}
+
+
+def _http_probe(base: str) -> bool:
+    """Is the server there? Any HTTP answer counts (a 401 still means it's up); we never send a token to ask."""
+    import urllib.request, urllib.error
+    try:
+        urllib.request.urlopen(base.rstrip("/") + "/models", timeout=2).close()
+        return True
+    except urllib.error.HTTPError:
+        return True
+    except Exception:
+        return False
+
+
+PROBE = _http_probe                     # tests swap this out; the real one never takes more than ~2 s
+
+
+def probe(base: str, now: float | None = None) -> bool:
+    now = now or time.time()
+    hit = _probe_cache.get(base)
+    if hit and now - hit[0] < PROBE_TTL_S:
+        return hit[1]
+    up = bool(PROBE(base))
+    _probe_cache[base] = (now, up)
+    return up
+
+
+def _host(url: str) -> str:
+    from urllib.parse import urlparse
+    try:
+        return (urlparse(url).hostname or "").lower()
+    except ValueError:
+        return ""
+
+
+def _where(url: str) -> str:
+    """mac (loopback) | tailnet:spark (any other self-hosted server) | nvidia_build."""
+    h = _host(url)
+    if h in ("127.0.0.1", "localhost", "::1") or h.startswith("127."):
+        return "mac"
+    return "tailnet:spark" if config._local_llm(url) else "nvidia_build"
+
+
+def egress(now: float | None = None) -> dict:
+    """What leaves this Mac and where it goes, from the config right now plus a cached reachability probe.
+    Rows are {what, where, active, why}; only host names are shown, never URLs, keys or values."""
+    now = now or time.time()
+    rows = []
+
+    def remote(url: str) -> bool:
+        return probe(url, now) if _where(url) != "nvidia_build" else True
+
+    vb = config.VISION_BACKEND
+    if vb != "nvidia":
+        rows.append({"what": "Camera frames", "where": "mac", "active": True, "host": None,
+                     "why": "Frames never leave the Mac. " +
+                            ("Apple Vision checks them on this Mac." if vb == "apple" else "Test mode: nothing is checked.")})
+    else:
+        w = _where(config.VLM_BASE_URL)
+        up = remote(config.VLM_BASE_URL) and bool(config.VLM_MODEL)
+        why = {"mac": "Frames never leave the Mac. A model server on this Mac checks them.",
+               "tailnet:spark": "Frames go to your Spark over Tailscale to be checked.",
+               "nvidia_build": "Frames go to NVIDIA Build to be checked."}[w]
+        if not up and w != "mac":
+            why += " It isn't answering, so Apple Vision on this Mac checks them instead."
+        rows.append({"what": "Camera frames", "where": w, "active": up, "host": _host(config.VLM_BASE_URL) or None,
+                     "why": why})
+
+    if config.TEXT_READY:
+        w = _where(config.LLM_BASE_URL)
+        up = remote(config.LLM_BASE_URL)
+        why = {"mac": "Habit names and minutes go to a model server on this Mac.",
+               "tailnet:spark": "Habit names and minutes go to your Spark over Tailscale.",
+               "nvidia_build": "Habit names and minutes go to NVIDIA Build."}[w]
+        if not up:
+            why += " It isn't answering, so the rules on this Mac write the summary instead."
+        rows.append({"what": "Habit names and minutes", "where": w, "active": up,
+                     "host": _host(config.LLM_BASE_URL) or None, "why": why})
+    else:
+        rows.append({"what": "Habit names and minutes", "where": "mac", "active": True, "host": None,
+                     "why": "No model is set up, so the rules on this Mac write every summary."})
+
+    ask = os.getenv("NEMOCLAW_URL", "")
+    if ask:
+        up = remote(ask)
+        rows.append({"what": "Ask questions", "where": _where(ask), "active": up, "host": _host(ask) or None,
+                     "why": "Your questions go to NemoClaw on your Spark over Tailscale." if up else
+                            "NemoClaw isn't answering, so Ask is off."})
+        rows.append({"what": "Search questions", "where": "search_provider", "active": up, "host": None,
+                     "why": "Search questions go to the search provider."})
+
+    rows.append({"what": "Window titles, app names, coordinates, notification text", "where": "mac", "active": True,
+                 "host": None, "why": "Never sent. They are read on this Mac and stay here."})
+
+    summ = next(r for r in rows if r["what"] == "Habit names and minutes")
+    where = summ["where"] if summ["active"] else "mac"
+    text = {"mac": "Summaries stay on this Mac.", "tailnet:spark": "Summaries go to your Spark over Tailscale.",
+            "nvidia_build": "Summaries go to NVIDIA Build."}[where]
+    leaves = any(r["active"] and r["where"] in ("nvidia_build", "search_provider") for r in rows)
+    return {"now": now, "rows": rows,
+            "summary": {"where": where, "active": summ["active"] and where != "mac", "text": text,
+                        "leaves_tailnet": leaves}}
 
 
 def _ago(s: float) -> str:

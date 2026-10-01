@@ -34,7 +34,23 @@ falls inside it (writer passes `ts`; the store decides `session_id`).
 
 ## Session → phone (near-live)
 
-`GET /api/phone/session` on the phone listener (secret) → `{active, habit, ends_at, shield: bool, sync_every_s}`.
+`GET /api/phone/session` on the phone listener (secret) → `{active, habit, ends_at, shield: bool, sync_every_s,
+capabilities: {say: true, end: true, ask: false}, ...}`.
+
+## Phone → Mac writes (alibi/routes_phone.py, on the phone listener)
+
+| endpoint | body | answer |
+|---|---|---|
+| `POST /api/phone/say` | `{op_id, client_ts, text}` | `{ok, reply, session}`; `409 stale_start` if the text is a start and `now − client_ts > 120 s` |
+| `POST /api/phone/session/end` | `{op_id, client_ts, session_id, artefact?}` | `{ok, reply, session}`; `409 already_ended` if `session_id` isn't the live one. More than 30 s late → `ended_at = clamp(client_ts, started_at, now)` |
+
+`session` is the `/api/phone/session` core (`active, habit, label, session_id, started_at, ends_at, shield, on_break,
+sync_every_s`). Errors are `{ok: false, error, reply, session}`. Rules: `X-Alibi-Secret` header only (`?key=` → 401);
+source must be loopback or tailnet (`100.64.0.0/10`, `fd7a:115c:a1e0::/48`; `tailscale serve` arrives as loopback),
+anything else, including LAN `192.168.*`/`10.*`/`172.16–31.*`, → 403, so the phone must use its **tailnet** endpoint
+for writes; body ≤ 16 KB (413); 30 writes a minute (429). `op_id` (1–128 of `[A-Za-z0-9_.:-]`) is deduped under one
+lock spanning check → execute → record; a retry gets the first answer (header `X-Alibi-Replay: 1`). The last 500 ops
+are kept in `integrations.state()["phone_ops"]`. `client_ts` is unix seconds from the phone at the moment of the tap.
 The Mac also toggles an "Alibi" Focus via `shortcuts run "Alibi Focus On|Off"` if those Shortcuts exist (Focus shares to
 the iPhone; the companion's Focus filter then shields apps and syncs every few minutes).
 
@@ -45,3 +61,26 @@ Hints: phone screentime/pickup during a desk session → off_task; phone walking
 mac idle_s > 300 on a digital habit → idle; meeting on → neutral (labelled); notifications → neutral (context);
 health heart → neutral (shown on the timeline). The verifier may use hints to *lower* a score with a stated reason;
 it never raises a score from phone/mac signals alone.
+
+## Streams: what leaves the Mac (`signals.egress()`, `GET /api/signals/egress`)
+
+Derived at call time from config plus a reachability probe of each self-hosted server (`GET {base}/models`, 2 s
+timeout, any HTTP answer = up, no token sent, cached 60 s). `{now, rows: [{what, where, active, host, why}], summary:
+{where, active, text, leaves_tailnet}}`. `where` is `mac` | `tailnet:spark` | `nvidia_build` | `search_provider`;
+`host` is a bare host name or null, never a URL, key or value.
+
+| what | where | why (exact) |
+|---|---|---|
+| Camera frames | `mac` for `VISION_BACKEND=apple`/`mock` or a loopback VLM; else `tailnet:spark` / `nvidia_build` | "Frames never leave the Mac." only when `mac` |
+| Habit names and minutes | `mac` with no model; else by `LLM_BASE_URL` host | "Habit names and minutes go to your Spark over Tailscale." |
+| Ask questions | by `NEMOCLAW_URL` host (row only when set) | "Your questions go to NemoClaw on your Spark over Tailscale." |
+| Search questions | `search_provider` (row only when `NEMOCLAW_URL` is set) | "Search questions go to the search provider." |
+| Window titles, app names, coordinates, notification text | `mac` | "Never sent." |
+
+A row whose server isn't answering stays (UI dims it) with `active: false`; the summary then reads `mac`.
+
+`GET /api/signals/hourly?keys=phone.pickup,mac.git&hours=24` → `{hours, series: {key: [int × hours]}}`: rows per
+hour, oldest first, current hour last (a reporting read, like `live()`).
+
+Status: the `mac.git` row is `waiting` ("No commits in the last N h.") when repos are configured but quiet; `missing`
+only when no repo is configured.

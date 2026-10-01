@@ -4,8 +4,10 @@ GET /api/signals?session=ID      the session's phone/Mac/heart timeline, off-tas
 GET /api/signals?day=YYYY-MM-DD  the day's summary + its whole timeline (meeting/media "off" rows carry end=True)
 GET /api/signals/live            last value per source/kind + freshness
 GET /api/signals/status          which sources are flowing, when last seen, what's missing + a plain-language fix
+GET /api/signals/egress          what leaves the Mac and where it goes (frames, summaries, Ask, search)
+GET /api/signals/hourly?keys=a,b&hours=24   rows per hour per source.kind, oldest hour first
 """
-import datetime as dt
+import datetime as dt, re
 from fastapi import APIRouter, HTTPException
 from . import db, signals
 
@@ -78,6 +80,19 @@ def get_live():
 @router.get("/api/signals/status")
 def get_status():
     return signals.status(_con())
+
+
+@router.get("/api/signals/egress")
+def get_egress():
+    return signals.egress()
+
+
+@router.get("/api/signals/hourly")
+def get_hourly(keys: str = "", hours: int = 24):
+    ks = [k.strip() for k in keys.split(",") if re.fullmatch(r"[a-z_]+\.[a-z_]+", k.strip())][:20]
+    if not ks:
+        raise HTTPException(400, "keys must look like phone.pickup,mac.git.")
+    return {"hours": max(1, min(hours, 168)), "series": signals.hourly(_con(), ks, hours)}
 
 
 @router.get("/signals", include_in_schema=False)
