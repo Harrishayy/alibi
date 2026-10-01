@@ -4,8 +4,8 @@ from collections import Counter
 from PIL import Image, ImageDraw, ImageFont
 from . import config
 
-CREAM, INK, MUTED, RULE = "#F4EFE6", "#1F1E1C", "#7A756C", "#DDD5C7"
-COLOURS = {"on_task": "#5E8C61", "phone": "#D2553F", "off_task": "#B5452F", "idle": "#D99A3D", "absent": "#A39E95"}
+CREAM, INK, MUTED, RULE = "#F2F2F2", "#1A1A1A", "#5E5E5E", "#D7D7D7"   # NVIDIA neutrals
+COLOURS = {"on_task": "#76B900", "phone": "#E5484D", "off_task": "#C8362B", "idle": "#F2A900", "absent": "#A6A6A6"}
 VERDICT_COLOUR = {"done": COLOURS["on_task"], "partial": COLOURS["idle"], "slacked": COLOURS["phone"]}
 
 

@@ -192,14 +192,17 @@ let checkCopy = ["camera": "Alibi checks with the camera", "screen": "Alibi chec
 let hhmm: DateFormatter = { let f = DateFormatter(); f.dateFormat = "HH:mm"; return f }()
 func clock(_ t: Double) -> String { hhmm.string(from: Date(timeIntervalSince1970: t)) }
 
+// Colours are NVIDIA (CLAUDE.md "Design system"): green #76B900 on black; text on green is black. Layout and type are Claude-style.
 let palette: [String: Color] = [
-    "on_task": Color(hex: 0x6FA172), "phone": Color(hex: 0xE0644C), "off_task": Color(hex: 0xC9553B),
-    "idle": Color(hex: 0xE3A548), "absent": Color(hex: 0x8F8A82),
+    "on_task": Color(hex: 0x76B900), "phone": Color(hex: 0xE5484D), "off_task": Color(hex: 0xC8362B),
+    "idle": Color(hex: 0xF2A900), "absent": Color(hex: 0x8C8C8C),
 ]
-let coral = Color(hex: 0xD97757)
-let cream = Color(hex: 0xF4EFE6)
-let green = Color(hex: 0x6FA172), amber = Color(hex: 0xE3A548), red = Color(hex: 0xE0644C)
-func verdictColour(_ v: String?) -> Color { v == "done" ? green : v == "partial" ? amber : v == "slacked" ? red : coral }
+let accent = Color(hex: 0x76B900)
+let cream = Color(hex: 0xEEEEEE)
+let surface = Color(hex: 0x1A1A1A)          // cards and the composer, on the black island
+let hairline = Color.white.opacity(0.09)
+let green = Color(hex: 0x76B900), amber = Color(hex: 0xF2A900), red = Color(hex: 0xE5484D)
+func verdictColour(_ v: String?) -> Color { v == "done" ? green : v == "partial" ? amber : v == "slacked" ? red : accent }
 
 extension Color {
     init(hex: UInt32) {
@@ -488,24 +491,25 @@ final class Island: ObservableObject {
 struct Notch {
     let screen: NSScreen
     var hasNotch: Bool { screen.safeAreaInsets.top > 0 }
-    var height: CGFloat { hasNotch ? screen.safeAreaInsets.top : 30 }
+    var height: CGFloat { hasNotch ? screen.safeAreaInsets.top : 24 }
     var width: CGFloat {
-        guard hasNotch, let l = screen.auxiliaryTopLeftArea, let r = screen.auxiliaryTopRightArea else { return 150 }
+        guard hasNotch, let l = screen.auxiliaryTopLeftArea, let r = screen.auxiliaryTopRightArea else { return 64 }
         return screen.frame.width - l.width - r.width
     }
 }
 
 // Only the width is per mode; the height comes from the measured content.
+// Closed, the island is the camera housing itself: idle it is exactly the notch, so nothing shows. A live session
+// (or a planned-now block / fresh reply) adds two compact wings, like an iPhone Live Activity.
+let wing: CGFloat = 46
+@MainActor func hasWings(_ island: Island) -> Bool {
+    island.session != nil || island.reply != nil || (island.online && island.upNext?.state == "now")
+}
 @MainActor func width(for mode: Mode, notch: Notch, island: Island) -> CGFloat {
     switch mode {
-    case .collapsed:
-        if island.session != nil { return notch.width + 240 }
-        if island.reply != nil { return notch.width + 64 }
-        if !notch.hasNotch { return 260 }
-        if island.online && (island.upNext != nil || island.needsSetup) { return notch.width + 230 }
-        return notch.width + 64
-    case .expanded: return 520
-    case .alert: return island.alert?.kind == "verdict" ? 540 : 500
+    case .collapsed: return notch.width + (hasWings(island) ? 2 * wing : 0)
+    case .expanded: return 400
+    case .alert: return island.alert?.kind == "verdict" ? 440 : 400
     }
 }
 
@@ -584,7 +588,7 @@ struct Pulse: View {
     }
 }
 
-struct Glow: View {   // slow pulsing inner edge: drifting (red), a queued alert or a planned block (coral)
+struct Glow: View {   // slow pulsing inner edge: drifting (red), a queued alert or a planned block (accent)
     let colour: Color; let top: CGFloat; let bottom: CGFloat
     @State private var on = false
     var body: some View {
@@ -603,20 +607,77 @@ struct Keycap: View {
     }
 }
 
+/// Every pressable thing: a hover wash and a 0.97 press, so clicks feel heard.
+struct Pressable: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+/// Claude-style button: soft rounded rectangle. Primary is NVIDIA green with black text; secondary is a quiet fill.
 struct PillButton: View {
-    let title: String; var primary = false; var tint: Color = coral; var icon: String? = nil; var small = false
+    let title: String; var primary = false; var tint: Color = accent; var icon: String? = nil; var small = false
     let action: () -> Void
+    @State private var hover = false
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
-                if let icon { Image(systemName: icon).font(.system(size: small ? 9.5 : 10.5, weight: .bold)) }
-                Text(title).font(.system(size: small ? 11.5 : 12, weight: .semibold)).lineLimit(1).fixedSize()
+            HStack(spacing: 6) {
+                if let icon { Image(systemName: icon).font(.system(size: small ? 10 : 11, weight: .semibold)) }
+                Text(title).font(.system(size: small ? 12 : 12.5, weight: .medium)).lineLimit(1).fixedSize()
             }
-            .padding(.horizontal, small ? 10 : 13).frame(height: small ? 24 : 28)
-            .background(Capsule().fill(primary ? tint : Color.white.opacity(0.1)))
-            .foregroundStyle(primary ? Color.black.opacity(0.85) : cream)
-            .contentShape(Capsule())
-        }.buttonStyle(.plain)
+            .padding(.horizontal, small ? 10 : 12).frame(height: small ? 28 : 32)
+            .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(primary ? tint.opacity(hover ? 0.88 : 1) : Color.white.opacity(hover ? 0.12 : 0.07)))
+            .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(primary ? .clear : hairline))
+            .foregroundStyle(primary ? Color.black : cream.opacity(0.92))
+            .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        }
+        .buttonStyle(Pressable())
+        .onHover { hover = $0 }
+    }
+}
+
+/// Small square icon button (header, dismiss).
+struct IconButton: View {
+    let icon: String; var help = ""; let action: () -> Void
+    @State private var hover = false
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(cream.opacity(hover ? 0.9 : 0.5))
+                .frame(width: 26, height: 26)
+                .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(hover ? 0.1 : 0)))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(Pressable()).onHover { hover = $0 }.help(help)
+    }
+}
+
+/// Hover wash + press for suggestion chips.
+struct Chip: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { ChipBody(configuration: configuration) }
+    struct ChipBody: View {
+        let configuration: Configuration
+        @State private var hover = false
+        var body: some View {
+            configuration.label
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(hover ? 0.07 : 0)))
+                .scaleEffect(configuration.isPressed ? 0.97 : 1)
+                .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+                .onHover { hover = $0 }
+        }
+    }
+}
+
+extension View {
+    /// The one card surface: #1A1A1A, hairline border, 16 pt continuous corners. `highlight` = green edge.
+    func card(highlight: Bool = false) -> some View {
+        background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(surface))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(highlight ? accent.opacity(0.45) : hairline, lineWidth: 1))
     }
 }
 
@@ -697,27 +758,27 @@ struct IslandView: View {
         return min(1, max(0, 1 - sessionLeft / Double(max(60, s.declared_min * 60))))
     }
     var showNote: Bool { (m.state?.witness ?? "") == "nvidia" }   // on-device/mock notes are internals, not copy
-    var corner: (CGFloat, CGFloat) { m.mode == .collapsed ? (6, 12) : (12, 30) }
+    var corner: (CGFloat, CGFloat) { m.mode == .collapsed ? (6, 10) : (10, 24) }
     var plannedNow: PlanBlock? { m.upNext.flatMap { $0.state == "now" ? $0 : nil } }
 
     var body: some View {
         let w = width(for: m.mode, notch: notch, island: m)
         VStack(spacing: 0) {
             content
-                .padding(.horizontal, m.mode == .collapsed ? 14 : 28)
-                .padding(.bottom, m.mode == .collapsed ? 0 : 20)
+                .padding(.horizontal, m.mode == .collapsed ? 6 + corner.0 : 16 + corner.0)
+                .padding(.bottom, m.mode == .collapsed ? 0 : 16)
                 .frame(width: w, alignment: .top)
                 .fixedSize(horizontal: false, vertical: true)
                 .background(alignment: .top) {
                     NotchShape(top: corner.0, bottom: corner.1)
                         .fill(Color.black)
-                        .shadow(color: .black.opacity(m.mode == .collapsed ? 0 : 0.35), radius: 18, y: 8)
+                        .shadow(color: .black.opacity(m.mode == .collapsed ? 0 : 0.4), radius: 24, y: 10)
                 }
                 .overlay {
-                    if drifting != nil && m.mode == .collapsed {
+                    if drifting != nil && m.mode == .collapsed && hasWings(m) {
                         Glow(colour: red, top: corner.0, bottom: corner.1)
-                    } else if m.pending != nil || (plannedNow != nil && m.mode == .collapsed && m.online) {
-                        Glow(colour: coral, top: corner.0, bottom: corner.1)
+                    } else if m.pending != nil && m.mode == .collapsed {
+                        Glow(colour: accent, top: corner.0, bottom: corner.1)
                     }
                 }
                 .background(GeometryReader { g in Color.clear.preference(key: SizeKey.self, value: g.size) })
@@ -725,7 +786,7 @@ struct IslandView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .animation(.spring(response: 0.42, dampingFraction: 0.8), value: m.mode)
+        .animation(.spring(response: 0.38, dampingFraction: 0.86), value: m.mode)
         .animation(.spring(response: 0.42, dampingFraction: 0.8), value: session?.id)
         .animation(.spring(response: 0.42, dampingFraction: 0.8), value: drifting?.label)
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: m.confirmFinish)
@@ -746,118 +807,54 @@ struct IslandView: View {
         }
     }
 
-    // MARK: Collapsed — wings either side of the physical notch.
+    // MARK: Collapsed — the camera housing, plus compact leading/trailing wings while something is live.
 
     var collapsed: some View {
         HStack(spacing: 0) {
-            if let s = session {
-                liveLeftWing(s).frame(maxWidth: .infinity, alignment: .leading)
-                Color.clear.frame(width: notch.width)
-                liveRightWing(s).frame(maxWidth: .infinity, alignment: .trailing)
-            } else if m.reply != nil {
-                Image(systemName: m.replyFailed ? "exclamationmark" : "checkmark")
-                    .font(.system(size: 10, weight: .bold)).foregroundStyle(m.replyFailed ? red : green)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Color.clear.frame(width: notch.width)
-                Text(m.replyFailed ? "Off" : "Done").font(rounded(11, .medium)).foregroundStyle(.white.opacity(0.55))
-                    .lineLimit(1).fixedSize().frame(maxWidth: .infinity, alignment: .trailing)
-            } else if notch.hasNotch {
-                idleLeftWing.frame(maxWidth: .infinity, alignment: .leading)
-                Color.clear.frame(width: notch.width)
-                idleRightWing.frame(maxWidth: .infinity, alignment: .trailing)
+            if hasWings(m) {
+                compactLeading.frame(width: wing - 6, alignment: .leading)
+                Color.clear.frame(maxWidth: .infinity)
+                compactTrailing.frame(width: wing - 6, alignment: .trailing)
             } else {
-                Spacer()
-                Text("Alibi").font(.system(size: 12, weight: .semibold, design: .serif)).foregroundStyle(cream.opacity(0.85))
-                idleLeftWing.padding(.leading, 8)
-                idleRightWing.padding(.leading, 8)
-                Spacer()
+                Color.clear.frame(maxWidth: .infinity)
             }
         }
         .frame(height: notch.height)
     }
 
-    /// Idle left wing: offline > first run > a block planned now > the next block today > nothing.
-    @ViewBuilder var idleLeftWing: some View {
-        if !m.online {
-            if !m.connecting && !m.starting {
-                HStack(spacing: 5) {
-                    Circle().fill(amber).frame(width: 6, height: 6)
-                    Text("Off").font(rounded(11.5, .semibold)).foregroundStyle(amber.opacity(0.9))
-                }
-            }
-        } else if m.needsSetup {
-            HStack(spacing: 5) {
-                Image(systemName: "sparkles").font(.system(size: 10, weight: .semibold))
-                Text("Set up Alibi").font(.system(size: 12, weight: .semibold)).lineLimit(1)
-            }.foregroundStyle(coral)
-        } else if let b = m.upNext {
-            if b.state == "now" {
-                HStack(spacing: 5) {
-                    Image(systemName: b.startable ? "play.fill" : "calendar").font(.system(size: 9, weight: .bold))
-                    Text("\(b.name) · now").font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                }
-                .foregroundStyle(coral)
-                .contentShape(Rectangle())
-                .onTapGesture { if b.startable { Task { await m.start(b.habit, b.min) } } }
-                .help(b.startable ? "Start \(b.name) · \(b.min) min" : "")
-            } else {
-                HStack(spacing: 5) {
-                    Image(systemName: "calendar").font(.system(size: 9.5, weight: .semibold)).foregroundStyle(.white.opacity(0.45))
-                    Text(b.name).font(.system(size: 12, weight: .medium)).foregroundStyle(cream.opacity(0.85)).lineLimit(1)
-                    Text(b.at).font(rounded(11.5, .semibold)).monospacedDigit().foregroundStyle(.white.opacity(0.5)).fixedSize()
-                }
-            }
+    /// Leading wing: one glyph that says how it's going.
+    @ViewBuilder var compactLeading: some View {
+        if session != nil {
+            if m.unseenNudges > 0 {
+                Text("\(m.unseenNudges)").font(rounded(10, .bold)).foregroundStyle(.black)
+                    .frame(minWidth: 16, minHeight: 16).background(Circle().fill(red))
+            } else if drifting != nil { Pulse(colour: red, size: 7) }
+            else if onBreak { Image(systemName: "cup.and.saucer.fill").font(.system(size: 11)).foregroundStyle(amber) }
+            else { Pulse(colour: palette[current] ?? accent, size: 7) }
+        } else if m.reply != nil {
+            Image(systemName: m.replyFailed ? "exclamationmark" : "checkmark")
+                .font(.system(size: 11, weight: .bold)).foregroundStyle(m.replyFailed ? red : accent)
+        } else if plannedNow != nil {
+            Image(systemName: "play.fill").font(.system(size: 10, weight: .bold)).foregroundStyle(accent)
         }
     }
 
-    @ViewBuilder var idleRightWing: some View {
-        if m.online, let t = m.state?.today, let total = t.habits_total, total > 0 {
-            TodayRing(done: t.habits_done ?? 0, total: total).frame(width: 14, height: 14)
-                .help("Today: \(t.habits_done ?? 0) of \(total) habits")
+    /// Trailing wing: the one number that matters (time left, break left, or "now").
+    @ViewBuilder var compactTrailing: some View {
+        if session != nil {
+            let tint: Color = drifting != nil ? red : onBreak ? amber : cream
+            Text(short(onBreak ? breakLeft : sessionLeft)).font(rounded(12, .semibold)).monospacedDigit()
+                .foregroundStyle(tint).contentTransition(.numericText()).lineLimit(1).fixedSize()
+        } else if m.reply == nil, plannedNow != nil {
+            Text("now").font(rounded(12, .semibold)).foregroundStyle(accent).fixedSize()
         }
     }
 
-    @ViewBuilder func liveLeftWing(_ s: Session) -> some View {
-        if let d = drifting {
-            HStack(spacing: 6) {
-                Pulse(colour: red, size: 6)
-                Text("\(shortDrift(d)) · \(mmss((d.since_s ?? 0) + drift))").font(rounded(12, .semibold)).monospacedDigit()
-                    .foregroundStyle(red).lineLimit(1)
-            }
-        } else if onBreak {
-            HStack(spacing: 6) {
-                Image(systemName: "cup.and.saucer.fill").font(.system(size: 10)).foregroundStyle(amber)
-                Text("Break").font(rounded(12, .semibold)).foregroundStyle(amber).lineLimit(1)
-            }
-        } else {
-            HStack(spacing: 7) {
-                Pulse(colour: palette[current] ?? coral)
-                Text(s.name).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(cream).lineLimit(1)
-                    .truncationMode(.tail)
-                if m.unseenNudges > 0 {
-                    Text("\(m.unseenNudges)").font(rounded(9.5, .bold)).foregroundStyle(.black.opacity(0.85))
-                        .frame(minWidth: 15, minHeight: 15).background(Circle().fill(red))
-                        .help("\(m.unseenNudges) nudge\(m.unseenNudges == 1 ? "" : "s") while you were away")
-                }
-            }
-        }
-    }
-
-    @ViewBuilder func liveRightWing(_ s: Session) -> some View {
-        if onBreak {
-            HStack(spacing: 6) {
-                Text("back in \(mmss(breakLeft))").font(rounded(12, .semibold)).monospacedDigit()
-                    .foregroundStyle(amber).contentTransition(.numericText()).lineLimit(1).fixedSize()
-            }
-        } else {
-            HStack(spacing: 7) {
-                let tint: Color = current == "on_task" ? cream.opacity(0.92) : (palette[current] ?? cream)
-                Text(mmss(sessionLeft)).font(rounded(12.5, .semibold)).monospacedDigit()
-                    .foregroundStyle(tint).contentTransition(.numericText())
-                Ring(progress: progress, colour: palette[current] ?? coral, width: 2.5)
-                    .frame(width: 16, height: 16)
-            }
-        }
+    /// 24m · 45s · 1h05 — fits a 40 pt wing.
+    func short(_ s: Double) -> String {
+        let s = Int(max(0, s).rounded())
+        if s >= 3600 { return String(format: "%dh%02d", s / 3600, (s % 3600) / 60) }
+        return s >= 60 ? "\(Int((Double(s) / 60).rounded(.up)))m" : "\(s)s"
     }
 
     func shortDrift(_ d: Drifting) -> String {
@@ -877,16 +874,17 @@ struct IslandView: View {
             } else {
                 if let s = session { sessionCard(s); sessionControls(s) }
                 else if let b = m.upNext { upNextCard(b) }
-                promptBar
+                composer
             }
             if let r = m.reply {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     if m.replyFailed { Image(systemName: "exclamationmark.circle.fill").foregroundStyle(red).font(.system(size: 11)) }
-                    Text(r).font(.system(size: 12.5)).foregroundStyle(cream.opacity(0.75))
+                    Text(r).font(.system(size: 13, design: .serif)).foregroundStyle(cream.opacity(0.8))
                         .lineLimit(3).fixedSize(horizontal: false, vertical: true)
-                }
+                }.padding(.horizontal, 4)
             }
             if session == nil && !m.needsSetup && !m.habits.isEmpty { chips.opacity(m.online ? 1 : 0.45) }
+            footer
         }
         .onAppear {
             m.markNudgesSeen()
@@ -906,54 +904,69 @@ struct IslandView: View {
         }
     }
 
+    /// The notch row: only the far edges are visible beside the camera, so it holds just the name and two icons.
     var header: some View {
-        HStack(spacing: 7) {
-            Text("Alibi").font(.system(size: 13, weight: .semibold, design: .serif)).foregroundStyle(coral)
-            Spacer()
-            if (m.connecting || m.starting) && !m.online {
-                ProgressView().controlSize(.mini).tint(.white)
-                Text(m.starting ? "Starting…" : "Connecting…").font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
-            } else {
-                if !m.online { Circle().fill(amber).frame(width: 6, height: 6) }
-                Text(statusText)
-                    .font(.system(size: 11, weight: .medium)).foregroundStyle(.white.opacity(0.5)).lineLimit(1)
-                    .help(m.online ? "Checked by: \(m.state?.witness_label ?? m.state?.witness ?? "—")" : "")
-                if m.online, session == nil, let t = m.state?.today, let total = t.habits_total, total > 0 {
-                    Text("·").foregroundStyle(.white.opacity(0.3)).font(.system(size: 11))
-                    TodayRing(done: t.habits_done ?? 0, total: total, width: 2).frame(width: 11, height: 11)
-                    Text("\(t.habits_done ?? 0) of \(total) today").font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.5)).lineLimit(1).fixedSize()
-                }
-            }
-            if session == nil { Keycap(text: "⌥⌘A").padding(.leading, 4) }
-            Button { NSApp.terminate(nil) } label: {
-                Image(systemName: "power").font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.4))
-            }.buttonStyle(.plain).help("Quit Alibi (stops watching)").padding(.leading, 4)
+        HStack(spacing: 2) {
+            Text("Alibi").font(.system(size: 14, weight: .medium, design: .serif)).foregroundStyle(cream)
+            Circle().fill(accent).frame(width: 4, height: 4).offset(y: 3)
+            Spacer(minLength: notch.width)
+            IconButton(icon: "arrow.up.right", help: "Open Alibi in the browser") { m.open("/") }
+            IconButton(icon: "power", help: "Quit Alibi (stops watching)") { NSApp.terminate(nil) }
         }
-        .frame(height: notch.height - 4, alignment: .bottom)
+        .frame(height: notch.height - 2, alignment: .center)
     }
 
-    var promptBar: some View {
-        HStack(spacing: 10) {
-            Image(systemName: m.busy ? "ellipsis" : session == nil ? "text.cursor" : "square.and.pencil")
-                .foregroundStyle(coral).frame(width: 16)
+    /// Quiet status line under everything: what Alibi is doing, today's tally, the hotkey.
+    var footer: some View {
+        HStack(spacing: 6) {
+            if (m.connecting || m.starting) && !m.online {
+                ProgressView().controlSize(.mini).tint(.white)
+                Text(m.starting ? "Starting…" : "Connecting…")
+            } else {
+                Circle().fill(m.online ? (session != nil ? accent : Color.white.opacity(0.35)) : amber).frame(width: 6, height: 6)
+                Text(statusText).lineLimit(1)
+                    .help(m.online ? "Checked by: \(m.state?.witness_label ?? m.state?.witness ?? "—")" : "")
+                if m.online, let t = m.state?.today, let total = t.habits_total, total > 0 {
+                    Text("·").opacity(0.5)
+                    TodayRing(done: t.habits_done ?? 0, total: total, width: 2).frame(width: 10, height: 10)
+                    Text("\(t.habits_done ?? 0) of \(total) today").lineLimit(1).fixedSize()
+                }
+            }
+            Spacer()
+            Keycap(text: "⌥⌘A")
+        }
+        .font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
+        .padding(.horizontal, 4).padding(.top, 2)
+    }
+
+    /// Claude-style composer: a soft box with the field on top and a round send button bottom-right.
+    var composer: some View {
+        let canSend = !m.draft.trimmingCharacters(in: .whitespaces).isEmpty && !m.busy
+        return VStack(alignment: .leading, spacing: 8) {
             TextField("", text: $m.draft, prompt: Text(session == nil ? "What are you about to do?" : "Add a note…")
-                .foregroundStyle(.white.opacity(0.35)))
-                .textFieldStyle(.plain).font(.system(size: 15)).foregroundStyle(cream)
+                .foregroundStyle(.white.opacity(0.38)))
+                .textFieldStyle(.plain).font(.system(size: 14)).foregroundStyle(cream)
                 .focused($focused)
                 .onSubmit { Task { await m.send(m.draft); m.unpinSoon() } }
                 .onExitCommand { Controller.shared?.collapse() }
-            if !focused && m.draft.isEmpty && !m.pinned {
-                Text(session == nil ? "e.g. “draw for 25 min”" : "Click to type").font(.system(size: 10.5))
-                    .foregroundStyle(.white.opacity(0.3)).fixedSize()
+            HStack {
+                Text(session == nil ? "Try “draw for 25 min”" : "Notes go on the session record")
+                    .font(.system(size: 11)).foregroundStyle(.white.opacity(0.32)).lineLimit(1)
+                Spacer()
+                Button { Task { await m.send(m.draft); m.unpinSoon() } } label: {
+                    Image(systemName: m.busy ? "ellipsis" : "arrow.up").font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(canSend ? Color.black : .white.opacity(0.35))
+                        .frame(width: 28, height: 28)
+                        .background(Circle().fill(canSend ? accent : Color.white.opacity(0.08)))
+                }
+                .buttonStyle(Pressable()).disabled(!canSend).help("Send (Return)")
             }
-            Button { m.open("/") } label: {
-                Image(systemName: "arrow.up.right").font(.system(size: 11, weight: .semibold))
-                    .padding(6).background(Circle().fill(Color.white.opacity(0.1)))
-            }.buttonStyle(.plain).foregroundStyle(cream).help("Open Alibi in the browser")
         }
-        .padding(.horizontal, 14).padding(.vertical, 11)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.07)))
+        .padding(.leading, 14).padding(.trailing, 10).padding(.top, 13).padding(.bottom, 10)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(surface))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(focused ? accent.opacity(0.55) : hairline, lineWidth: 1))
+        .animation(.easeOut(duration: 0.15), value: focused)
         .contentShape(Rectangle())
         .simultaneousGesture(TapGesture().onEnded { Controller.shared?.focusPanel(); focused = true })
     }
@@ -966,7 +979,7 @@ struct IslandView: View {
                 Circle().fill(amber).frame(width: 8, height: 8)
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text(m.starting ? "Turning on…" : "Alibi is off").font(.system(size: 14, weight: .semibold)).foregroundStyle(cream)
+                Text(m.starting ? "Turning on…" : "Alibi is off").font(.system(size: 15, design: .serif)).foregroundStyle(cream)
                 Text(m.starting ? "Usually a few seconds." : "Nothing is being recorded.")
                     .font(.system(size: 11.5)).foregroundStyle(.white.opacity(0.5))
                 if !m.starting && repoRoot != nil {
@@ -985,13 +998,13 @@ struct IslandView: View {
             .disabled(m.starting).opacity(m.starting ? 0.5 : 1)
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.07)))
+        .card()
     }
 
     /// First run: nothing to track yet, so the only useful thing is the setup wizard.
     var welcomeCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Welcome to Alibi").font(.system(size: 22, design: .serif)).foregroundStyle(cream)
+            Text("Welcome to Alibi").font(.system(size: 19, design: .serif)).foregroundStyle(cream)
             Text("Pick a habit or two, say when you'll do them, and Alibi quietly checks you actually did. It takes about two minutes.")
                 .font(.system(size: 12.5)).foregroundStyle(cream.opacity(0.7)).fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 8) {
@@ -1001,30 +1014,28 @@ struct IslandView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 14).fill(coral.opacity(0.12)))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(coral.opacity(0.3), lineWidth: 0.8))
+        .card()
     }
 
     /// Idle: what's planned. Now -> a big card with Start; later today -> one quiet line.
     @ViewBuilder func upNextCard(_ b: PlanBlock) -> some View {
         if b.state == "now" {
             HStack(spacing: 14) {
-                Image(systemName: "calendar.badge.clock").font(.system(size: 18)).foregroundStyle(coral)
-                    .frame(width: 34, height: 34).background(Circle().fill(coral.opacity(0.15)))
+                Image(systemName: "calendar.badge.clock").font(.system(size: 15)).foregroundStyle(accent)
+                    .frame(width: 34, height: 34).background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(accent.opacity(0.14)))
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(b.name).font(.system(size: 19, design: .serif)).foregroundStyle(cream).lineLimit(1)
+                    Text(b.name).font(.system(size: 16, design: .serif)).foregroundStyle(cream).lineLimit(1)
                     Text("Planned now · \(clock(b.start))–\(clock(b.end))").font(.system(size: 11.5, weight: .medium))
-                        .foregroundStyle(coral.opacity(0.9)).lineLimit(1)
+                        .foregroundStyle(accent.opacity(0.9)).lineLimit(1)
                 }.layoutPriority(1)
                 Spacer(minLength: 8)
                 if b.startable {
-                    PillButton(title: "Start \(b.min) min", primary: true, icon: "play.fill") { Task { await m.start(b.habit, b.min) } }
+                    PillButton(title: "Start", primary: true, icon: "play.fill", small: true) { Task { await m.start(b.habit, b.min) } }
                 }
                 PillButton(title: "Skip", small: true) { skip(b) }.help("Skip \(b.name) for today")
             }
             .padding(12)
-            .background(RoundedRectangle(cornerRadius: 14).fill(coral.opacity(0.1)))
-            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(coral.opacity(0.28), lineWidth: 0.8))
+            .card(highlight: true)
         } else {
             HStack(spacing: 8) {
                 Image(systemName: "calendar").font(.system(size: 11)).foregroundStyle(.white.opacity(0.45))
@@ -1062,20 +1073,19 @@ struct IslandView: View {
                 let isNow = h.key == nowKey
                 let doneToday = (m.plan?.blocks ?? []).contains { $0.habit == h.key && ["done", "partial"].contains($0.state) }
                 Button { Task { await m.send("\(h.key) for \(mins) minutes") } } label: {
-                    HStack(spacing: 5) {
-                        if isNow { Image(systemName: "play.fill").font(.system(size: 8, weight: .bold)) }
-                        else if doneToday { Image(systemName: "checkmark").font(.system(size: 9, weight: .bold)).foregroundStyle(green) }
-                        else if i < 9 { Text("⌘\(i + 1)").font(rounded(9.5, .semibold)).foregroundStyle(.white.opacity(0.3)) }
-                        Text(h.name).font(.system(size: 12, weight: .medium)).lineLimit(1).fixedSize()
-                        Text(block.map { isNow ? "now · \(mins)m" : "\($0.at)" } ?? "\(mins)m")
-                            .font(rounded(10.5, .medium)).monospacedDigit().opacity(isNow ? 0.8 : 0.45).lineLimit(1).fixedSize()
+                    HStack(spacing: 6) {
+                        if isNow { Image(systemName: "play.fill").font(.system(size: 8, weight: .bold)).foregroundStyle(accent) }
+                        else if doneToday { Image(systemName: "checkmark").font(.system(size: 9, weight: .bold)).foregroundStyle(accent) }
+                        Text(h.name).font(.system(size: 12.5)).lineLimit(1).fixedSize()
+                        Text(block.map { isNow ? "now" : "\($0.at)" } ?? "\(mins)m")
+                            .font(.system(size: 11)).monospacedDigit().foregroundStyle(.white.opacity(0.4)).lineLimit(1).fixedSize()
                     }
-                    .padding(.horizontal, 10).frame(height: 26)
-                    .background(Capsule().fill(isNow ? coral.opacity(0.22) : Color.clear))
-                    .overlay(Capsule().strokeBorder(isNow ? coral.opacity(0.6) : Color.white.opacity(0.16)))
-                    .contentShape(Capsule())
+                    .padding(.horizontal, 11).frame(height: 30)
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.03)))
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(isNow ? accent.opacity(0.6) : hairline))
+                    .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
-                .buttonStyle(.plain).foregroundStyle(isNow ? coral : cream)
+                .buttonStyle(Chip()).foregroundStyle(cream.opacity(0.88))
                 .keyboardShortcut(KeyEquivalent(Character("\(min(i + 1, 9))")), modifiers: .command)
                 .help("Start \(h.name) for \(mins) min (⌘\(i + 1)) · right-click for another length")
                 .contextMenu {
@@ -1085,9 +1095,15 @@ struct IslandView: View {
                 }
             }
             Button { Task { await m.send("how am I doing") } } label: {
-                Text("How am I doing?").font(.system(size: 12, weight: .medium)).padding(.horizontal, 10).frame(height: 26)
-                    .background(Capsule().fill(Color.white.opacity(0.06)))
-            }.buttonStyle(.plain).foregroundStyle(cream.opacity(0.7))
+                HStack(spacing: 6) {
+                    Image(systemName: "chart.bar").font(.system(size: 10, weight: .semibold)).foregroundStyle(.white.opacity(0.45))
+                    Text("How am I doing?").font(.system(size: 12.5))
+                }
+                .padding(.horizontal, 11).frame(height: 30)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(0.03)))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(hairline))
+                .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }.buttonStyle(Chip()).foregroundStyle(cream.opacity(0.88))
         }
     }
 
@@ -1095,14 +1111,14 @@ struct IslandView: View {
         let warming = s.warming_up ?? ((s.samples ?? s.labels.count) < 6)
         let recentR = s.recent_on_task ?? s.on_task_so_far ?? 1
         let heroColour = recentR >= 0.67 ? green : recentR >= 0.34 ? amber : red
-        return HStack(alignment: .center, spacing: 16) {
+        return HStack(alignment: .center, spacing: 14) {
             ZStack {
-                Ring(progress: progress, colour: onBreak ? amber : (palette[current] ?? coral), width: 3.5)
+                Ring(progress: progress, colour: onBreak ? amber : (palette[current] ?? accent), width: 3.5)
                 Image(systemName: onBreak ? "cup.and.saucer.fill" : s.modality == "digital" ? "macwindow" : "camera.fill")
                     .font(.system(size: 13)).foregroundStyle(.white.opacity(0.55))
             }.frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 5) {
-                Text(s.name).font(.system(size: 22, weight: .regular, design: .serif)).foregroundStyle(cream)
+                Text(s.name).font(.system(size: 18, design: .serif)).foregroundStyle(cream)
                     .lineLimit(1).truncationMode(.tail)
                 Text(onBreak ? "Paused · \(mmss(sessionLeft)) left of \(s.declared_min) min"
                              : "\(mmss(sessionLeft)) left of \(s.declared_min) min")
@@ -1111,7 +1127,7 @@ struct IslandView: View {
                 let live = s.labels.isEmpty ? (s.recent ?? []) : s.labels.suffix(60).map(\.label)
                 if !live.isEmpty && !onBreak {
                     Strip(labels: live, height: 6)
-                        .frame(width: min(220, CGFloat(min(60, live.count)) * 14), alignment: .leading)
+                        .frame(maxWidth: 150, alignment: .leading)
                         .padding(.top, 1)
                 }
                 statusLine(s)
@@ -1119,15 +1135,17 @@ struct IslandView: View {
             Spacer(minLength: 0)
             VStack(alignment: .trailing, spacing: 1) {
                 if warming || s.on_task_so_far == nil {
-                    Text("—").font(rounded(26, .semibold)).foregroundStyle(.white.opacity(0.4))
+                    Text("—").font(rounded(24, .semibold)).foregroundStyle(.white.opacity(0.4))
                     Text("getting a read").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.4))
                 } else if let r = s.on_task_so_far {
-                    Text("\(Int((r * 100).rounded()))%").font(rounded(26, .semibold)).monospacedDigit()
+                    Text("\(Int((r * 100).rounded()))%").font(rounded(24, .semibold)).monospacedDigit()
                         .foregroundStyle(heroColour).contentTransition(.numericText())
-                    Text("focused so far").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.4))
+                    Text("focused").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.4))
                 }
             }.fixedSize()
         }
+        .padding(14)
+        .card()
     }
 
     /// One-tap controls (no typed commands needed): break / +10 / finish, and an inline confirm before ending early.
@@ -1144,9 +1162,8 @@ struct IslandView: View {
                 PillButton(title: "Keep going", small: true) { m.confirmFinish = false }
                 PillButton(title: "End now", primary: true, tint: amber, small: true) { Task { await m.end() } }
             }
-            .padding(.horizontal, 12).padding(.vertical, 9)
-            .background(RoundedRectangle(cornerRadius: 12).fill(amber.opacity(0.1)))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(amber.opacity(0.3), lineWidth: 0.8))
+            .padding(.horizontal, 12).padding(.vertical, 10)
+            .card()
         } else {
             HStack(spacing: 8) {
                 if onBreak {
@@ -1154,7 +1171,7 @@ struct IslandView: View {
                         Task { await m.send("back", quiet: true) }
                     }
                 } else {
-                    PillButton(title: "Take a 5-min break", icon: "cup.and.saucer.fill", small: true) {
+                    PillButton(title: "Break", icon: "cup.and.saucer", small: true) {
                         Task { await m.send("break 5", quiet: true) }
                     }
                     .contextMenu {
@@ -1162,7 +1179,7 @@ struct IslandView: View {
                             Button("Break for \(n) min") { Task { await m.send("break \(n)", quiet: true) } }
                         }
                     }
-                    .help("Right-click for a different length")
+                    .help("5-minute break · right-click for another length")
                 }
                 PillButton(title: "+10 min", icon: "plus", small: true) {
                     Task { await m.send("change to \(s.declared_min + 10)", quiet: true) }
@@ -1238,27 +1255,31 @@ struct IslandView: View {
                 PillButton(title: x.label, primary: i == 0, tint: tint) { m.act(x) }
             }
             Spacer()
-            Button { m.dismissAlert() } label: {
-                Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundStyle(.white.opacity(0.4))
-                    .frame(width: 24, height: 24).background(Circle().fill(Color.white.opacity(0.07)))
-            }.buttonStyle(.plain).help("Dismiss (Esc)")
+            IconButton(icon: "xmark", help: "Dismiss (Esc)") { m.dismissAlert() }
         }
     }
 
+    /// Notch row (only its edges are visible): wordmark left, context right. The title sits below the camera.
     func alertHeader(icon: String, title: String, tint: Color, trailing: String?) -> some View {
-        HStack(spacing: 7) {
-            Image(systemName: icon).font(.system(size: 11, weight: .semibold)).foregroundStyle(tint)
-            Text(title).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(tint)
-            Spacer()
-            if let t = trailing {
-                Text(t).font(rounded(11, .medium)).monospacedDigit().foregroundStyle(.white.opacity(0.45)).lineLimit(1)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 2) {
+                Text("Alibi").font(.system(size: 14, weight: .medium, design: .serif)).foregroundStyle(cream)
+                Circle().fill(accent).frame(width: 4, height: 4).offset(y: 3)
+                Spacer(minLength: notch.width)
+                if let t = trailing {
+                    Text(t).font(.system(size: 11)).monospacedDigit().foregroundStyle(.white.opacity(0.45)).lineLimit(1)
+                }
+            }.frame(height: notch.height - 2)
+            HStack(spacing: 7) {
+                Image(systemName: icon).font(.system(size: 11, weight: .semibold)).foregroundStyle(tint)
+                Text(title).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(tint)
             }
-        }.frame(height: notch.height - 4, alignment: .bottom)
+        }
     }
 
     var alertView: some View {
         let a = m.alert ?? AlertEv(id: 0, kind: "info", text: "")
-        let tint: Color = a.kind == "nudge" ? red : a.kind == "pace" ? amber : coral
+        let tint: Color = a.kind == "nudge" ? red : a.kind == "pace" ? amber : accent
         let habitName = a.habit_label ?? a.habit.map(displayName) ?? session?.name
         let title: String = switch a.kind {
             case "nudge": "Still \((session?.habit ?? a.habit).map(spokenHabit) ?? "on it")?"
@@ -1269,7 +1290,7 @@ struct IslandView: View {
         let text = a.kind == "pace" ? paceCopy(a) : a.text
         return VStack(alignment: .leading, spacing: 12) {
             alertHeader(icon: icon, title: title, tint: tint, trailing: a.kind == "nudge" ? nil : habitName)
-            Text(text).font(.system(size: 16, weight: .regular, design: .serif)).foregroundStyle(cream)
+            Text(text).font(.system(size: 15, design: .serif)).foregroundStyle(cream)
                 .lineLimit(4).fixedSize(horizontal: false, vertical: true)
             if a.kind == "nudge", let d = drifting {
                 Text("Seen for \(mmss((d.since_s ?? 0) + drift)) · \(mmss(sessionLeft)) left of your \(session?.declared_min ?? 0) min")
@@ -1307,17 +1328,17 @@ struct IslandView: View {
         let late = a.late ?? false
         return VStack(alignment: .leading, spacing: 12) {
             alertHeader(icon: "calendar.badge.clock", title: late ? "Planned for \(a.at ?? "earlier")" : "Planned now",
-                        tint: coral, trailing: range)
+                        tint: accent, trailing: range)
             HStack(alignment: .center, spacing: 14) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(a.text).font(.system(size: 19, design: .serif)).foregroundStyle(cream)
+                    Text(a.text).font(.system(size: 16, design: .serif)).foregroundStyle(cream)
                         .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                     Text([a.minutes.map { "\($0) min" }, checkCopy[a.check ?? ""]].compactMap { $0 }.joined(separator: " · "))
                         .font(.system(size: 11.5)).foregroundStyle(.white.opacity(0.5)).lineLimit(1)
                 }.layoutPriority(1)
                 Spacer(minLength: 0)
             }
-            actionRow(a, tint: coral)
+            actionRow(a, tint: accent)
         }
     }
 
@@ -1333,7 +1354,7 @@ struct IslandView: View {
                     Image(systemName: "checkmark").font(.system(size: 15, weight: .bold)).foregroundStyle(green)
                 }.frame(width: 40, height: 40)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(a.detail ?? detail).font(.system(size: 18, design: .serif)).foregroundStyle(cream).lineLimit(2)
+                    Text(a.detail ?? detail).font(.system(size: 15, design: .serif)).foregroundStyle(cream).lineLimit(2)
                     if let p = a.progress {
                         Text(p).font(.system(size: 11.5)).foregroundStyle(.white.opacity(0.5))
                     }
@@ -1388,21 +1409,21 @@ struct IslandView: View {
             extra = [AlertAction("Keep going · \(declared - elapsed) min", say: "\(h) for \(declared - elapsed) minutes")]
         }
         return VStack(alignment: .leading, spacing: 12) {
-            alertHeader(icon: "checkmark.seal.fill", title: "Verdict", tint: coral,
+            alertHeader(icon: "checkmark.seal.fill", title: "Verdict", tint: accent,
                         trailing: rv.map { _ in early ? nil : "\(elapsed) of \(declared) min" } ?? nil)
             HStack(alignment: .center, spacing: 12) {
-                Text(badge).font(.system(size: 12.5, weight: .heavy, design: .rounded)).tracking(1.1)
-                    .foregroundStyle(Color.black.opacity(0.85)).lineLimit(1).fixedSize()
-                    .padding(.horizontal, 11).frame(height: 26).background(Capsule().fill(tint))
-                Text(name).font(.system(size: 24, design: .serif)).foregroundStyle(cream)
+                Text(badge).font(.system(size: 10.5, weight: .bold)).tracking(0.8)
+                    .foregroundStyle(Color.black).lineLimit(1).fixedSize()
+                    .padding(.horizontal, 8).frame(height: 22).background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(tint))
+                Text(name).font(.system(size: 19, design: .serif)).foregroundStyle(cream)
                     .lineLimit(1).truncationMode(.tail).layoutPriority(1)
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 0) {
                     if early && rv != nil {
-                        Text("\(elapsed) of \(declared)").font(rounded(26, .bold)).monospacedDigit().foregroundStyle(tint)
+                        Text("\(elapsed) of \(declared)").font(rounded(24, .semibold)).monospacedDigit().foregroundStyle(tint)
                         Text("minutes").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.45))
                     } else if let r = ratio, enoughLooks || rv == nil {
-                        Text("\(Int((r * 100).rounded()))%").font(rounded(30, .bold)).monospacedDigit().foregroundStyle(tint)
+                        Text("\(Int((r * 100).rounded()))%").font(rounded(26, .semibold)).monospacedDigit().foregroundStyle(tint)
                         Text("focused").font(.system(size: 10.5)).foregroundStyle(.white.opacity(0.45))
                     }
                 }.fixedSize()
@@ -1522,6 +1543,12 @@ let repoRoot: String? = {
 
 // MARK: - Window
 
+/// Alibi is never the frontmost app, so every click on the island is a "first click" into an inactive window.
+/// Without this, SwiftUI swallows it and buttons do nothing.
+final class FirstClickHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+}
+
 final class Panel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
@@ -1552,7 +1579,7 @@ final class Controller {
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
         panel.isMovable = false
         panel.becomesKeyOnlyIfNeeded = true
-        panel.contentView = NSHostingView(rootView: IslandView(m: island, notch: notch))
+        panel.contentView = FirstClickHostingView(rootView: IslandView(m: island, notch: notch))
         panel.orderFrontRegardless()
         panel.ignoresMouseEvents = true
 
@@ -1563,6 +1590,13 @@ final class Controller {
             MainActor.assumeIsolated {
                 if self.island.pinned && self.island.mode == .expanded { self.collapse() }
             }
+        }
+        // A click anywhere on the open island pins it: it stays until Esc, a send, or a click elsewhere.
+        NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown]) { e in
+            MainActor.assumeIsolated {
+                if e.window === self.panel && self.island.mode == .expanded { self.island.pinned = true }
+            }
+            return e
         }
         // Esc collapses in every mode (not only when the text field has focus).
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { e in
@@ -1635,18 +1669,22 @@ final class Controller {
         fflush(stdout)
     }
 
-    // Hover (a still pointer for 0.35 s) -> peek, no focus; out (and nothing typed) -> collapse.
+    // Hover (a still pointer for 0.35 s) -> peek, no focus. Leaving only folds it after the pointer has been out of a
+    // generous margin around the island for 0.8 s, so reaching for a button never collapses it; a click inside pins it.
     // Sweeping across the menu bar never opens it. Clicks pass through everywhere else.
     func track() {
         let p = NSEvent.mouseLocation
         let speed = hypot(p.x - lastMouse.x, p.y - lastMouse.y) * 30   // pt/s at the 30 Hz tick
         lastMouse = p
         let f = notch.screen.frame
-        var sz = island.measured
-        if sz.width < 10 { sz = CGSize(width: width(for: island.mode, notch: notch, island: island), height: notch.height) }
+        let sz = CGSize(width: max(island.measured.width, width(for: island.mode, notch: notch, island: island)),
+                        height: max(island.measured.height, notch.height))
         let hit = NSRect(x: f.midX - sz.width / 2, y: f.maxY - sz.height, width: sz.width, height: sz.height)
-        let inside = hit.insetBy(dx: -4, dy: -4).contains(p)
-        panel.ignoresMouseEvents = !inside
+        let onIsland = hit.insetBy(dx: -4, dy: -4).contains(p)
+        panel.ignoresMouseEvents = !onIsland
+        // Open: stay open anywhere in a wide margin (sideways 32 pt, 48 pt below). Collapsed: the island itself.
+        let inside = island.mode == .collapsed ? onIsland
+            : NSRect(x: hit.minX - 32, y: hit.minY - 48, width: hit.width + 64, height: hit.height + 48).contains(p)
         island.hovering = inside
         defer { wasInside = inside }
 
@@ -1667,7 +1705,7 @@ final class Controller {
             // Seen it and moved away: a timed alert goes in 3 s; nudges/planned blocks fold into the wing.
             if wasInside && island.mode == .alert { island.scheduleDismiss(after: 3) }
             if island.mode == .expanded && island.draft.isEmpty && !island.busy && !island.pinned {
-                if collapseAt == nil { collapseAt = Date().addingTimeInterval(0.35) }
+                if collapseAt == nil { collapseAt = Date().addingTimeInterval(0.8) }
                 if let c = collapseAt, Date() > c {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { island.mode = .collapsed }
                     collapseAt = nil

@@ -376,8 +376,8 @@ if(!r.ok){{const j=await r.json().catch(()=>({{}}));alert(j.detail||'Could not d
 
 # --- tiny page kit (light + dark) ---------------------------------------------------------------------------------
 
-CSS = """:root{--bg:#f6f5f2;--card:#fff;--ink:#1b1b1a;--mut:#6b6a66;--line:#e4e2dc;--acc:#2f6fed;--ok:#1f8a4c;--err:#b3261e;--code:#f0efe9}
-@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1e1e1c;--ink:#ecebe7;--mut:#a3a29c;--line:#33332f;--acc:#7aa2ff;--ok:#5cc489;--err:#ff8a80;--code:#2a2a27}}
+CSS = """:root{--bg:#f2f2f2;--card:#fff;--ink:#1a1a1a;--mut:#5e5e5e;--line:#d7d7d7;--acc:#4e7a00;--ok:#4e7a00;--err:#c4161c;--code:#ebebeb}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--card:#1a1a1a;--ink:#eee;--mut:#a6a6a6;--line:#333;--acc:#76b900;--ok:#76b900;--err:#ff7a7e;--code:#262626}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
 main{max-width:640px;margin:0 auto;padding:28px 16px 64px}h1{font-size:28px;letter-spacing:-.02em;margin:8px 0 8px}
 h2{font-size:18px;margin:36px 0 8px}h3{font-size:16px;margin:0 0 4px}.lead{color:var(--mut);font-size:17px}
@@ -390,7 +390,7 @@ color:var(--bg);font-weight:600;font-size:14px;display:grid;place-items:center}.
 .kv{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}.kv td{padding:7px 0;border-top:1px solid var(--line);vertical-align:top}
 .kv td:first-child{color:var(--mut);width:38%;padding-right:10px}code{background:var(--code);padding:2px 6px;border-radius:6px;font-size:13px;word-break:break-all}
 .btn{display:inline-block;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;border-radius:10px;
-font:inherit;font-weight:600;text-decoration:none;cursor:pointer;margin-top:8px;min-height:44px}.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+font:inherit;font-weight:600;text-decoration:none;cursor:pointer;margin-top:8px;min-height:44px}.btn.primary{background:#76b900;border-color:#76b900;color:#000}
 .btn.off{opacity:.45;pointer-events:none}.copy{margin-left:8px;border:1px solid var(--line);background:none;color:var(--acc);border-radius:7px;
 font-size:12px;padding:3px 8px;cursor:pointer}.link{border:0;background:none;color:var(--acc);font:inherit;font-size:14px;padding:0;cursor:pointer}
 label{display:block;font-size:14px;color:var(--mut);margin:10px 0}input{display:block;width:100%;margin-top:4px;padding:11px 12px;font:inherit;
