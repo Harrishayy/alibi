@@ -238,8 +238,9 @@ def phone_info() -> dict:
     st = integ.phone_status()
     addrs = integ.addresses()
     key = integ.phone_secret(create=st["enabled"])
-    urls = [{**a, "ingest_url": f"http://{a['host']}:{st['port']}/ingest",
-             "setup_url": f"http://{a['host']}:{st['port']}/phone" + (f"#k={key}" if key else "")} for a in addrs]
+    base = lambda a: a.get("base") or f"http://{a['host']}:{st['port']}"
+    urls = [{**a, "ingest_url": base(a) + "/ingest",
+             "setup_url": base(a) + "/phone" + (f"#k={key}" if key else "")} for a in addrs]
     best = urls[0] if urls else None
     if not st["enabled"]:
         text = "Off. Turn on iPhone sync so a Shortcut on your phone can send Apple Health data each night."

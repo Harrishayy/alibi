@@ -308,8 +308,19 @@ def _secret_ok(given: str) -> bool:
 
 
 def addresses() -> list[dict]:
-    """Ways the phone can reach this Mac: home Wi-Fi IP, Bonjour name, Tailscale IP (works away from home)."""
+    """Ways the phone can reach this Mac: Tailscale HTTPS (if `tailscale serve` proxies the phone port — the only
+    option Safari's HTTPS-only mode accepts), home Wi-Fi IP, Bonjour name, Tailscale IP (works away from home)."""
     out = []
+    try:
+        web = json.loads(subprocess.run(["tailscale", "serve", "status", "--json"], capture_output=True, text=True,
+                                        timeout=3).stdout or "{}").get("Web", {})
+        for hostport, cfg in web.items():
+            if any(str(h.get("Proxy", "")).endswith(f":{PHONE_PORT}") for h in cfg.get("Handlers", {}).values()):
+                host, _, port = hostport.rpartition(":")
+                out.append({"kind": "tailscale_https", "host": host, "label": "Tailscale, secure (works anywhere)",
+                            "base": f"https://{host}" + ("" if port == "443" else f":{port}")})
+    except Exception:
+        pass
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("10.255.255.255", 1))                # no packet is sent; picks the LAN interface
