@@ -50,13 +50,13 @@ def vision_json(system: str, prompt: str, jpeg: bytes, max_tokens: int = 200) ->
     return _parse_json(r.choices[0].message.content)
 
 
-def vision_video_json(system: str, prompt: str, mp4: bytes, max_tokens: int = 300) -> dict:
-    """Same as vision_json but for a short mp4 (Nemotron 3 Nano Omni on NVIDIA Build or a local vLLM). Thinking off:
-    the witness needs a label every minute, not an essay."""
+def vision_video_json(system: str, prompt: str, mp4: bytes, max_tokens: int = 2000) -> dict:
+    """Same as vision_json but for a short mp4 (Nemotron 3 Nano Omni on NVIDIA Build or a local vLLM). Reasoning on by
+    default: without it Omni tends to echo the declared habit; with it (~10 s, budget-capped) it catches the phone."""
     b64 = base64.b64encode(mp4).decode()
     r = _vision.chat.completions.create(
         model=config.VLM_MODEL, temperature=0, max_tokens=max_tokens,
-        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        extra_body={"chat_template_kwargs": {"enable_thinking": config.VLM_THINK, "reasoning_budget": 1024}},
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": [

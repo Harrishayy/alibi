@@ -1,8 +1,20 @@
 # Alibi on the DGX Spark (NemoClaw)
 
 The Mac is still the hub: camera, window titles, the notch island and the session database live there. The DGX
-Spark adds the always-on agent: OpenClaw running inside a NemoClaw / OpenShell sandbox, served by a local model,
-talking to the Mac over Tailscale through one narrow door.
+Spark adds the always-on agent: OpenClaw running inside a NemoClaw / OpenShell sandbox, talking to the Mac over
+Tailscale through one narrow door.
+
+## Models (all Nemotron)
+
+| Role | Model | Where |
+|---|---|---|
+| Agent (OpenClaw driver) | `nvidia/nemotron-3-super-120b-a12b` | NVIDIA Build, via NemoClaw's `inference.local` route (key stays on the host) |
+| Agent, fully local mode | Nemotron 3 Nano 30B-A3B (`UD-Q4_K_XL` GGUF, NemoClaw's managed llama.cpp Spark profile) | DGX Spark |
+| Camera witness (video) | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning` | NVIDIA Build, called by the Mac daemon (`VLM_VIDEO=1`) |
+
+Same skill, relay and tools in every mode; only the model route changes:
+`nemoclaw inference set --model <model> --provider <provider> --sandbox alibi`.
+With Omni on Build, camera clips leave your network. Say so.
 
 ```
  iPhone ──(Health, Tailscale)──┐
@@ -38,10 +50,12 @@ talking to the Mac over Tailscale through one narrow door.
 ## Setup (Spark)
 
 ```bash
-# once: Docker access, then NemoClaw with local vLLM (DGX Spark default)
+# once: Docker access, NemoClaw CLI, then onboard the sandbox on Nemotron 3 Super (key read from .env, never echoed)
 sudo usermod -aG docker $USER
-curl -fsSL https://www.nvidia.com/nemoclaw.sh | NEMOCLAW_NON_INTERACTIVE=1 NEMOCLAW_ACCEPT_THIRD_PARTY_SOFTWARE=1 \
-  NEMOCLAW_AGENT=openclaw NEMOCLAW_SANDBOX_NAME=alibi NEMOCLAW_AGENT_HEARTBEAT_EVERY=30m bash
+curl -fsSL https://www.nvidia.com/nemoclaw.sh | NEMOCLAW_DEFER_ONBOARDING=1 bash
+set -a; . ./.env; set +a; NVIDIA_INFERENCE_API_KEY="$NVIDIA_API_KEY" NEMOCLAW_PROVIDER=build \
+  NEMOCLAW_MODEL=nvidia/nemotron-3-super-120b-a12b NEMOCLAW_AGENT=openclaw NEMOCLAW_AGENT_HEARTBEAT_EVERY=30m \
+  nemoclaw onboard --non-interactive --fresh --name alibi --yes-i-accept-third-party-software --yes
 # then, and after any change to spark/ or the relay:
 bash scripts/spark_setup.sh
 ```
@@ -60,7 +74,14 @@ ALIBI_REMOTE_TOKEN=<same value as on the Spark>
 ALIBI_ALLOWED_HOSTS=127.0.0.1,localhost,::1,harrishs-macbook-pro,100.66.226.12
 ```
 
-Optional — let the Mac's witness and text model use the Spark's local model instead of NVIDIA Build:
+Video witness on Nemotron 3 Nano Omni (Mac `.env`, needs the Mac's own `NVIDIA_API_KEY`):
+
+```
+VLM_MODEL=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+VLM_VIDEO=1          # judge each minute as a timelapse clip; VLM_THINK=1 (default) lets it reason first, ~15 s/clip
+```
+
+Optional — point the Mac's models at a local server on the Spark instead of NVIDIA Build:
 
 ```
 LLM_BASE_URL=http://spark:8770/v1
