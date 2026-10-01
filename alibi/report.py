@@ -82,6 +82,7 @@ def build_json(now: float | None = None, prose: bool = False) -> dict:
     for key, h in cfg["habits"].items():
         if h.get("source") == "strava":
             running = _running(con, key, h, t0, now, _pace(h, t0, now)["frac"], cfg)
+            running.update(pace3(h, t0, now, running["qualifying"], stale=_stale(con, h, now), stale_source="strava"))
             continue
         if h.get("source") == "health":
             continue                                    # Health habits are daily targets: see out["health"]
@@ -106,7 +107,9 @@ def build_json(now: float | None = None, prose: bool = False) -> dict:
                      "behind_by_min": behind, "gap_to_pace_min": round(pace - verified),
                      "pct_of_target": round(verified / target, 3) if target else None,
                      "streak_days": streak, "streak_today": today_ok, "strikes": strikes,
-                     "honesty": round(verified / declared, 3) if declared else None})
+                     "honesty": round(verified / declared, 3) if declared else None,
+                     **pace3(h, t0, now, verified, stale=_stale(con, h, now), q90=_q90_daily(con, key, now),
+                             stale_source=h.get("source"))})
     worst = max((r for r in rows if r["behind_by_min"] > 0), key=lambda r: r["behind_by_min"], default=None)
     for i, r in enumerate(sorted(rows, key=lambda r: -r["gap_to_pace_min"])):
         r["rank"] = i                                   # 0 = furthest behind pace (sort the table by this)
@@ -276,3 +279,124 @@ def _hm(m: int) -> str:
 
 def build() -> str:
     return build_json()["text"]
+
+
+# --- Pace v2 (NEXT_PHASE §4, formulas 1–6): on_track | at_risk | off_track | done | stale, plus buffer days -----------
+
+STALE_S = {"strava": 24 * 3600, "phone": 6 * 3600}   # primary evidence this old = "Can't see"; camera/screen never stale
+
+
+def is_count(h: dict) -> bool:
+    """Count habits (running) are judged in sessions, not minutes."""
+    return h.get("source") == "strava" or bool(h.get("weekly_sessions") and not h.get("weekly_target_min"))
+
+
+def _stale(con, h: dict, now: float) -> bool:
+    src = h.get("source")
+    if src == "strava":
+        from . import strava
+        try:
+            if not strava.connected():
+                return False                            # not configured: nothing to be stale about
+            last = strava.state().get("last_sync") or 0
+        except Exception:
+            return False
+        ev = con.execute("SELECT MAX(ts) FROM events WHERE source='strava' AND ts<=?", (now,)).fetchone()[0] or 0
+        return now - max(last, ev) > STALE_S["strava"]
+    if src == "phone":
+        ev = con.execute("SELECT MAX(ts) FROM events WHERE source='phone' AND ts<=?", (now,)).fetchone()[0] or 0
+        return now - ev > STALE_S["phone"]
+    return False
+
+
+def _q90_daily(con, key: str, now: float) -> float:
+    """90th percentile of verified minutes on the days in the last 28 that had any (what a strong day looks like)."""
+    v = sorted(r[1] for r in con.execute(
+        "SELECT date(started_at,'unixepoch','localtime') d, SUM(declared_min*COALESCE(on_task_ratio,0)) FROM sessions "
+        "WHERE habit=? AND status='done' AND started_at>=? AND started_at<? GROUP BY d", (key, now - 28 * 86400, now))
+        if r[1] and r[1] > 0)
+    return v[max(0, -(-9 * len(v) // 10) - 1)] if v else 0.0
+
+
+def _num(x: float) -> str:
+    x = round(x, 1)
+    return f"{x:g}"
+
+
+def pace3(h: dict, t0: float, now: float, verified: float, stale: bool = False, q90: float = 0.0,
+          stale_source: str | None = None) -> dict:
+    """Formulas 1–6 for one habit. `verified` is V(now): minutes × on-task ratio, or qualifying sessions for count
+    habits. Pure arithmetic: the caller does the queries."""
+    t1 = t0 + 7 * 86400
+    now = min(max(now, t0), t1)
+    count = is_count(h)
+    pc = _pace(h, t0, now)
+    d = dt.date.fromtimestamp(now)
+    eod = min(t1, dt.datetime(d.year, d.month, d.day).timestamp() + 86400)
+    days_left = max(0.0, (t1 - now) / 86400)
+    sched_left = None
+    if count:
+        T = h.get("weekly_sessions") or 0
+        P = 0.0 if pc["new"] else T * pc["frac"]
+        P_eod = 0.0 if pc["new"] else T * _pace(h, t0, eod)["frac"]
+        r = T / 7
+        cap = days_left * max(r, 1.0)                   # no usable history for counts: one a day at most
+    else:
+        T, P = pc["target"], pc["pace"]
+        P_eod = _pace(h, t0, eod)["pace"]
+        bl = list(_blocks(h, t0, t1))
+        if sum(m for _, m in bl):
+            r = T / len({dt.date.fromtimestamp(ts) for ts, m in bl if m}) if T else 0
+            sched_left = sum(max(0.0, ts + m * 60 - max(ts, now)) / 60 for ts, m in bl)
+            cap = sched_left
+        else:
+            r = T / 7
+            cap = days_left * max(r, q90)
+    V = verified
+    gap = P - V
+    left = max(0.0, T - V)
+    need_pd = left / max(days_left, 0.5)
+    if stale:
+        s = "stale"
+    elif V >= T:
+        s = "done"
+    elif (left > sched_left) if sched_left is not None else \
+            ((need_pd > 2 * r and days_left >= 1) or gap > 0.3 * T):
+        s = "off_track"
+    elif gap > 0.1 * T:
+        s = "at_risk"
+    else:
+        s = "on_track"
+    buffer = round((V - P) / r * 2) / 2 if r else None
+    rnd = (lambda x: round(x, 1)) if count else (lambda x: round(x))
+    out = {"status3": s, "buffer_days": buffer, "need_per_day_min": rnd(need_pd),
+           "need_today_min": rnd(max(0.0, P_eod - V)), "capacity_left_min": rnd(cap), "stale": bool(stale),
+           "unit": "runs" if count else "min", "scheduled": sched_left is not None, "pace_min": rnd(P),
+           "days_left": round(days_left, 2)}
+    out["reason"] = _reason(s, count, T, V, gap, left, need_pd, days_left, buffer, sched_left, pc["new"], stale_source)
+    return out
+
+
+def _reason(s, count, T, V, gap, left, need_pd, days_left, buffer, sched_left, new, src) -> str:
+    """One dry line: "40 min behind. 35 a day until Sunday." / "1.5 days of buffer." """
+    def u(n):
+        n = round(n)
+        return f"{n} run{'s' * (n != 1)}" if count else f"{n} min"
+    if s == "stale":
+        return "Can't see Strava. Nothing new in a day." if src == "strava" else "Can't see your phone. Nothing in 6 hours."
+    if s == "done":
+        return "Done for the week."
+    if s in ("off_track", "at_risk"):
+        head = f"{u(gap)} behind." if round(gap) >= 1 else f"{u(left)} to go."
+        if sched_left is not None and left > sched_left:
+            tail = f"Only {round(sched_left)} min planned."
+        elif days_left < 1:
+            tail = f"{u(left)} to go today." if round(gap) >= 1 else "Today is the last day."
+        else:
+            tail = f"{_num(need_pd) if count else round(need_pd)} a day until Sunday."
+        return f"{head} {tail}"
+    if new:
+        return "New this week. No pace yet."
+    if buffer and buffer >= 0.5:
+        return f"{buffer:g} day{'s' * (buffer != 1)} of buffer."
+    return "On pace."
