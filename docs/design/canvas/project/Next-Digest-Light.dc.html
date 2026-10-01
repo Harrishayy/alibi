@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Night review, light</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/alibi/components/bundle.css">
+<script src="ds/alibi/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--accent-ink)}a:hover{color:var(--ink)}
+@keyframes nx-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes nx-swap{from{opacity:0;transform:scale(0.97);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes nx-voice{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes nx-toast{from{opacity:0;transform:translateY(-12px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+</style>
+</helmet>
+<div data-theme="light" style="width: 976px; height: 992px; box-sizing: border-box; padding: 48px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: var(--body-lh); letter-spacing: var(--body-ls); -webkit-font-smoothing: antialiased;">
+  <article aria-labelledby="digest-h" style="box-sizing: border-box; padding: 24px; display: flex; flex-direction: column; gap: 24px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md);">
+    <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px;">
+      <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;">
+        <h3 id="digest-h" style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em;">{{ digestTitle }}</h3>
+        <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ digestWhen }}</span>
+      </div>
+      <span style="display: inline-flex; align-items: center; gap: 8px; height: 24px; box-sizing: border-box; padding: 0 8px; border-radius: var(--radius-xs); background: var(--surface-2); font-size: 12px; line-height: 1; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); white-space: nowrap;">{{ viaTag }}</span>
+    </div>
+
+    <sc-if value="{{ isNightish }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <p style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; animation: nx-in var(--dur-medium) var(--ease-out) both;">Claimed 2h 05m today. Seen 1h 42m.</p>
+        <ul aria-label="Today's sessions and missed blocks" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px;">
+          <sc-for list="{{ dayRows }}" as="r" hint-placeholder-count="4">
+            <li style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 32px; animation: nx-in var(--dur-medium) var(--ease-out) both; animation-delay: {{ r.delay }};">
+              <span style="flex: 0 0 48px; font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ r.time }}</span>
+              <span style="flex: 0 0 104px; display: flex;">
+                <sc-if value="{{ r.isVerdict }}" hint-placeholder-val="{{ true }}">
+                  <x-import component-from-global-scope="Alibi.VerdictPill" verdict="{{ r.verdict }}" style="display: flex;"></x-import>
+                </sc-if>
+                <sc-if value="{{ r.isMissed }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: inline-flex; align-items: center; gap: 8px; height: 24px; box-sizing: border-box; padding: 0 12px 0 8px; border-radius: var(--radius-pill); background: var(--surface-2); font-size: 12px; line-height: 1; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2); white-space: nowrap;">
+                    <span aria-hidden="true" style="width: 8px; height: 8px; box-sizing: border-box; border-radius: 50%; border: 1.5px dashed var(--absent-ink);"></span>
+                    <span>Missed</span>
+                  </span>
+                </sc-if>
+              </span>
+              <span style="flex: 1 1 240px; min-width: 0; font-size: 16px; line-height: 1.4; font-variant-numeric: tabular-nums;"><span style="font-weight: 600;">{{ r.habit }}</span><span style="color: var(--ink-2);">{{ r.meta }}</span></span>
+            </li>
+          </sc-for>
+        </ul>
+      </div>
+      <div style="padding-top: 16px; border-top: 1px solid var(--hairline); animation: nx-voice var(--dur-medium) var(--ease-out) 1000ms both;">
+        <x-import component-from-global-scope="Alibi.PinchLine" mood="reading" theme="{{ theme }}">Closing the file on today.</x-import>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMorning }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="box-sizing: border-box; padding: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; background: var(--surface-2); border-radius: var(--radius-sm); animation: nx-in var(--dur-medium) var(--ease-out) both;">
+          <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">Last night's plan</span>
+            <span style="font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;">Last night you moved drawing to 07:30. It's on now.</span>
+            <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">07:30 to 07:55 · added from last night's review</span>
+          </div>
+          <x-import component-from-global-scope="Alibi.Button" variant="primary" size="md" icon="play" style="display: flex; flex: none;">Start 25 min</x-import>
+        </div>
+        <ul aria-label="Today's plan" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px;">
+          <sc-for list="{{ morningRows }}" as="r" hint-placeholder-count="5">
+            <li style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 32px; animation: nx-in var(--dur-medium) var(--ease-out) both; animation-delay: {{ r.delay }};">
+              <span style="flex: 0 0 48px; font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ r.time }}</span>
+              <span style="display: inline-flex; color: var(--ink-2);"><x-import component-from-global-scope="Alibi.Icon" name="{{ r.icon }}" size="{{ px16 }}" style="display: flex;"></x-import></span>
+              <span style="flex: 1 1 240px; min-width: 0; font-size: 16px; line-height: 1.4; font-variant-numeric: tabular-nums;"><span style="font-weight: 600;">{{ r.habit }}</span><span style="color: var(--ink-2);">{{ r.meta }}</span></span>
+            </li>
+          </sc-for>
+        </ul>
+      </div>
+      <div style="padding-top: 16px; border-top: 1px solid var(--hairline); animation: nx-voice var(--dur-medium) var(--ease-out) 1000ms both;">
+        <x-import component-from-global-scope="Alibi.PinchLine" mood="reading" theme="{{ theme }}">Morning. I've got the plan. You've got the pen.</x-import>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; animation: nx-in var(--dur-medium) var(--ease-out) 1260ms both;">
+        <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="md" icon="calendar" style="display: flex;">See today's plan</x-import>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showDecision }}" hint-placeholder-val="{{ true }}">
+      <div style="box-sizing: border-box; display: flex; flex-direction: column; background: var(--surface-2); border-radius: var(--radius-sm); animation: nx-swap var(--dur-medium) var(--ease-out) both; animation-delay: {{ decisionDelay }};">
+        <sc-if value="{{ showProposal }}" hint-placeholder-val="{{ true }}">
+          <div role="group" aria-label="{{ proposalQ }}" style="box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; gap: 16px; animation: nx-swap var(--dur-medium) var(--ease-out) both;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">Proposed for tomorrow</span>
+              <span style="font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;">{{ proposalQ }}</span>
+              <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ proposalMeta }}</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <x-import component-from-global-scope="Alibi.Button" variant="primary" size="md" icon="calendar" on-click="{{ accept }}" style="display: flex;">{{ acceptLabel }}</x-import>
+              <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="md" on-click="{{ notNow }}" style="display: flex;">Not now</x-import>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isAccepted }}" hint-placeholder-val="{{ false }}">
+          <div role="status" aria-live="polite" style="box-sizing: border-box; padding: 16px; display: flex; align-items: center; gap: 12px; animation: nx-swap var(--dur-medium) var(--ease-out) both;">
+            <span aria-hidden="true" style="flex: none; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent-wash); color: var(--accent-ink);"><x-import component-from-global-scope="Alibi.Icon" name="check" size="{{ px16 }}" style="display: flex;"></x-import></span>
+            <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;">
+              <span style="font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;">{{ acceptedTitle }}</span>
+              <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">Added at 22:06.</span>
+            </span>
+            <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="sm" icon="undo" on-click="{{ undo }}" style="display: flex;">Undo</x-import>
+          </div>
+        </sc-if>
+        <div style="border-top: 1px solid var(--hairline);">
+          <button type="button" aria-expanded="{{ traceOpenAttr }}" aria-controls="trace-list" onClick="{{ toggleTrace }}" style="width: 100%; box-sizing: border-box; min-height: 44px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 8px; background: transparent; border: 0; border-radius: 0 0 var(--radius-sm) var(--radius-sm); color: var(--ink-2); font: inherit; font-size: 13px; line-height: 1.45; text-align: left; cursor: pointer;">
+            <span style="flex: none; margin-top: 2px; display: inline-flex; color: var(--ink-3); transform: rotate({{ chevronTurn }}); transition: transform var(--spring-snappy-dur) var(--spring-snappy);"><x-import component-from-global-scope="Alibi.Icon" name="chevron-right" size="{{ px16 }}" style="display: flex;"></x-import></span>
+            <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px;">
+              <span style="min-width: 0; font-variant-numeric: tabular-nums;">{{ traceSummary }}</span>
+              <span style="color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap;">{{ traceTotal }}</span>
+            </span>
+          </button>
+          <sc-if value="{{ traceOpen }}" hint-placeholder-val="{{ true }}">
+            <div id="trace-list" style="box-sizing: border-box; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; animation: nx-swap var(--dur-medium) var(--ease-out) both;">
+              <ol aria-label="Each step the planner took" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column;">
+                <sc-for list="{{ trace }}" as="s" hint-placeholder-count="4">
+                  <li style="display: grid; grid-template-columns: 24px minmax(0, 1fr) 56px; align-items: baseline; gap: 4px 12px; padding: 8px 0; border-top: {{ s.rule }}; animation: nx-in var(--dur-medium) var(--ease-out) both; animation-delay: {{ s.delay }};">
+                    <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ s.n }}</span>
+                    <span style="min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+                      <span style="font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 500; color: var(--ink); overflow-wrap: anywhere;">{{ s.call }}</span>
+                      <sc-if value="{{ s.hasResult }}" hint-placeholder-val="{{ true }}">
+                        <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums;">{{ s.result }}</span>
+                      </sc-if>
+                    </span>
+                    <span style="text-align: right; font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap;">{{ s.ms }}</span>
+                  </li>
+                </sc-for>
+              </ol>
+              <p style="margin: 0; padding-top: 12px; border-top: 1px solid var(--hairline); font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums; text-wrap: pretty;">{{ traceFoot }}</p>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDismissed }}" hint-placeholder-val="{{ false }}">
+      <div role="status" aria-live="polite" style="box-sizing: border-box; padding: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; background: var(--surface-2); border-radius: var(--radius-sm); font-size: 13px; line-height: 1.45; color: var(--ink-2); animation: nx-swap var(--dur-medium) var(--ease-out) both;">
+        <span style="flex: 1 1 auto;">Not added. Tomorrow stays as planned.</span>
+        <x-import component-from-global-scope="Alibi.Button" variant="quiet" size="sm" on-click="{{ showAgain }}" style="display: flex;">Show it again</x-import>
+      </div>
+    </sc-if>
+  </article>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["night","accepted","morning","rules"],"default":"night","section":"Preview"},"$preview":{"width":976,"height":992}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const v0 = props.state || 'night';
+    this.state = { view: null, traceOpen: v0 === 'night' || v0 === 'rules', toast: null, k: 0 };
+    this.shown = null;
+    this.raf = 0;
+    this.toastTimer = 0;
+  }
+  componentDidMount() { this.count(true); }
+  componentWillUnmount() { this.stop(); clearTimeout(this.toastTimer); }
+  componentDidUpdate(prev) {
+    if (prev.state !== this.props.state) {
+      const v = this.props.state || 'night';
+      clearTimeout(this.toastTimer);
+      this.setState({ view: null, toast: null, traceOpen: v === 'night' || v === 'rules' });
+    }
+  }
+  stop() {
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.raf = 0;
+  }
+  view() { return this.state.view || this.props.state || 'night'; }
+  reduced() { return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  // cubic-bezier(0.23, 1, 0.32, 1): the system's ease-out, so the count and the meter share one curve.
+  ease(x) {
+    const cx = 0.69, bx = 3 * (0.32 - 0.23) - cx, ax = 1 - cx - bx;
+    const cy = 3, by = 3 * (1 - 1) - cy, ay = 1 - cy - by;
+    let t = x;
+    for (let i = 0; i < 8; i++) {
+      const xt = ((ax * t + bx) * t + cx) * t - x;
+      const d = (3 * ax * t + 2 * bx) * t + cx;
+      if (Math.abs(xt) < 1e-5 || Math.abs(d) < 1e-6) break;
+      t -= xt / d;
+    }
+    t = Math.min(1, Math.max(0, t));
+    return ((ay * t + by) * t + cy) * t;
+  }
+  // V(now) per habit. No session lands between the 22:00 review and the 07:30 brief, so every state counts to these.
+  targets() { return { Drawing: 44, Building: 134, Math: 125, 'C++': 84, Internships: 12, Running: 2 }; }
+  // Number and meter on one clock: 900 ms from +420 ms on first paint.
+  count(first) {
+    this.stop();
+    const to = this.targets();
+    const from = this.shown || Object.keys(to).reduce((o, k) => { o[k] = 0; return o; }, {});
+    this.anim = { from, to };
+    if (this.reduced()) { this.shown = to; this.setState({ k: 1 }); return; }
+    this.setState({ k: 0 });
+    const start = performance.now() + (first ? 420 : 0);
+    const step = (now) => {
+      const x = Math.min(1, Math.max(0, (now - start) / 900));
+      this.setState({ k: this.ease(x) });
+      if (x < 1) this.raf = requestAnimationFrame(step);
+      else { this.shown = to; this.raf = 0; }
+    };
+    this.raf = requestAnimationFrame(step);
+  }
+  // Accept and Undo stand for POST /api/digests/{slot}/accept and /undo, and their toasts show the server's reply.
+  // Not now never reaches the server: it only hides the proposal on this page.
+  go(v, toast) {
+    clearTimeout(this.toastTimer);
+    this.setState({ view: v, toast: toast || false, traceOpen: v === 'night' || v === 'rules' });
+    if (toast) this.toastTimer = setTimeout(() => this.setState({ toast: false }), 6000);
+  }
+  renderVals() {
+    const v = this.view();
+    const theme = 'light';
+    const morning = v === 'morning';
+    const k = this.state.k;
+    const a = this.anim || { from: this.targets(), to: this.targets() };
+    const cur = (key) => a.from[key] + (a.to[key] - a.from[key]) * k;
+
+    const ST = {
+      on: { word: 'On track', bg: 'var(--surface-2)', ink: 'var(--ink-2)' },
+      risk: { word: 'At risk', bg: 'var(--partial-wash)', ink: 'var(--partial-ink)' },
+      off: { word: 'Off track', bg: 'var(--warn-wash)', ink: 'var(--warn-ink)' },
+      stale: { word: 'Can’t see', bg: 'var(--surface-2)', ink: 'var(--ink-2)' },
+    };
+    // Week Mon 28 Sep to Sun 4 Oct. Night = Thu 22:00 (56% gone, 3.08 days left); morning = Fri 07:30 (62% gone,
+    // 2.69 days left). Each habit line is report.pace3's `reason` for these numbers, word for word (need per day rounds to
+    // nearest; Internships is paced by its Mon/Wed/Fri blocks, the rest in a straight line). Drawing passes 0.3 T behind
+    // overnight, so it is off track by 07:30. Sleep is board only; the milestone line comes from `due` (done_at is manual).
+    const rows = morning ? [
+      ['Drawing', 'camera', 'off', '48 min behind. 39 a day until Sunday.', 150, 92, 'min'],
+      ['Building', 'laptop', 'on', '1 day of buffer.', 180, 111, 'min'],
+      ['Math', 'camera', 'on', 'On pace.', 200, 123, 'min'],
+      ['C++', 'laptop', 'on', 'On pace.', 150, 92, 'min'],
+      ['Internships', 'laptop', 'off', '78 min behind. Only 45 min planned.', 135, 90, 'min'],
+      ['Running', 'run', 'on', '0.5 days of buffer.', 3, 1.85, 'runs'],
+      ['Sleep', 'moon', 'on', '7h 05m last night. 4 of 5 nights over 7 h.', 0, 0, 'sleep'],
+      ['Claw challenge', 'flag', 'risk', 'Due today.', 0, 0, 'mile'],
+    ] : [
+      ['Drawing', 'camera', 'risk', '40 min behind. 34 a day until Sunday.', 150, 84, 'min'],
+      ['Building', 'laptop', 'on', '1.5 days of buffer.', 180, 101, 'min'],
+      ['Math', 'camera', 'on', '0.5 days of buffer.', 200, 112, 'min'],
+      ['C++', 'laptop', 'on', 'On pace.', 150, 84, 'min'],
+      ['Internships', 'laptop', 'off', '78 min behind. Only 45 min planned.', 135, 90, 'min'],
+      ['Running', 'run', 'on', '1 day of buffer.', 3, 1.68, 'runs'],
+      ['Sleep', 'moon', 'stale', 'No sleep data until your iPhone syncs.', 0, 0, 'sleep'],
+      ['Claw challenge', 'flag', 'risk', 'Due tomorrow.', 0, 0, 'mile'],
+    ];
+    const health = rows.map((r, i) => {
+      const [name, icon, st, main, T, P, unit] = r;
+      const s = ST[st];
+      const hasMeter = unit === 'min' || unit === 'runs';
+      const now = hasMeter ? cur(name) : 0;
+      const fin = hasMeter ? a.to[name] : 0;
+      let value = '';
+      if (unit === 'min') value = Math.round(now) + ' of ' + T;
+      if (unit === 'runs') value = Math.round(now) + ' of ' + T + ' runs';
+      if (unit === 'sleep') value = st === 'stale' ? 'Synced 15:40' : '7h 05m';
+      if (unit === 'mile') value = 'Fri 2 Oct';
+      return {
+        name, icon, main, value, word: s.word, pillBg: s.bg, wordInk: s.ink,
+        mainInk: st === 'on' ? 'var(--ink-2)' : 'var(--ink)',
+        isOn: st === 'on', isRisk: st === 'risk', isOff: st === 'off', isStale: st === 'stale',
+        hasMeter,
+        fill: hasMeter ? (now / T).toFixed(4) : 0,
+        tickAt: hasMeter ? (P / T * 100).toFixed(1) + '%' : '0%',
+        meterAria: hasMeter ? (unit === 'runs' ? fin + ' of ' + T + ' runs; pace says ' + P.toFixed(1) + ' by now' : 'Seen ' + fin + ' of ' + T + ' min; pace says ' + P + ' by now') : '',
+        delay: (Math.min(i, 5) * 40) + 'ms',
+      };
+    });
+
+    // The night digest's done / partial / missed lists (sessions and planned blocks; Strava runs are not sessions).
+    const dayRows = [
+      ['10:00', 'done', 'Building', ', 44 of 45 min seen'],
+      ['13:00', 'done', 'C++', ', 29 of 30 min seen'],
+      ['16:00', 'partial', 'Math', ', 29 of 50 min seen'],
+      ['19:00', 'missed', 'Drawing', ', planned for 25 min. Nothing claimed.'],
+    ].map((r, i) => ({ time: r[0], verdict: r[1] === 'missed' ? 'done' : r[1], isVerdict: r[1] !== 'missed', isMissed: r[1] === 'missed', habit: r[2], meta: r[3], delay: (40 * (i + 1)) + 'ms' }));
+
+    // The morning digest at 07:30: json.first_gap, then json.blocks after the drawing block, then json.sleep_h.
+    const morningRows = [
+      ['07:55', 'clock', 'First free gap', ', until 10:00'],
+      ['10:00', 'laptop', 'Building', ', 45 min planned'],
+      ['16:00', 'camera', 'Math', ', 50 min planned'],
+      ['20:30', 'laptop', 'Internships', ', 45 min planned'],
+      ['Night', 'moon', 'Slept 7h 05m', ', from iPhone Health'],
+    ].map((r, i) => ({ time: r[0], icon: r[1], habit: r[2], meta: r[3], delay: (40 * (i + 1)) + 'ms' }));
+
+    // GET /api/digests/latest?kind=night, as stored: {via, turns, total_ms, proposal, trace[{tool, args, ms, result}]}.
+    // Tool ms are in-process reads; total_ms is the whole loop, model calls included.
+    const why = 'Furthest behind, and free until Building at 10:00.';
+    const NIGHT = {
+      spark: {
+        via: 'llm:spark', turns: 4, total_ms: 3100,
+        proposal: { habit: 'drawing', label: 'Drawing', day: '2026-10-02', at: '07:30', minutes: 25, why },
+        trace: [
+          { tool: 'week_status', args: {}, ms: 1, result: 'drawing −2 d behind most' },
+          { tool: 'plan', args: { day: '2026-10-02' }, ms: 1, result: '3 blocks tomorrow' },
+          { tool: 'free_gaps', args: { day: '2026-10-02', min_minutes: 25 }, ms: 2, result: '07:00–10:00, 10:45–16:00, 16:50–20:30, 21:15–22:00' },
+          { tool: 'propose', args: { habit: 'drawing', day: '2026-10-02', at: '07:30', minutes: 25, why }, ms: 1, result: 'valid' },
+        ],
+      },
+      // The fallback row: no model turns, one step. It carries no reason for the fallback, so the card gives none.
+      rules: {
+        via: 'rules', turns: 0, total_ms: 40,
+        proposal: { habit: 'drawing', label: 'Drawing', day: '2026-10-02', at: '07:00', minutes: 25, why: '40 min behind. 34 a day until Sunday.' },
+        trace: [{ tool: 'rules picker', args: {}, ms: 3, result: 'drawing tomorrow 07:00, 25 min' }],
+      },
+    };
+    const VIA = { rules: 'via rules', 'llm:spark': 'via Spark', 'llm:build': 'via NVIDIA Build' };
+    const WHERE = { 'llm:spark': 'on your Spark', 'llm:build': 'on NVIDIA Build' };
+    const STEP = { week_status: () => 'Checked week', plan: () => 'plan tomorrow', free_gaps: () => 'free gaps', history: () => 'history', propose: (s) => 'proposed ' + s.args.at };
+    // Long string args (the model's why) are cut at a word; the full why is on the card above.
+    const short = (x) => {
+      if (x.length <= 20) return x;
+      const cut = x.slice(0, 20), sp = cut.lastIndexOf(' ');
+      return (sp > 0 ? cut.slice(0, sp) : cut).replace(/[ ,.;]+$/, '') + '…';
+    };
+    const arg = (x) => (typeof x === 'string' ? '"' + short(x) + '"' : String(x));
+    const call = (s) => (/^[a-z_]+$/.test(s.tool) ? s.tool + '(' + Object.keys(s.args).map((n) => n + '=' + arg(s.args[n])).join(', ') + ')' : s.tool);
+    const ms = (n) => (n > 0 ? n + ' ms' : '<1 ms');
+    const total = (n) => (n < 1000 ? n + ' ms' : (n / 1000).toFixed(1) + ' s');
+    const end = (at, m) => { const t = +at.slice(0, 2) * 60 + +at.slice(3) + m; return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+
+    const base = this.props.state === 'rules' ? 'rules' : 'night';
+    const row = NIGHT[base === 'rules' ? 'rules' : 'spark'];
+    const P = row.proposal;
+    const fromRules = row.via === 'rules';
+    const accepted = v === 'accepted';
+    const trace = row.trace.map((s, i) => ({
+      n: String(i + 1), call: call(s), result: s.result || '', hasResult: !!s.result, ms: ms(s.ms),
+      rule: i === 0 ? '0' : '1px solid var(--hairline)', delay: (40 * i) + 'ms',
+    }));
+    const turns = row.turns === 0 ? 'No model turns' : row.turns + ' model turn' + (row.turns === 1 ? '' : 's');
+    const tap = accepted ? '' : ' Nothing changes until you tap.';
+    const toast = this.state.toast === null ? (accepted ? 'accept' : null) : (this.state.toast || null);
+    const back = () => this.go(base, 'undo');
+
+    const isNightish = !morning;
+    return {
+      theme, px8: 8, px16: 16, px64: 64,
+      // The rules state is the Spark down, and NemoClaw runs on the Spark: Ask isn't offered, never shown disabled.
+      showAsk: !fromRules,
+      streak: 6, freezes: 1,
+      nowMeta: morning ? 'Fri 2 Oct · 07:30' : (accepted ? 'Thu 1 Oct · 22:06' : 'Thu 1 Oct · 22:04'),
+      nextUp: morning ? 'Now: Drawing, 07:30 to 07:55, from your plan' : (accepted ? 'Next up: ' + P.label + ' at ' + P.at + ' tomorrow, from your plan' : 'Next up: Building at 10:00 tomorrow, from your plan'),
+      habitChips: ['Drawing 25 min', 'Building 45 min', 'Math 50 min'],
+      todayMeta: morning ? 'Morning brief at 07:30' : 'Night review at 22:00',
+      rollup: '4 of 6 habits on track',
+      rollupSub: morning ? 'Internships is off track: 78 min behind. Drawing is off track: 48 min behind.' : 'Internships is off track: 78 min behind. Drawing is at risk: 40 min behind.',
+      weekLeft: morning ? 'Week ends Sunday · 3 days left, counting today' : 'Week ends Sunday · 3 days left after tonight',
+      health,
+      digestTitle: morning ? 'Morning brief' : 'Night review',
+      digestWhen: morning ? '07:30 · Fri 2 Oct' : '22:00 · Thu 1 Oct',
+      viaTag: VIA[morning ? 'rules' : row.via],
+      isNightish, isMorning: morning,
+      dayRows, morningRows,
+      showDecision: v === 'night' || v === 'rules' || accepted,
+      decisionDelay: this.state.view ? '0ms' : '1260ms',
+      showProposal: v === 'night' || v === 'rules',
+      isAccepted: accepted, isDismissed: v === 'dismissed',
+      proposalQ: 'Move ' + P.habit + ' to tomorrow ' + P.at + ', ' + P.minutes + ' min?',
+      proposalMeta: 'Fri 2 Oct, ' + P.at + ' to ' + end(P.at, P.minutes) + ' · ' + P.why,
+      acceptLabel: 'Move ' + P.habit + ' to ' + P.at,
+      // The accepted line is the accept reply as sent; the meta under it is accepted_at.
+      acceptedTitle: 'Done. ' + P.label + ' tomorrow ' + P.at + ', ' + P.minutes + " min. It's on the plan.",
+      acceptReply: 'Done. ' + P.label + ' tomorrow ' + P.at + ', ' + P.minutes + " min. It's on the plan.",
+      undoReply: 'Removed ' + P.habit + ' from tomorrow ' + P.at + '.',
+      accept: () => this.go('accepted', 'accept'),
+      notNow: () => this.go('dismissed'),
+      showAgain: () => this.go(base),
+      undo: back,
+      traceOpen: this.state.traceOpen, traceOpenAttr: this.state.traceOpen ? 'true' : 'false',
+      chevronTurn: this.state.traceOpen ? '90deg' : '0deg',
+      toggleTrace: () => this.setState((s) => ({ traceOpen: !s.traceOpen })),
+      traceSummary: fromRules ? 'Rules picked ' + P.at : row.trace.map((s) => (STEP[s.tool] ? STEP[s.tool](s) : s.tool)).join(' → '),
+      traceTotal: turns + ' · ' + total(row.total_ms),
+      trace,
+      traceFoot: fromRules
+        ? 'The rules on this Mac picked the slot. Same card, same accept.' + tap
+        : row.turns + ' model turns ' + WHERE[row.via] + ', ' + total(row.total_ms) + ' in all. Alibi checked the slot itself.' + tap,
+      toastAccept: toast === 'accept', toastUndo: toast === 'undo',
+      toastActions: [{ label: 'Undo', variant: 'secondary', icon: 'undo', onClick: back }],
+      dismissToast: () => this.setState({ toast: false }),
+      // signals.egress() copy: the camera row's why, then summary.text (Spark down) or the summary row's why (Spark up).
+      footNote: fromRules
+        ? 'Frames never leave the Mac. Apple Vision checks them on this Mac. Summaries stay on this Mac.'
+        : 'Frames never leave the Mac. Apple Vision checks them on this Mac. Habit names and minutes go to your Spark over Tailscale.',
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,154 +1,260 @@
 {
   "v": 3,
-  "createdOnFiles": {
-    "v": 1,
-    "at": "2026-10-01T18:06:40Z"
-  },
-  "title": "Alibi Screens",
-  "launch": {
-    "view": "canvas"
-  },
-  "pages": [],
+  "attachments": {},
   "boards": {
-    "Main.dc.html": {
-      "x": 0,
-      "y": 300,
-      "w": 1280,
-      "h": 800,
-      "title": "Alibi",
-      "is_interactive": true
-    },
     "Dashboard.dc.html": {
-      "x": 0,
-      "y": 1520,
-      "w": 1440,
+      "expand": "fill",
       "h": 2905,
+      "is_interactive": true,
       "title": "Alibi dashboard",
+      "w": 1440,
+      "x": 0,
+      "y": 1520
+    },
+    "Island-Break.dc.html": {
+      "h": 300,
+      "title": "Island break",
+      "w": 800,
+      "x": 5760,
+      "y": 4845
+    },
+    "Island-Expanded.dc.html": {
+      "h": 560,
+      "title": "Island expanded",
+      "w": 800,
+      "x": 3120,
+      "y": 4845
+    },
+    "Island-Idle.dc.html": {
+      "h": 300,
+      "title": "Island idle",
+      "w": 800,
+      "x": 1360,
+      "y": 4845
+    },
+    "Island-Live.dc.html": {
+      "h": 300,
+      "title": "Island live wings",
+      "w": 800,
+      "x": 2240,
+      "y": 4845
+    },
+    "Island-Nudge.dc.html": {
+      "h": 420,
+      "title": "Island nudge",
+      "w": 800,
+      "x": 4000,
+      "y": 4845
+    },
+    "Island-Proto.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "Island prototype",
+      "w": 1280,
+      "x": 0,
+      "y": 4845
+    },
+    "Island-Verdict.dc.html": {
+      "h": 460,
+      "title": "Island verdict",
+      "w": 800,
+      "x": 4880,
+      "y": 4845
+    },
+    "Main.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "Alibi",
+      "w": 1280,
+      "x": 0,
+      "y": 300
+    },
+    "Phone-DynamicIsland.dc.html": {
+      "h": 560,
+      "title": "Dynamic Island activity",
+      "w": 900,
+      "x": 2820,
+      "y": 6065
+    },
+    "Phone-Health.dc.html": {
+      "h": 844,
+      "title": "iPhone Health sync",
+      "w": 390,
+      "x": 1880,
+      "y": 6065
+    },
+    "Phone-LockScreen.dc.html": {
+      "h": 844,
+      "title": "iPhone Lock Screen activity",
+      "w": 390,
+      "x": 2350,
+      "y": 6065
+    },
+    "Phone-Today-Idle.dc.html": {
+      "h": 844,
+      "title": "iPhone Today, idle",
+      "w": 390,
+      "x": 470,
+      "y": 6065
+    },
+    "Phone-Today-Live.dc.html": {
+      "h": 844,
+      "title": "iPhone Today, live",
+      "w": 390,
+      "x": 0,
+      "y": 6065
+    },
+    "Phone-Verdict.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "iPhone verdict, done",
+      "w": 390,
+      "x": 940,
+      "y": 6065
+    },
+    "Phone-Week.dc.html": {
+      "h": 844,
+      "title": "iPhone Week",
+      "w": 390,
+      "x": 1410,
+      "y": 6065
+    },
+    "Pinch-Moods.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "Pinch moods and clips",
+      "w": 1440,
+      "x": 0,
+      "y": 7329
+    },
+    "Pinch-Sizes.dc.html": {
+      "h": 560,
+      "title": "Pinch sizes",
+      "w": 1440,
+      "x": 1520,
+      "y": 7329
+    },
+    "Story.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "title": "Demo story",
+      "w": 1600,
+      "x": 0,
+      "y": 8649
+    },
+    "Next-Today.dc.html": {
+      "x": 0,
+      "y": 10069,
+      "w": 1440,
+      "h": 2062,
+      "title": "Today, next phase",
       "is_interactive": true,
       "expand": "fill"
     },
-    "Island-Proto.dc.html": {
-      "x": 0,
-      "y": 4845,
+    "Next-Digest-Light.dc.html": {
+      "x": 1520,
+      "y": 10069,
+      "w": 976,
+      "h": 992,
+      "title": "Night review, light",
+      "is_interactive": true
+    },
+    "Next-Gantt.dc.html": {
+      "x": 2576,
+      "y": 10069,
+      "w": 1440,
+      "h": 936,
+      "title": "Week plan, next phase",
+      "is_interactive": true
+    },
+    "Next-Signals-Egress.dc.html": {
+      "x": 4096,
+      "y": 10069,
       "w": 1280,
-      "h": 800,
-      "title": "Island prototype",
-      "is_interactive": true
+      "h": 900,
+      "title": "Signals egress"
     },
-    "Island-Idle.dc.html": {
-      "x": 1360,
-      "y": 4845,
-      "w": 800,
-      "h": 300,
-      "title": "Island idle"
-    },
-    "Island-Live.dc.html": {
-      "x": 2240,
-      "y": 4845,
-      "w": 800,
-      "h": 300,
-      "title": "Island live wings"
-    },
-    "Island-Expanded.dc.html": {
-      "x": 3120,
-      "y": 4845,
-      "w": 800,
-      "h": 560,
-      "title": "Island expanded"
-    },
-    "Island-Nudge.dc.html": {
-      "x": 4000,
-      "y": 4845,
-      "w": 800,
-      "h": 420,
-      "title": "Island nudge"
-    },
-    "Island-Verdict.dc.html": {
-      "x": 4880,
-      "y": 4845,
-      "w": 800,
-      "h": 460,
-      "title": "Island verdict"
-    },
-    "Island-Break.dc.html": {
-      "x": 5760,
-      "y": 4845,
-      "w": 800,
-      "h": 300,
-      "title": "Island break"
-    },
-    "Phone-Today-Live.dc.html": {
-      "x": 0,
-      "y": 6065,
-      "w": 390,
-      "h": 844,
-      "title": "iPhone Today, live"
-    },
-    "Phone-Today-Idle.dc.html": {
-      "x": 470,
-      "y": 6065,
-      "w": 390,
-      "h": 844,
-      "title": "iPhone Today, idle"
-    },
-    "Phone-Verdict.dc.html": {
-      "x": 940,
-      "y": 6065,
-      "w": 390,
-      "h": 844,
-      "title": "iPhone verdict, done",
-      "is_interactive": true
-    },
-    "Phone-Week.dc.html": {
-      "x": 1410,
-      "y": 6065,
-      "w": 390,
-      "h": 844,
-      "title": "iPhone Week"
-    },
-    "Phone-Health.dc.html": {
-      "x": 1880,
-      "y": 6065,
-      "w": 390,
-      "h": 844,
-      "title": "iPhone Health sync"
-    },
-    "Phone-LockScreen.dc.html": {
-      "x": 2350,
-      "y": 6065,
-      "w": 390,
-      "h": 844,
-      "title": "iPhone Lock Screen activity"
-    },
-    "Phone-DynamicIsland.dc.html": {
-      "x": 2820,
-      "y": 6065,
-      "w": 900,
-      "h": 560,
-      "title": "Dynamic Island activity"
-    },
-    "Pinch-Moods.dc.html": {
-      "x": 0,
-      "y": 7329,
+    "Next-Ask.dc.html": {
+      "x": 5456,
+      "y": 10069,
       "w": 1440,
       "h": 900,
-      "title": "Pinch moods and clips",
+      "title": "Ask drawer",
       "is_interactive": true
-    },
-    "Pinch-Sizes.dc.html": {
-      "x": 1520,
-      "y": 7329,
-      "w": 1440,
-      "h": 560,
-      "title": "Pinch sizes"
-    },
-    "Story.dc.html": {
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-01T18:06:40Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/artifact/VWhz2UkEU9ir1RMNZwAyYD",
+      "copiedAt": "2026-10-01T18:06:40Z",
+      "namespace": "alibi",
+      "title": "Alibi",
+      "version": "1790877954-1c1a"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "row-dash": {
+      "kind": "title1",
+      "maxW": 1440,
+      "text": "Mac dashboard",
+      "w": 240,
       "x": 0,
-      "y": 8649,
-      "w": 1600,
-      "h": 1000,
-      "title": "Demo story",
-      "is_interactive": true
+      "y": 1260
+    },
+    "row-entry": {
+      "kind": "title1",
+      "maxW": 1280,
+      "text": "Alibi",
+      "w": 240,
+      "x": 0,
+      "y": 40
+    },
+    "row-island": {
+      "kind": "title1",
+      "maxW": 6560,
+      "text": "Notch island",
+      "w": 240,
+      "x": 0,
+      "y": 4585
+    },
+    "row-phone": {
+      "kind": "title1",
+      "maxW": 3720,
+      "text": "iPhone and Live Activity",
+      "w": 240,
+      "x": 0,
+      "y": 5805
+    },
+    "row-pinch": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Pinch",
+      "w": 240,
+      "x": 0,
+      "y": 7069
+    },
+    "row-story": {
+      "kind": "title1",
+      "maxW": 1600,
+      "text": "Demo story",
+      "w": 240,
+      "x": 0,
+      "y": 8389
+    },
+    "row-next": {
+      "x": 0,
+      "y": 9809,
+      "text": "Next phase, after the recording (docs/design/NEXT_UI.md)",
+      "kind": "title1",
+      "maxW": 6896,
+      "w": 240
     }
   },
   "order": [
@@ -170,59 +276,13 @@
     "Phone-DynamicIsland.dc.html",
     "Pinch-Moods.dc.html",
     "Pinch-Sizes.dc.html",
-    "Story.dc.html"
+    "Story.dc.html",
+    "Next-Today.dc.html",
+    "Next-Digest-Light.dc.html",
+    "Next-Gantt.dc.html",
+    "Next-Signals-Egress.dc.html",
+    "Next-Ask.dc.html"
   ],
-  "notes": {
-    "row-entry": {
-      "x": 0,
-      "y": 40,
-      "text": "Alibi",
-      "kind": "title1",
-      "maxW": 1280
-    },
-    "row-dash": {
-      "x": 0,
-      "y": 1260,
-      "text": "Mac dashboard",
-      "kind": "title1",
-      "maxW": 1440
-    },
-    "row-island": {
-      "x": 0,
-      "y": 4585,
-      "text": "Notch island",
-      "kind": "title1",
-      "maxW": 6560
-    },
-    "row-phone": {
-      "x": 0,
-      "y": 5805,
-      "text": "iPhone and Live Activity",
-      "kind": "title1",
-      "maxW": 3720
-    },
-    "row-pinch": {
-      "x": 0,
-      "y": 7069,
-      "text": "Pinch",
-      "kind": "title1",
-      "maxW": 2960
-    },
-    "row-story": {
-      "x": 0,
-      "y": 8389,
-      "text": "Demo story",
-      "kind": "title1",
-      "maxW": 1600
-    }
-  },
-  "designSystems": [
-    {
-      "title": "Alibi",
-      "namespace": "alibi",
-      "artifact": "https://claude.ai/artifact/VWhz2UkEU9ir1RMNZwAyYD",
-      "version": "1790877954-1c1a",
-      "copiedAt": "2026-10-01T18:06:40Z"
-    }
-  ]
+  "pages": [],
+  "title": "Alibi Screens"
 }

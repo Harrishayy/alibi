@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ask drawer</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/alibi/components/bundle.css">
+<script src="ds/alibi/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:var(--accent-ink)}a:hover{color:var(--ink)}
+@keyframes ax-drawer{from{transform:translateX(100%)}to{transform:none}}
+@keyframes ax-scrim{from{opacity:0}to{opacity:1}}
+@keyframes ax-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes ax-label{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:none}}
+</style>
+</helmet>
+<div data-theme="dark" style="position: relative; width: 1440px; height: 900px; box-sizing: border-box; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: var(--body-lh); letter-spacing: var(--body-ls); -webkit-font-smoothing: antialiased;">
+
+  <div aria-hidden="true" style="max-width: 880px; margin: 0 auto; padding: 0 48px; display: flex; flex-direction: column;">
+    <div style="min-height: 64px; box-sizing: border-box; padding: 12px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span style="font-size: 13px; line-height: 1; font-weight: 800; letter-spacing: 0.13em;">ALIBI</span>
+        <span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; box-sizing: border-box; padding: 0 12px; border-radius: var(--radius-pill); background: var(--surface-1); border: 1px solid var(--hairline); font-size: 13px; line-height: 1; font-weight: 600; color: var(--ink-2);">
+          <x-import component-from-global-scope="Alibi.StatusDot" label="absent" size="{{ px8 }}" style="display: flex;"></x-import>
+          <span>Camera off</span>
+        </span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="sm" icon="sparkle" style="display: flex;">Ask</x-import>
+        <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="sm" icon="settings" style="display: flex;">Setup</x-import>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 24px; padding: 24px 0 48px;">
+      <x-import component-from-global-scope="Alibi.Pinch" mood="idle" size="{{ px64 }}" still="{{ yes }}" style="display: flex; width: 64px; height: 64px; flex: none;"></x-import>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 32px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;">Claimed 7h 25m this week. Seen 6h 39m.</span>
+        <span style="font-size: 13px; line-height: 1.45; color: var(--ink-2);">90% of claimed time seen. Twelve sessions, none slacked.</span>
+      </div>
+    </div>
+    <span style="font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em; padding-bottom: 16px;">Today</span>
+    <div style="box-sizing: border-box; padding: 24px; display: flex; flex-direction: column; gap: 16px; background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--radius-md);">
+      <span style="font-size: 17px; line-height: 1.35; font-weight: 600;">4 of 6 habits on track</span>
+      <sc-for list="{{ ghostRows }}" as="g" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 16px; height: 32px; border-top: 1px solid var(--hairline); padding-top: 8px;">
+          <span style="flex: 0 0 160px;">{{ g.name }}</span>
+          <span style="flex: 1 1 auto; color: var(--ink-2);">{{ g.main }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: var(--scrim); animation: ax-scrim var(--dur-medium) var(--ease-out) both;"></div>
+
+  <aside role="dialog" aria-modal="true" aria-labelledby="ask-h" style="position: absolute; top: 0; right: 0; bottom: 0; width: 480px; box-sizing: border-box; padding: 24px; display: flex; flex-direction: column; gap: 24px; overflow: hidden; background: var(--surface-1); border-left: 1px solid var(--hairline); box-shadow: var(--shadow-float); animation: ax-drawer var(--dur-drawer) var(--ease-drawer) both;">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <h2 id="ask-h" style="margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em;">Ask</h2>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2);">Numbers come from Alibi. Answers come from NemoClaw on your Spark.</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <x-import component-from-global-scope="Alibi.Kbd" style="display: flex;">esc</x-import>
+        <x-import component-from-global-scope="Alibi.IconButton" icon="x" sc-camel-aria-label="Close Ask" size="sm" style="display: flex;"></x-import>
+      </div>
+    </div>
+
+    <form role="search" aria-label="Ask about your habits" onSubmit="{{ submit }}" style="margin: 0; box-sizing: border-box; min-height: 56px; padding: 8px; display: flex; align-items: center; gap: 8px; background: var(--surface-2); border: 1px solid var(--hairline-strong); border-radius: var(--radius-lg); opacity: {{ formOpacity }};">
+      <button type="button" aria-label="Dictate a question" aria-pressed="false" disabled="{{ off }}" style="flex: none; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; background: var(--surface-3); color: var(--ink); cursor: pointer;">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0"></path><path d="M12 17.5V21"></path></svg>
+      </button>
+      <label for="ask-q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Your question</label>
+      <input id="ask-q" type="text" value="{{ q }}" onChange="{{ onQ }}" disabled="{{ off }}" placeholder="Ask about a habit" style="flex: 1 1 auto; min-width: 0; height: 40px; padding: 0 8px; border: 0; outline: none; background: transparent; color: var(--ink); font: inherit; font-size: 17px; line-height: 1.35;">
+      <button type="submit" aria-label="Ask" disabled="{{ off }}" style="flex: none; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; background: var(--accent); color: var(--on-accent); cursor: pointer;">
+        <x-import component-from-global-scope="Alibi.Icon" name="arrow-up" size="{{ px20 }}" style="display: flex;"></x-import>
+      </button>
+    </form>
+
+    <sc-if value="{{ isOff }}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="box-sizing: border-box; padding: 24px; display: flex; flex-direction: column; gap: 16px; background: var(--surface-2); border-radius: var(--radius-md); animation: ax-in var(--dur-medium) var(--ease-out) both;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <x-import component-from-global-scope="Alibi.StatusDot" label="absent" size="{{ px12 }}" style="display: flex;"></x-import>
+          <h3 style="margin: 0; font-size: 17px; line-height: 1.35; font-weight: 600; letter-spacing: -0.01em;">NemoClaw isn't answering, so Ask is off.</h3>
+        </div>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums; text-wrap: pretty;">Last answer 21:58. Reviews and briefs don't need it, so they still arrive. Nothing you type here is queued for later.</p>
+        <div style="display: flex; gap: 8px;">
+          <x-import component-from-global-scope="Alibi.Button" variant="secondary" size="md" on-click="{{ retry }}" style="display: flex;">Check again</x-import>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isOn }}" hint-placeholder-val="{{ true }}">
+      <div role="status" aria-live="polite" style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 24px;">
+          <span aria-hidden="true" style="display: flex; gap: 4px;">
+            <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+              <span style="width: 16px; height: 4px; border-radius: 2px; background: {{ s.bg }}; transition: background-color var(--dur-medium) ease;"></span>
+            </sc-for>
+          </span>
+          <sc-if value="{{ slotA }}" hint-placeholder-val="{{ true }}">
+            <span style="font-size: 16px; line-height: 1.4; font-weight: 600; font-variant-numeric: tabular-nums; animation: ax-label var(--dur-medium) var(--ease-out) both;">{{ stageLabel }}</span>
+          </sc-if>
+          <sc-if value="{{ slotB }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 16px; line-height: 1.4; font-weight: 600; font-variant-numeric: tabular-nums; animation: ax-label var(--dur-medium) var(--ease-out) both;">{{ stageLabel }}</span>
+          </sc-if>
+        </div>
+        <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ stageMeta }}</span>
+      </div>
+
+      <sc-if value="{{ showFacts }}" hint-placeholder-val="{{ true }}">
+        <section aria-labelledby="facts-h" style="display: flex; flex-direction: column; gap: 8px; animation: ax-in var(--dur-medium) var(--ease-out) both;">
+          <h3 id="facts-h" style="margin: 0; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">From Alibi, not the model</h3>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column;">
+            <sc-for list="{{ facts }}" as="f" hint-placeholder-count="3">
+              <li style="display: flex; align-items: center; gap: 12px; min-height: 32px; font-size: 13px; line-height: 1.45; font-variant-numeric: tabular-nums; animation: ax-in var(--dur-medium) var(--ease-out) both; animation-delay: {{ f.delay }};">
+                <span style="display: inline-flex; color: var(--ink-3);"><x-import component-from-global-scope="Alibi.Icon" name="{{ f.icon }}" size="{{ px16 }}" style="display: flex;"></x-import></span>
+                <span><span style="font-weight: 600;">{{ f.k }}</span><span style="color: var(--ink-2);">{{ f.v }}</span></span>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ showAnswer }}" hint-placeholder-val="{{ true }}">
+        <section aria-label="Answer" style="display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--hairline); animation: ax-in var(--dur-medium) var(--ease-out) both;">
+          <p style="margin: 0; max-width: 62ch; font-size: 16px; line-height: var(--body-lh); font-weight: 400; text-wrap: pretty;">Keep most runs easy, at a pace you could talk through. After one easy run, add four 20-second strides. Add distance slowly, about 10% a week at most.</p>
+          <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">From NemoClaw on your Spark · 6.2 s</span>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ showLinks }}" hint-placeholder-val="{{ true }}">
+        <section aria-labelledby="links-h" style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+            <h3 id="links-h" style="margin: 0; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">Links</h3>
+            <span style="font-size: 12px; line-height: 1.3; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ linkCount }}</span>
+          </div>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px;">
+            <sc-for list="{{ links }}" as="l" hint-placeholder-count="3">
+              <li style="animation: ax-in var(--dur-medium) var(--ease-out) both;">
+                <a href="{{ l.url }}" style="box-sizing: border-box; min-height: 56px; padding: 8px 12px; display: flex; align-items: center; gap: 12px; background: var(--surface-2); border-radius: var(--radius-sm); color: var(--ink); text-decoration: none;">
+                  <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;">
+                    <span style="font-size: 16px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ l.title }}</span>
+                    <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3);">{{ l.site }}</span>
+                  </span>
+                  <span style="flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; line-height: 1.3; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);">
+                    <x-import component-from-global-scope="Alibi.Icon" name="check" size="{{ px16 }}" style="display: flex;"></x-import>
+                    <span>Opens</span>
+                  </span>
+                </a>
+              </li>
+            </sc-for>
+          </ul>
+          <span style="font-size: 13px; line-height: 1.45; color: var(--ink-3); font-variant-numeric: tabular-nums;">{{ linkFoot }}</span>
+        </section>
+      </sc-if>
+    </sc-if>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"stage":{"editor":"enum","options":["contacting","waiting","links","done","off"],"default":"links","section":"Preview"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { stage: null, flip: 0, q: 'Tips for running' };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.clear(); }
+  componentDidUpdate(prev) {
+    if (prev.stage !== this.props.stage) { this.clear(); this.setState((s) => ({ stage: null, flip: s.flip + 1 })); }
+  }
+  clear() { this.timers.forEach((t) => clearTimeout(t)); this.timers = []; }
+  // Fixture replay, like ?stage= in the shipped page: each step stands for one 500 ms poll of GET /api/ask/{id}.
+  replay() {
+    this.clear();
+    const seq = ['contacting', 'waiting', 'waiting', 'waiting', 'links', 'links', 'done'];
+    seq.forEach((st, i) => this.timers.push(setTimeout(() => this.setState((s) => (s.stage === st ? null : { stage: st, flip: s.flip + 1 })), i * 500)));
+  }
+  renderVals() {
+    const stage = this.state.stage || this.props.stage || 'links';
+    // The spec's real steps only (NEXT_PHASE F8): contacting spark → waiting for answer → checking links → done.
+    // Alibi's facts take ~40 ms, so they are never a stage; they are on screen from the first poll.
+    const order = ['contacting', 'waiting', 'links', 'done'];
+    const at = order.indexOf(stage);
+    const off = stage === 'off';
+    const labels = {
+      contacting: 'Contacting the Spark',
+      waiting: 'Waiting for NemoClaw',
+      links: 'Checking links, 3 of 5',
+      done: 'Done in 7.4 s',
+    };
+    const metas = {
+      contacting: 'Asked 22:06 · facts read from this week in 40 ms',
+      waiting: 'Facts sent with the question · 2.1 s so far',
+      links: 'Answer arrived after 6.2 s · checking each link from this Mac',
+      done: 'Asked 22:06 · links checked from this Mac, 2 s each at most',
+    };
+    const facts = [
+      ['run', 'Running: ', '2 of 3 runs this week, 1 to go by Sunday'],
+      ['clock', 'Last run: ', 'today 07:30, 5.2 km in 28 min · Strava'],
+      ['calendar', 'Next free 30 min: ', 'tomorrow 07:00, before drawing'],
+    ].map((f, i) => ({ icon: f[0], k: f[1], v: f[2], delay: (i * 40) + 'ms' }));
+    const all = [
+      ['Couch to 5K: week by week', 'nhs.uk', 'https://www.nhs.uk/live-well/exercise/running-and-aerobic-exercises/get-running-with-couch-to-5k/'],
+      ['What are strides, and how to add them', 'runnersworld.com', 'https://www.runnersworld.com/training/'],
+      ['Easy runs: why slow builds the base', 'strava.com', 'https://stories.strava.com/'],
+    ];
+    const links = all.map((l) => ({ title: l[0], site: l[1], url: l[2] }));
+    const steps = order.slice(0, 3).map((s, i) => ({ bg: (at > i || stage === 'done') ? 'var(--ink-2)' : (at === i ? 'var(--ink)' : 'var(--surface-3)') }));
+    const odd = this.state.flip % 2 === 1;
+    return {
+      px8: 8, px12: 12, px16: 16, px20: 20, px64: 64, yes: true,
+      ghostRows: [
+        { name: 'Drawing', main: '40 min behind. 34 a day until Sunday.' },
+        { name: 'Building', main: '1.5 days of buffer.' },
+        { name: 'Math', main: '0.5 days of buffer.' },
+        { name: 'C++', main: 'On pace.' },
+        { name: 'Internships', main: '78 min behind. Only 45 min planned.' },
+      ],
+      q: off ? '' : this.state.q, onQ: (e) => this.setState({ q: e && e.target ? e.target.value : this.state.q }),
+      submit: (e) => { if (e && e.preventDefault) e.preventDefault(); if (!off) this.replay(); },
+      retry: () => {},
+      off, isOff: off, isOn: !off, formOpacity: off ? '0.5' : '1',
+      steps, slotA: !odd, slotB: odd,
+      stageLabel: labels[stage] || '', stageMeta: metas[stage] || '',
+      showFacts: at >= 0, facts,
+      showAnswer: at >= 2,
+      showLinks: at >= 2, links,
+      linkCount: stage === 'done' ? '5 of 5 checked · 3 open' : '3 of 5 links checked',
+      linkFoot: stage === 'done' ? '2 didn’t open and were left out.' : 'Checking 2 more. Only links that open are shown.',
+    };
+  }
+}
+</script>
+</body>
+</html>

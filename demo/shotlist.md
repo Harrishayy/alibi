@@ -1,3 +1,5 @@
+> **Superseded by `docs/design/DEMO.md`** (the redesign's 90 s plan, driven by `docs/design/demo/stage.py`). Kept for reference.
+
 # Demo shot list (target 75 s)
 
 Record with `./alibi.sh demo` (live camera, 10 s samples, 2-minute session). Save clips to demo/clips/.
