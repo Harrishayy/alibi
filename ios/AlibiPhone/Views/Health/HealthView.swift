@@ -1,7 +1,6 @@
 // Health: what this phone sends to the Mac. The sync card (Mac, connection dot, "Synced 2 min ago", Sync now), the
 // last 7 days of daily totals, then the streams, Screen Time and Home settings that used to be the whole app.
-// Layout follows docs/design/canvas/project/Phone-Health.dc.html. After a manual sync works, Pinch (20pt, beside the
-// status) plays `connected` once.
+// After a manual sync works, Pinch (20pt, beside the status) plays `connected` once.
 import FamilyControls
 import SwiftUI
 

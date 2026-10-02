@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# DGX Spark side of Alibi (docs/SPARK.md, contract docs/NEMOCLAW.md): relay service + NemoClaw sandbox wiring.
+# DGX Spark side of Alibi (docs/SPARK.md, contract docs/AGENT.md): relay service + NemoClaw sandbox wiring.
 # Idempotent; rerun after any change to spark/ or the relay.
-#   bash scripts/spark_setup.sh [sandbox-name]       (default: alibi)
+#   MAC_HOST=<your-mac>.<tailnet>.ts.net bash scripts/spark_setup.sh [sandbox-name]       (default: alibi)
+# MAC_HOST is the Mac's tailnet IP or MagicDNS name; it is written to .env as MAC_URL once.
 # Needs: the sandbox onboarded, and ALIBI_AGENT_TOKEN in .env (the Mac's `nemoclaw_token` from its data/secrets.json,
 # handed over out of band). Secrets stay in .env (git-ignored) and are never printed.
 set -euo pipefail
@@ -14,7 +15,8 @@ dk() { if docker info >/dev/null 2>&1; then docker "$@"; else sg docker -c "dock
 [ -d .venv ] || { python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt; }
 touch .env && chmod 600 .env
 setkey() { grep -q "^$1=" .env || { echo "$1=$2" >> .env; echo "  .env: added $1"; }; }
-setkey MAC_URL "http://${MAC_HOST:-100.66.226.12}:8766"
+if [ -n "${MAC_HOST:-}" ]; then setkey MAC_URL "http://$MAC_HOST:8766"
+else grep -q '^MAC_URL=.\+' .env || echo "  !! MAC_URL missing: rerun with MAC_HOST=<your Mac's tailnet IP or name>, or set MAC_URL in .env"; fi
 setkey RELAY_PORT "$PORT"
 grep -q '^ALIBI_AGENT_TOKEN=.\+' .env || echo "  !! ALIBI_AGENT_TOKEN missing: copy nemoclaw_token from the Mac's data/secrets.json into this .env"
 
@@ -56,7 +58,7 @@ sed -e "s#{{RELAY_HOST}}#$GW#" -e "s#{{RELAY_PORT}}#$PORT#" spark/policy-alibi-r
 "$NC" "$SB" upload "$OUT/HEARTBEAT.md" /sandbox/.openclaw/workspace/HEARTBEAT.md
 "$NC" "$SB" exec -- mkdir -p /sandbox/.openclaw/workspace/memory
 
-# 4. brief jobs on OpenClaw cron (docs/NEMOCLAW.md §6), offset after Alibi's own slots; declaration keys keep reruns idempotent
+# 4. brief jobs on OpenClaw cron (docs/AGENT.md), offset after Alibi's own slots; declaration keys keep reruns idempotent
 .venv/bin/python - "$NC" "$SB" <<'PY'
 import json, subprocess, sys
 nc, sb = sys.argv[1], sys.argv[2]

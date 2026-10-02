@@ -1,23 +1,25 @@
-"""F5 digests (NEXT_PHASE §3): a 07:30 brief that remembers last night's promise, checkpoints at 12/16/20 that only
+"""Digests: a 07:30 brief that remembers last night's promise, checkpoints at 12/16/20 that only
 speak when something changed, and a night review that proposes one recovery block.
 
 build(kind, now) -> dict    pure over report.build_json(prose=False), calendar_sync.plan and the day's signals
 text(d) -> str              rules, always first, in Alibi's voice
 run(kind, now)              build + store in DATA_DIR/digests.jsonl (+ notify unless suppressed)
-replan(con, now)            the night proposal: a bounded tool loop against LLM_BASE_URL, validated in code; any failure
+replan(con, now)            the night proposal: a bounded tool loop against LLM_BASE_URL, validated in code (a rejected
+                            proposal goes back to the model with the reason); no valid proposal in MAX_TURNS/BUDGET_S
                             falls back to the rules picker (via "rules"). Never applied until someone accepts it.
-                            Night rows carry turns (model calls made) and total_ms; each trace step a short `result`.
+                            Night rows carry turns (model calls made), total_ms and model; each trace step a `result`.
 accept(slot) / undo(slot)   put the proposal on the plan (calendar_sync.add_once) / take it off again
 
 Digests are derived output, not evidence, so they live in a JSONL file and never in `events` (AGENTS.md rule 1).
 Reading `sessions` here is a reporting read, like report.py.
 """
-import datetime as dt, json, os, threading, time
-from . import calendar_sync, config, db, report
+import datetime as dt, json, os, re, threading, time
+from . import calendar_sync, cards, config, db, report
 
 KINDS = ("morning", "checkpoint", "night")
-MAX_TURNS = 4
-BUDGET_S = 45                       # the whole night loop, every turn included (llm.BACKGROUND_TIMEOUT_S)
+TITLES = {"morning": "Morning brief", "checkpoint": "Check-in", "night": "Night review"}   # the island's alert header
+MAX_TURNS = 6                       # a clean Build run takes 4: week, plan, gaps, propose. 2 spare to fix a rejection
+BUDGET_S = 60                       # the whole night loop, every turn included; it runs off the tick thread
 SOON_S = 4 * 3600                   # a checkpoint speaks anyway if a block starts within this
 _lock = threading.RLock()
 
@@ -164,7 +166,10 @@ def _window(day: dt.date) -> tuple:
 
 
 def free_gaps(con, day: dt.date, min_minutes: int, now: float) -> list:
-    """Gaps between planned blocks and sessions, 07:00–22:00, at least `min_minutes` long. Starts round up to 5 min."""
+    """Gaps between planned blocks and sessions, 07:00–22:00, at least `min_minutes` long. Starts round up to 5 min.
+    A day off has none: it isn't free time to fill."""
+    if calendar_sync.days_off(day, 1):
+        return []
     lo, hi = _window(day)
     lo = max(lo, -(-now // 300) * 300)
     gaps, cur = [], lo
@@ -285,7 +290,7 @@ def _cap(h: dict) -> int:
 
 
 def validate(con, p: dict, now: float, cfg: dict | None = None) -> tuple:
-    """(ok, reason, normalised proposal). NEXT_PHASE §4 'Replan validator'."""
+    """The replan validator: (ok, reason, normalised proposal)."""
     cfg = cfg or config.habits()
     h = (cfg.get("habits") or {}).get(p.get("habit"))
     if not isinstance(h, dict) or h.get("source") in ("strava", "health"):
@@ -300,6 +305,8 @@ def validate(con, p: dict, now: float, cfg: dict | None = None) -> tuple:
     today = dt.date.fromtimestamp(now)
     if (day - today).days not in (1, 2):
         return False, "day must be tomorrow or the day after", None
+    if calendar_sync.days_off(day, 1):
+        return False, f"{day:%A} is a day off; pick the other day", None
     if not 0 < minutes <= _cap(h):
         return False, f"minutes must be 1–{_cap(h)}", None
     lo, hi = _window(day)
@@ -328,8 +335,9 @@ def rules_pick(con, now: float, week: list, cfg: dict | None = None) -> dict | N
     for i in (1, 2):
         day = dt.date.fromtimestamp(now) + dt.timedelta(days=i)
         g = free_gaps(con, day, m, now)
-        if g:
-            why = x.get("reason") or "Furthest behind this week."
+        if g:                       # the report's line only when it's behind: "On pace." can't be a reason to move
+            why = (x.get("reason") if x.get("status3") in ("off_track", "at_risk") and x.get("reason") else
+                   "No buffer left this week." if (x.get("buffer_days") or 0) <= 0 else "Under a day of buffer left.")
             return {"habit": x["habit"], "label": x["label"], "day": day.isoformat(), "at": g[0]["at"], "minutes": m,
                     "why": why}
     return None
@@ -337,7 +345,8 @@ def rules_pick(con, now: float, week: list, cfg: dict | None = None) -> dict | N
 
 TOOLS = [
     {"type": "function", "function": {"name": "week_status", "description":
-        "This week's pace per habit: status3 (on_track|at_risk|off_track|done|stale), buffer_days, need_per_day_min.",
+        "This week's pace per habit: status3 (on_track|at_risk|off_track|done|stale), buffer_days, need_per_day_min, "
+        "and max_minutes (the longest block propose accepts for that habit).",
         "parameters": {"type": "object", "properties": {}}}},
     {"type": "function", "function": {"name": "plan", "description": "Planned blocks on a day.",
         "parameters": {"type": "object", "properties": {"day": {"type": "string", "description": "YYYY-MM-DD"}},
@@ -354,12 +363,20 @@ TOOLS = [
         "parameters": {"type": "object", "properties": {
             "habit": {"type": "string"}, "day": {"type": "string", "description": "YYYY-MM-DD, tomorrow or the day after"},
             "at": {"type": "string", "description": "HH:MM, 24h"}, "minutes": {"type": "integer"},
-            "why": {"type": "string"}}, "required": ["habit", "day", "at", "minutes", "why"]}}},
+            # Without an example Nemotron wrote "5 buffer days" whatever the prompt said. It copies the example word
+            # for word (one naming "the morning" came back verbatim), so the example is one that is always true.
+            "why": {"type": "string", "description": "Shown to the user: one short sentence in plain words on why this "
+                                                     "habit and this time, no buffer days or other numbers. "
+                                                     "E.g. \"Furthest behind this week.\""}},
+            "required": ["habit", "day", "at", "minutes", "why"]}}},
 ]
 
 SYSTEM = ("You are Alibi's night planner. Recover the habit that is furthest behind this week with ONE block tomorrow "
           "(or the day after). Look before you propose: call week_status, then plan and free_gaps for the day, then "
-          "call propose exactly once. Only use free time between 07:00 and 22:00. Keep `why` to one short sentence.")
+          "call propose. Only use free time between 07:00 and 22:00. "
+          "Proposed minutes must stay within that habit's max_minutes from week_status. "
+          "`why` is read by the user: one short sentence in plain words, never buffer days or numbers. "
+          "If propose answers ok:false, fix what its reason says and call propose again.")
 
 
 def _history(con, habit: str, days: int, now: float) -> list:
@@ -375,11 +392,18 @@ def _history(con, habit: str, days: int, now: float) -> list:
 def tool_call(con, name: str, args: dict, now: float, week: list):
     """The in-process tools. Pure reads; `propose` only validates."""
     if name == "week_status":
-        return [{k: x.get(k) for k in ("habit", "label", "status3", "buffer_days", "need_per_day_min",
-                                       "need_today_min", "verified_min", "target_min", "reason")} for x in week]
+        hs = config.habits().get("habits") or {}
+
+        def cap(k):                 # the validator's cap: a model that couldn't see it proposed 180 min against 60
+            h = hs.get(k)
+            return _cap(h) if isinstance(h, dict) and h.get("source") not in ("strava", "health") else None
+        return [dict({k: x.get(k) for k in ("habit", "label", "status3", "buffer_days", "need_per_day_min",
+                                            "need_today_min", "verified_min", "target_min", "reason")},
+                     max_minutes=cap(x.get("habit"))) for x in week]
     if name == "plan":
         day = _day_arg(args.get("day"), now)
-        return [{"habit": b["habit"], "at": b["at"], "min": b["min"], "state": b["state"]}
+        return [dict({"habit": b["habit"], "at": b["at"], "min": b["min"], "state": b["state"]},
+                     **({"day_off": b["away_label"]} if b.get("away_label") else {}))
                 for b in calendar_sync.plan(con, day, 1, now)]
     if name == "free_gaps":
         day = _day_arg(args.get("day"), now)
@@ -437,8 +461,9 @@ def step_result(name: str, args: dict, res, now: float) -> str:
 
 def _replan(con, now: float, use_llm: bool | None = None, base_url: str | None = None, model: str | None = None,
             budget_s: float = BUDGET_S, week: list | None = None) -> dict:
-    """The replan with its totals: {proposal, trace, via, turns, total_ms}. turns = model calls that answered;
-    total_ms = the whole thing, model calls and the rules fallback included."""
+    """The replan with its totals: {proposal, trace, via, turns, total_ms, model}. turns = model calls that answered;
+    total_ms = the whole thing, model calls and the rules fallback included; model = the model id when it wrote the
+    proposal (None for rules)."""
     t_all = time.perf_counter()
     if week is None:
         r = report.build_json(now, prose=False)
@@ -446,9 +471,9 @@ def _replan(con, now: float, use_llm: bool | None = None, base_url: str | None =
     use_llm = config.TEXT_READY if use_llm is None else use_llm
     trace, turns = [], 0
 
-    def done(p, via):
+    def done(p, via, by=None):
         return {"proposal": p, "trace": trace, "via": via, "turns": turns,
-                "total_ms": round((time.perf_counter() - t_all) * 1000)}
+                "total_ms": round((time.perf_counter() - t_all) * 1000), "model": by}
 
     if use_llm:
         from . import llm
@@ -463,11 +488,20 @@ def _replan(con, now: float, use_llm: bool | None = None, base_url: str | None =
                 if left <= 0.5:
                     trace.append({"tool": "timeout", "args": {}, "ms": 0, "result": "time budget spent"})
                     break
+                t_turn = time.perf_counter()
                 m = llm.chat_tools(msgs, TOOLS, timeout=left, base_url=base_url, model=model)
                 turns += 1
                 calls = m.tool_calls or []
-                if not calls:
-                    break                                   # prose instead of tools: no tool support, or gave up
+                if not calls:               # prose instead of tools: no tool support, gave up, or out of tokens
+                    fin = getattr(m, "finish_reason", None)
+                    said = " ".join((m.content or "").split())
+                    ms = round((time.perf_counter() - t_turn) * 1000)
+                    trace.append({"tool": "no tool call", "args": {}, "ms": ms,
+                                  "result": _short("ran out of tokens" if fin == "length" else
+                                                   f"answered in prose: {said}" if said else "empty answer")})
+                    print(f"[alibi] replan turn {turns}: no tool call (finish_reason={fin}, {len(said)} chars)",
+                          flush=True)
+                    break
                 msgs.append({"role": "assistant", "content": m.content or "", "tool_calls": [
                     {"id": c.id, "type": "function", "function": {"name": c.function.name,
                                                                   "arguments": c.function.arguments or "{}"}}
@@ -484,10 +518,15 @@ def _replan(con, now: float, use_llm: bool | None = None, base_url: str | None =
                                   "result": step_result(c.function.name, args, res, now)})
                     if c.function.name == "propose":
                         if res.get("ok"):
-                            return done(dict(res["proposal"], via=llm.via_for(base_url)), llm.via_for(base_url))
+                            via = llm.via_for(base_url)
+                            return done(dict(res["proposal"], via=via), via, model or config.LLM_MODEL)
+                        # The validator's reason goes back as this call's result: the model fixes it next turn
+                        # (bounded by MAX_TURNS and the budget) instead of the whole night going to rules.
                         trace[-1]["error"] = res.get("reason")
-                        raise ValueError(f"invalid proposal: {res.get('reason')}")
+                        print(f"[alibi] replan turn {turns}: proposal rejected ({res.get('reason')})", flush=True)
                     msgs.append({"role": "tool", "tool_call_id": c.id, "content": json.dumps(res, default=str)[:4000]})
+            else:
+                print(f"[alibi] replan: no valid proposal in {MAX_TURNS} turns", flush=True)
         except Exception as e:
             print(f"[alibi] replan loop fell back to rules: {e!r}"[:300], flush=True)
     t0 = time.perf_counter()
@@ -565,7 +604,7 @@ def build(kind: str, now: float | None = None, con=None, prev: dict | None = Non
         d["buffers"] = [{"habit": x["habit"], "label": x["label"], "buffer_days": x["buffer_days"],
                          "status3": x["status3"]} for x in habits]
         rp = _replan(con, now, week=[x for x in habits if x["unit"] == "min"], **(replan_kw or {}))
-        d.update({k: rp[k] for k in ("proposal", "trace", "via", "turns", "total_ms")})
+        d.update({k: rp[k] for k in ("proposal", "trace", "via", "turns", "total_ms", "model")})
         tomorrow = today + dt.timedelta(days=1)
         d["tomorrow"] = [_block(b) for b in calendar_sync.plan(con, tomorrow, 1, now) if b["state"] != "skipped"]
         worst = min((x for x in habits if x["status3"] in ("off_track", "at_risk")),
@@ -576,14 +615,52 @@ def build(kind: str, now: float | None = None, con=None, prev: dict | None = Non
     return d
 
 
-def _ask(p: dict, now: float) -> str:
+def _slot_words(p: dict, now: float) -> str:
+    """'tomorrow 08:00, 60 min', worded against `now`: a 22:00 proposal read after midnight is 'today 08:00'."""
     day = dt.date.fromisoformat(p["day"])
-    when = "tomorrow" if (day - dt.date.fromtimestamp(now)).days == 1 else day.strftime("%A")
-    return f"Move {config.spoken_name(p['habit'])} to {when} {p['at']}, {p['minutes']} min?"
+    when = {0: "today", 1: "tomorrow"}.get((day - dt.date.fromtimestamp(now)).days, day.strftime("%A"))
+    return f"{when} {p['at']}, {p['minutes']} min"
+
+
+def _ask(p: dict, now: float) -> str:
+    return f"Move {config.spoken_name(p['habit'])} to {_slot_words(p, now)}?"
 
 
 def _need_line(x: dict) -> str:
     return f"{x['label']} needs {x['minutes']} min today."
+
+
+_SIZE = re.compile(r"[ae]?\d+(\.\d+)?[bmk]|v\d[\w.]*|instruct|chat|it|fp\d+|bf16|nvfp4|awq|gguf", re.I)
+
+
+def _model_name(model_id: str | None) -> str:
+    """'nvidia/nemotron-3-super-120b-a12b' -> 'Nemotron 3 Super': family, version and tier, no parameter counts."""
+    words = re.split(r"[-_\s]+", str(model_id or "").rsplit("/", 1)[-1])
+    return " ".join(w[:1].upper() + w[1:] for w in words if w and not _SIZE.fullmatch(w))
+
+
+def _provenance(d: dict, now: float | None = None) -> str:
+    """'Checked your week, tomorrow's plan and free gaps · Nemotron 3 Super · 6 s': what the model looked at (from its
+    trace), which model, and how long the whole replan took. Only for proposals the model wrote. A plan's day is read
+    as the model meant it (against generated_at) and worded against `now` (default: then), so a card read after
+    midnight says "today's plan"."""
+    gen, seen = d["generated_at"], []
+    ref = dt.date.fromtimestamp(gen if now is None else now)
+    for t in d.get("trace") or []:
+        if str(t.get("result") or "").startswith("error"):
+            continue
+        w = {"week_status": "your week", "free_gaps": "free gaps", "history": "your history"}.get(t.get("tool"))
+        if t.get("tool") == "plan":
+            try:
+                day = _day_arg((t.get("args") or {}).get("day"), gen)
+                w = {0: "today's plan", 1: "tomorrow's plan"}.get((day - ref).days, f"{day:%A}'s plan")
+            except ValueError:
+                w = "the plan"
+        if w and w not in seen:
+            seen.append(w)
+    looked = "Checked " + (", ".join(seen[:-1]) + " and " + seen[-1] if len(seen) > 1 else seen[0]) if seen else ""
+    s = (d.get("total_ms") or 0) / 1000
+    return " · ".join(x for x in (looked, _model_name(d.get("model")), f"{round(s)} s" if s >= 1 else "<1 s") if x)
 
 
 def text(d: dict) -> str:
@@ -626,6 +703,13 @@ def text(d: dict) -> str:
         if b:
             out.append(f"Next: {b['label']} at {b['at']}, {b['min']} min.")
     else:
+        p = d.get("proposal")
+        if p:                       # the question leads: the island shows four lines, and this is the one to answer
+            why = cards.display(" ".join(str(p.get("why") or "").split()))       # the model's words, never its enums
+            out.append(_ask(p, d["generated_at"]) + (f" {why}" + ("" if why[-1] in ".?!…" else ".") if why else ""))
+            if str(d.get("via") or "").startswith("llm"):
+                out.append(_provenance(d))
+
         def names(xs, f=lambda x: f"{x['label']} {x['seen_min']} min"):
             return ", ".join(f(x) for x in xs) if xs else "none"
         parts = [f"{w}: {names(d[k], f) if f else names(d[k])}." for w, k, f in
@@ -638,11 +722,9 @@ def text(d: dict) -> str:
                                               else f"{x['label']} 0 d" for x in bufs) + ".")
         if d.get("alibi_score") is not None:
             out.append(f"{d['alibi_score']:.0%} of this week's claims held up.")
-        if d.get("fix_tomorrow"):
-            f = d["fix_tomorrow"]
-            out.append(f"Fix tomorrow: {f['label']}. {f['reason']}")
-        if d.get("proposal"):
-            out.append(_ask(d["proposal"], d["generated_at"]))
+        f = d.get("fix_tomorrow")
+        if f and not (p and f["habit"] == p["habit"]):         # the question above already says it
+            out.append(f"Fix tomorrow: {f['label']}. {cards.display(f['reason'])}")
     return "\n".join(out)
 
 
@@ -675,11 +757,11 @@ def run(kind: str, now: float | None = None, send: bool = True, slot: str | None
            "text": body, "via": d.get("via", "rules")}
     if kind == "night":
         row.update(proposal=d.get("proposal"), trace=d.get("trace"), turns=d.get("turns"), total_ms=d.get("total_ms"),
-                   accepted_at=None)
+                   model=d.get("model"), accepted_at=None)
     append(row)
     if sent and send:
-        from .notify import notify
-        notify(body, kind="digest", slot=slot, digest_kind=kind, actions=actions(row))
+        from .notify import notify       # habit_label: the island's alert header ("Night review · 22:00")
+        notify(body, kind="digest", slot=slot, digest_kind=kind, actions=actions(row), habit_label=TITLES[kind])
     return row
 
 
@@ -700,7 +782,7 @@ def accept(slot: str, now: float | None = None) -> dict:
     p = row.get("proposal")
     if not p:
         raise LookupError("That digest has no proposal.")
-    when = _ask(p, row["ts"]).split(" to ", 1)[1].rstrip("?")
+    when = _slot_words(p, now)                  # against now: accepted at 00:30, 08:00 is "today", not "tomorrow"
     if row.get("accepted_at"):
         return {"ok": True, "reply": f"Already on the plan: {config.spoken_name(p['habit'])} {when}.", "already": True}
     start = dt.datetime.fromisoformat(f"{p['day']}T{p['at']}").timestamp()
@@ -750,4 +832,4 @@ def undo(slot: str, now: float | None = None) -> dict:
     return {"ok": True, "reply": f"Removed {config.spoken_name(p['habit'])} from {_dayword(day, now)} {p['at']}."}
 
 
-list = rows      # the spec's name (digest.list()); last line, so annotations above still see the builtin
+list = rows      # the public name (digest.list()); last line, so annotations above still see the builtin

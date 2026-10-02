@@ -1,7 +1,7 @@
-"""Week Gantt data (NEXT_PHASE F4b), mounted by api.py through hooks.routers(). Pure arithmetic, no model.
+"""Week Gantt data, mounted by api.py through hooks.routers(). Pure arithmetic, no model.
 
 GET /api/plan/overview?week=YYYY-MM-DD   any date in the week (default: this week). One row per habit (planned blocks,
-                                         verified sessions, pace v2 status) plus milestones from DATA_DIR/goals.json.
+                                         verified sessions, pace status) plus milestones from DATA_DIR/goals.json.
 """
 import datetime as dt, json, time
 from fastapi import APIRouter, HTTPException

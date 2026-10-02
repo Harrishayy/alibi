@@ -7,7 +7,7 @@ payload={date, steps, sleep_h, mindful_min, workout_min, workouts, ...docs/SIGNA
 Health habits in habits.yaml: {source: health, metric: <any key of METRICS>, daily_target, display}; metrics marked
 lower=True (resting heart rate, headphone level) are met at or below the target.
 
-Round 3 (docs/SIGNALS.md): the phone listener takes single rows or {"batch": [...]} of phone/health rows (stored by
+Phone rows (docs/SIGNALS.md): the phone listener takes single rows or {"batch": [...]} of phone/health rows (stored by
 signals.store, which attaches each row to the session its ts falls in), and serves GET /api/phone/session so the
 iPhone can couple to a live session. The Mac turns an "Alibi" Focus on/off with each session via Shortcuts.
 """
@@ -15,6 +15,7 @@ import datetime as dt, hmac, json, math, os, re, secrets as _rand, socket, subpr
 from . import config, db, pinch, secrets as store
 
 STRAVA_EVERY_S = int(os.getenv("STRAVA_SYNC_EVERY_S", "1800"))
+STRAVA_CLAIM_EVERY_S = int(os.getenv("STRAVA_CLAIM_EVERY_S", "30"))   # while a "going for a run" claim is open
 PHONE_HOST = os.getenv("PHONE_HOST", "0.0.0.0")        # the phone listener is the only thing Alibi exposes to the LAN
 PHONE_PORT = int(os.getenv("PHONE_PORT", "8766"))
 STATE_FILE = "integrations_state.json"
@@ -83,7 +84,7 @@ def start(con) -> None:
 
 def tick(con, now: float) -> None:
     _check_claims(con)
-    _maybe_strava(now)
+    _maybe_strava(now, con=con)
     _focus_sweep(con)
 
 
@@ -198,7 +199,7 @@ def _focus_sweep(con) -> None:
 
 
 def _check_claims(con) -> None:
-    """'Going for a run' claims settle every tick, not only after a Strava sync (INT-9)."""
+    """'Going for a run' claims settle every tick, not only after a Strava sync."""
     try:
         from . import daemon
         daemon.check_claims(con)
@@ -206,7 +207,19 @@ def _check_claims(con) -> None:
         print(f"[alibi] claim check failed: {e!r}", flush=True)
 
 
-def _maybe_strava(now: float, force: bool = False) -> threading.Thread | None:
+def _claim_open(con, now: float) -> bool:
+    """An unsettled run claim whose window is still open. Strava has no push here, so the run that settles it is polled
+    every STRAVA_CLAIM_EVERY_S instead of every 30 min (2 h x 30 s = 240 reads, well inside Strava's limits)."""
+    try:
+        settled = {json.loads(p).get("claim_id") for (p,) in
+                   con.execute("SELECT payload FROM events WHERE source='alibi' AND kind='claim_settled'")}
+        return any(cid not in settled and float(json.loads(p).get("until") or 0) > now for cid, p in
+                   con.execute("SELECT id, payload FROM events WHERE source='user' AND kind='claim'"))
+    except Exception:
+        return False
+
+
+def _maybe_strava(now: float, force: bool = False, con=None) -> threading.Thread | None:
     global _strava_thread, _strava_last_try
     from . import strava
     if not strava.connected() or (_strava_thread and _strava_thread.is_alive()):
@@ -214,7 +227,8 @@ def _maybe_strava(now: float, force: bool = False) -> threading.Thread | None:
     st = strava.state()
     if st.get("needs_reconnect") and not force:
         return None
-    if not force and (now < float(st.get("backoff_until") or 0) or now - _strava_last_try < STRAVA_EVERY_S):
+    every = STRAVA_CLAIM_EVERY_S if con is not None and _claim_open(con, now) else STRAVA_EVERY_S
+    if not force and (now < float(st.get("backoff_until") or 0) or now - _strava_last_try < every):
         return None
     _strava_last_try = now
     _strava_thread = threading.Thread(target=strava_sync_now, daemon=True, name="alibi-strava")
@@ -243,7 +257,7 @@ def strava_sync_now() -> dict:
     set_state(strava_reconnect_told=False)
     for r in added:
         what = "updated" if r.get("edited") else "logged"
-        notify(f"Strava: {r['name']}, {r['distance_km']:g} km — {what}.", kind="info")
+        notify(f"Strava: {r['name']}, {r['distance_km']:g} km — {what}.", kind="info", source="strava")
     try:
         _check_claims(db.connect())
     except Exception:
@@ -842,9 +856,14 @@ def phone_app():
         from . import routes_integrations as ri
         return ri.phone_page_html(on_phone=True)
 
-    from . import routes_phone                   # F7 writes: say and end, tailnet/loopback + header only
+    @app.get("/plan", response_class=HTMLResponse)
+    def plan_page():                             # static page, no data: the key stays on the phone (localStorage)
+        from . import routes_calendar
+        return routes_calendar.plan_page_html()
+
+    from . import routes_phone                   # phone writes: say and end, tailnet/loopback + header only
     app.include_router(routes_phone.router)
-    from . import routes_agent                   # NemoClaw on the Spark: read context, post briefs (NEMOCLAW.md §5)
+    from . import routes_agent                   # NemoClaw on the Spark: read context, post briefs (docs/AGENT.md)
     app.include_router(routes_agent.router)
     return app
 

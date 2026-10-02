@@ -5,7 +5,7 @@ import json, os, runpy
 HERE = os.path.dirname(os.path.abspath(__file__))
 ns = runpy.run_path(f"{HERE}/build_tokens.py", run_name="tokens")
 C, WEB, ISLAND, IOS, LA, SPRING, SPACE, RADIUS = (ns[k] for k in ("C", "WEB", "ISLAND", "IOS", "LA", "SPRING", "SPACE", "RADIUS"))
-OUT = "/Users/harrishayyanar/Documents/nvidia_habits/docs/design/tokens/specimen.html"
+OUT = os.path.normpath(os.path.join(HERE, "..", "specimen.html"))
 
 GROUPS = [("Surfaces", "Canvas, cards and the layers above them. Depth comes from hairlines, not shadows.", 0, 6),
           ("Ink", "Three steps of text plus the inverse for tooltips.", 6, 10),

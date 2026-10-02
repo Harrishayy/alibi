@@ -1,11 +1,12 @@
-"""Agent API (docs/NEMOCLAW.md §5): what the NemoClaw agent on the DGX Spark may read and write, over Tailscale.
+"""Agent API (docs/AGENT.md): what the NemoClaw agent on the DGX Spark may read and write, over Tailscale.
 
 Mounted inside integrations.phone_app() (the :8766 listener), never on the loopback dashboard app.
 
 GET  /api/agent/ping              -> {ok, ts, tz, agent_last_seen}
 GET  /api/agent/context           -> one snapshot for a brief (week, today, free gaps, last night, milestones, signals)
 GET  /api/agent/digests?limit=5   -> Alibi's own recent rules digests
-POST /api/agent/brief             -> the agent's version of a slot's brief; stored, never evidence
+POST /api/agent/brief             -> the agent's version of a slot's brief; stored, never evidence. A timely one also
+                                     drops down on the island once per slot (kind "brief"), unless a session is live
 
 Security: X-Alibi-Agent-Token (or Authorization: Bearer) — its own secret (`nemoclaw_token` in data/secrets.json),
 never the phone key; a token in the query string is refused. Loopback or tailnet source only. Body <= 16 KB, 30
@@ -111,15 +112,101 @@ def context(now: float | None = None) -> dict:
             "today": {"planned_min": sum(b["min"] for b in plan),
                       "seen_min": round(sum(x.get("today_seen_min") or 0 for x in r["rows"])),
                       "picked_apps_min": snap.get("picked_min"),
-                      "phone_last_synced": _hm(integrations.state().get("phone_last_polled")),
+                      "phone_last_synced": _phone_seen(now),
                       "blocks": [{"key": b["key"], "habit": b["habit"], "at": b["at"], "min": b["min"],
                                   "state": b["state"]} for b in plan]},
             "free_gaps_tomorrow": [{"at": g["at"], "min": g["minutes"]} for g in gaps],
+            "sessions_today": _or_empty(_sessions_today, con, today, now),
+            "claims_today": _or_empty(_claims_today, con, today, now),
+            "away": _or_empty(_away, today),
             "last_night": last, "milestones": miles, "signals": sig, "never_included": NEVER_INCLUDED}
 
 
 def _hm(ts) -> str | None:
     return time.strftime("%H:%M", time.localtime(ts)) if isinstance(ts, (int, float)) else None
+
+
+def _or_empty(fn, *args) -> list:
+    """One context key, built on its own: a bad row or a missing helper costs that key ([]), never /context."""
+    try:
+        return fn(*args)
+    except Exception as e:
+        print(f"[alibi] agent context {fn.__name__} skipped: {type(e).__name__}", flush=True)
+        return []
+
+
+def _day_bounds(day: dt.date) -> tuple[float, float]:
+    return (dt.datetime.combine(day, dt.time()).timestamp(),
+            dt.datetime.combine(day + dt.timedelta(days=1), dt.time()).timestamp())
+
+
+def _sessions_today(con, today: dt.date, now: float) -> list:
+    """Sessions started today, oldest first. Counts and states only: no titles, apps or camera labels."""
+    t0, t1 = _day_bounds(today)
+    out = []
+    for s in con.execute("SELECT * FROM sessions WHERE started_at>=? AND started_at<? ORDER BY started_at, id", (t0, t1)):
+        end = s["ended_at"] or now
+        nudges = con.execute("SELECT count(*) FROM events WHERE session_id=? AND source='alibi' AND kind='nudge'",
+                             (s["id"],)).fetchone()[0]
+        shields = con.execute("SELECT payload FROM events WHERE source='phone' AND kind='shield' AND "
+                              "(session_id=? OR ts BETWEEN ? AND ?)", (s["id"], s["started_at"], end)).fetchall()
+        out.append({"habit": s["habit"], "label": config.display_name(s["habit"]), "at": _hm(s["started_at"]),
+                    "min": max(0, round((end - s["started_at"]) / 60)),
+                    "verdict": s["verdict"] if s["status"] == "done" else None, "nudges": nudges,
+                    # phone/shield payload is {on, apps} (integrations.normalise_phone): on = the iPhone blocked apps
+                    "phone_blocked": any(_payload(p).get("on") is True for (p,) in shields)})
+    return out
+
+
+def _claims_today(con, today: dt.date, now: float) -> list:
+    """Today's "going for a run" claims: the run that matches (as daemon.check_claims matches it) and how it settled."""
+    t0, t1 = _day_bounds(today)
+    settled = {}
+    for r in con.execute("SELECT ts, payload FROM events WHERE source='alibi' AND kind='claim_settled' ORDER BY id"):
+        p = _payload(r["payload"])
+        settled.setdefault(p.get("claim_id"), (bool(p.get("verified")), r["ts"]))
+    out = []
+    for c in con.execute("SELECT id, ts, payload FROM events WHERE source='user' AND kind='claim' AND ts>=? AND ts<? "
+                         "ORDER BY ts, id", (t0, t1)):
+        p = _payload(c["payload"])
+        habit = str(p.get("habit") or "")
+        runs = [e["payload"].get("distance_km") for e in
+                db.events_between(con, c["ts"] - 600, float(p.get("until") or c["ts"]), "strava")
+                if (e["payload"].get("distance_km") or 0) >= (p.get("min_km") or 0)]
+        st = settled.get(c["id"])
+        out.append({"habit": habit, "label": config.display_name(habit), "at": _hm(c["ts"]),
+                    "km": runs[0] if runs else None, "verified": st[0] if st else None,
+                    "settled_at": _hm(st[1]) if st else None})
+    return out
+
+
+def _away(today: dt.date) -> list:
+    """Days off in the next two weeks, when calendar_sync can say (getattr: the helper is optional)."""
+    from . import calendar_sync
+    fn = getattr(calendar_sync, "away_days", None)
+    if not callable(fn):
+        return []
+    return [{"date": str(d["date"]), "label": str(d.get("label") or "")} for d in (fn(today, 14) or [])]
+
+
+def _payload(s) -> dict:
+    try:
+        p = json.loads(s)
+    except (TypeError, ValueError):
+        return {}
+    return p if isinstance(p, dict) else {}
+
+
+def _phone_seen(now: float) -> str | None:
+    """When the iPhone last delivered anything: a batch (/ingest) or a foreground poll, whichever is newer. Not today ->
+    the weekday too, so yesterday's 20:29 never reads as today's."""
+    st = integrations.state()
+    ts = max((x for x in (st.get("phone_last_received"), st.get("phone_last_polled")) if isinstance(x, (int, float))),
+             default=None)
+    if ts is None:
+        return None
+    same = dt.date.fromtimestamp(ts) == dt.date.fromtimestamp(now)
+    return time.strftime("%H:%M" if same else "%a %H:%M", time.localtime(ts))
 
 
 @router.get("/api/agent/context")
@@ -231,4 +318,31 @@ async def post_brief(request: Request):
             os.write(fd, (json.dumps(row, default=str) + "\n").encode())
         finally:
             os.close(fd)
+        try:                           # under the lock: two keys for one slot can't both raise it
+            _brief_alert(row)
+        except Exception as e:         # the brief is stored; a failed alert never fails the POST
+            print(f"[alibi] agent brief alert failed: {e!r}", flush=True)
     return resp
+
+
+def _brief_alert(row: dict) -> bool:
+    """One island alert per timely slot: never during a session, never twice for a slot,
+    and ALIBI_BRIEF_ALERTS=all|scheduled|off (scheduled = morning, checkpoint and night, no heartbeat risk briefs)."""
+    from . import cards, pinch, today
+    from .notify import notify, recent_alerts
+    if row["response"].get("shown_as") != "agent":
+        return False
+    mode = os.getenv("ALIBI_BRIEF_ALERTS", "all").strip().lower()
+    if mode in ("off", "0", "no", "none", "false") or (mode == "scheduled" and row["kind"] == "risk"):
+        return False
+    if any(a.get("kind") == "brief" and a.get("slot") == row["slot"] for a in recent_alerts(500)):
+        return False
+    if db.active_session(db.connect()) is not None:
+        return False                   # the agent never interrupts a session; the brief stays stored
+    text = pinch.clean_brief(cards.display(row["text"]), sentences=2, cap=160)     # "off_track" never reaches a screen
+    if not text:
+        return False
+    notify(text, kind="brief", habit_label="Your agent", source="nemoclaw", via="nemoclaw", slot=row["slot"],
+           digest_kind=row["kind"], model=row["model"] or None, source_line=today.source_line(row["model"]),
+           actions=[{"label": "Got it", "dismiss": True}, {"label": "Open dashboard", "url": "/#agent"}])
+    return True

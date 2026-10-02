@@ -1,4 +1,4 @@
-"""THE CONTRACT. Freeze after P0. Observers write `events`; the verifier reads them."""
+"""The data contract: a frozen schema. Observers write `events`; the verifier reads them."""
 import json, sqlite3, threading, time
 from . import config
 
@@ -59,7 +59,7 @@ _write_lock = threading.RLock()     # FastAPI runs sync endpoints in a thread po
 
 
 def create_session(con, habit: str, modality: str, minutes: int) -> int | None:
-    """Atomic: inserts only if no session is active (R2). Returns the new id, or None if one is already live."""
+    """Atomic: inserts only if no session is active. Returns the new id, or None if one is already live."""
     now = time.time()
     with _write_lock:
         con.commit()
@@ -78,7 +78,7 @@ def create_session(con, habit: str, modality: str, minutes: int) -> int | None:
 
 
 def claim_session(con, session_id: int, ended_at: float) -> bool:
-    """Atomic close (R3): exactly one caller (CLI end, API end, or the bell) wins; the rest get False."""
+    """Atomic close: exactly one caller (CLI end, API end, or the bell) wins; the rest get False."""
     with _write_lock:
         cur = con.execute("UPDATE sessions SET status='done', ended_at=? WHERE id=? AND status='active'",
                           (ended_at, session_id))

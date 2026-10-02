@@ -34,7 +34,7 @@ enum Config {
     }
 }
 
-/// UserDefaults shared with the (future) Screen Time extensions through the App Group; falls back to standard.
+/// UserDefaults shared with the Screen Time extensions through the App Group; falls back to standard.
 enum Store {
     static let d: UserDefaults = UserDefaults(suiteName: Config.appGroup) ?? .standard
 

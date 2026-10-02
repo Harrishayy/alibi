@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Alibi</title>
+<script>
+  // The focus page is dark unless you picked light on the dashboard (same origin, same key).
+  try { if (localStorage.getItem("alibi.theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}
+</script>
+<link rel="stylesheet" href="/web/css/tokens.css?v=p17">
+<style>
+  /* The focus page: where the Mac guard sends a distracting tab mid-session. Standalone on purpose: tokens.css and
+     pinch.js only, so a dashboard change can never break the redirect target. */
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); }
+  /* Hidden until the first /api/state answer, so a redirected tab never flashes the idle copy first. */
+  body:not(.ready) .col { opacity: 0; }
+  .stage {
+    min-height: 100%; box-sizing: border-box;
+    display: grid; place-items: center;
+    padding: var(--space-12) var(--space-6);
+  }
+  .col {
+    width: 100%; max-width: 560px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .pinch { width: 96px; height: 96px; margin-bottom: var(--space-6); }
+  .pinch:empty { display: none; }
+  h1 { margin: 0; font-size: 40px; line-height: 1.12; letter-spacing: -0.025em; font-weight: 600; }
+  .sub { margin: var(--space-3) 0 0; color: var(--ink-2); }
+  .sub:empty { display: none; }
+  .clock { margin-top: var(--space-12); display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+  .clock[hidden] { display: none; }
+  .time { font-size: 88px; line-height: 1; color: var(--ink); }
+  .caption { color: var(--ink-2); }
+  .track {
+    width: min(320px, 100%); height: 4px; margin-top: var(--space-6);
+    border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden;
+  }
+  .fill {
+    height: 100%; border-radius: inherit; background: var(--accent);
+    transform-origin: left center; transform: scaleX(0);
+    transition: transform 1s linear;
+  }
+  .actions { margin-top: var(--space-12); display: flex; gap: var(--space-3); flex-wrap: wrap; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    box-sizing: border-box; height: 44px; padding: 0 var(--space-6);
+    border: 1px solid transparent; border-radius: var(--radius-sm);
+    font: 600 16px/1 var(--font-sans); letter-spacing: 0;
+    color: var(--on-accent); background: var(--accent);
+    cursor: pointer; text-decoration: none; -webkit-tap-highlight-color: transparent;
+    transition: transform var(--spring-micro-dur) var(--spring-micro), background-color var(--dur-micro) ease;
+  }
+  .btn--quiet { color: var(--ink); background: var(--surface-2); border-color: var(--hairline); font-weight: 500; }
+  @media (hover: hover) and (pointer: fine) {
+    .btn:hover { background: var(--accent-hover); }
+    .btn--quiet:hover { background: var(--surface-3); }
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+  .note { margin-top: var(--space-6); color: var(--ink-3); min-height: 1.45em; }
+
+  /* Entrance: opacity and a short rise, staggered, once the first answer is in. */
+  .ready .rise { animation: rise var(--spring-smooth-dur) var(--spring-smooth) both; }
+  .ready .rise:nth-child(2) { animation-delay: 60ms; }
+  .ready .rise:nth-child(3) { animation-delay: 120ms; }
+  .ready .rise:nth-child(4) { animation-delay: 180ms; }
+  .ready .rise:nth-child(5) { animation-delay: 240ms; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .ready .rise { animation: none; }
+    .fill { transition: none; }
+    .btn:active { transform: none; }
+  }
+  @media (max-width: 480px) {
+    h1 { font-size: 32px; }
+    .time { font-size: 64px; }
+    .clock, .actions { margin-top: var(--space-8); }
+  }
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="col">
+    <div class="pinch rise" id="pinch" role="img" aria-label="Pinch, watching you work"></div>
+    <div class="rise">
+      <h1 id="head">Nothing's running.</h1>
+      <p class="sub t-voice" id="sub"></p>
+    </div>
+    <div class="clock rise" id="clock" hidden>
+      <div class="time t-display" id="time" role="timer" aria-live="off">0:00</div>
+      <div class="caption t-small" id="caption">left</div>
+      <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+    </div>
+    <div class="actions rise">
+      <a class="btn" id="back" href="/">Open Alibi</a>
+    </div>
+    <p class="note t-small rise" id="note" aria-live="polite"></p>
+  </div>
+</main>
+<script src="/web/js/pinch.js?v=p17"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var params = new URLSearchParams(location.search);
+  // The guard names the site it sent you away from (?site=YouTube). Shown as text only, and only if it looks like a name.
+  var site = (params.get("site") || "").trim();
+  if (!/^[\w .+-]{1,24}$/.test(site)) site = "";
+  var state = null, skew = 0, lastSeq = 0, pinch = null, polling = 0;
+
+  function spoken(s) {   // config.spoken_name: "drawing", but "C++" or a custom label as written
+    var key = String(s.habit || "").replace(/_/g, " ");
+    var label = s.habit_label || s.label || key;
+    return label === key.charAt(0).toUpperCase() + key.slice(1) ? key : label;
+  }
+  function clock(secs) {
+    secs = Math.max(0, Math.ceil(secs));
+    var h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
+    var mm = h ? String(m).padStart(2, "0") : String(m);
+    return (h ? h + ":" : "") + mm + ":" + String(s).padStart(2, "0");
+  }
+  function hm(ts) {
+    var d = new Date(ts * 1000);
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+  function now() { return Date.now() / 1000 + skew; }
+
+  function mountPinch(mood) {
+    if (pinch || !window.AlibiPinch) return;
+    try { pinch = window.AlibiPinch.mount($("pinch"), { size: 96, mood: mood, theme: "auto" }); } catch (e) { pinch = null; }
+  }
+  function feedPinch(p, live) {
+    var mood = (p && p.mood) || (live ? "focused" : "idle");   // alibi/pinch.py decides; the fallback only covers a gap
+    mountPinch(mood);
+    if (!pinch) return;
+    pinch.set(mood);
+    if (p && p.event && p.seq && p.seq !== lastSeq && (p.age_s == null || p.age_s < 30)) {
+      lastSeq = p.seq;
+      pinch.play(p.event);
+    }
+    $("pinch").setAttribute("aria-label", live ? "Pinch, watching you work" : "Pinch, watching");
+  }
+
+  function render() {
+    var s = state && state.session;
+    var back = $("back");
+    if (s) {
+      var name = spoken(s);
+      $("head").textContent = "You said " + name + ".";
+      $("sub").textContent = s.on_break ? "On a break until " + hm(s.on_break.until) + "."
+        : site ? site + " can wait." : "";
+      $("clock").hidden = false;
+      back.textContent = "Back to " + name;
+      back.className = "btn";
+    } else {
+      var v = state && state.recent_verdict;
+      $("head").textContent = v ? "Time's up." : "Nothing's running.";
+      $("sub").textContent = v && v.summary ? String(v.summary).slice(0, 160)
+        : "Tell the island what you're doing, and I'll keep the time.";
+      $("clock").hidden = true;
+      back.textContent = "Open Alibi";
+      back.className = "btn btn--quiet";
+      document.title = "Alibi";
+    }
+    tick();
+  }
+
+  function tick() {
+    var s = state && state.session;
+    if (!s) return;
+    var left = s.ends_at - now();
+    $("time").textContent = clock(left);
+    var span = Math.max(1, s.ends_at - s.started_at);
+    $("fill").style.transform = "scaleX(" + Math.min(1, Math.max(0, (now() - s.started_at) / span)).toFixed(4) + ")";
+    document.title = clock(left) + " left · You said " + spoken(s);
+    if (left <= 0 && !polling) poll();   // the bell rang: ask what happened
+  }
+
+  function poll() {
+    polling = 1;
+    fetch("/api/state", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) {
+        state = j;
+        if (typeof j.now === "number") skew = j.now - Date.now() / 1000;
+        $("note").textContent = "";
+        feedPinch(j.pinch, !!j.session);
+        render();
+      })
+      .catch(function () { $("note").textContent = "Alibi isn't answering. The clock here keeps going."; })
+      .then(function () { polling = 0; document.body.classList.add("ready"); });
+  }
+
+  // Back to the work: close this tab if the browser allows it, otherwise go to the dashboard.
+  $("back").addEventListener("click", function (e) {
+    if (!(state && state.session)) return;
+    e.preventDefault();
+    try { window.close(); } catch (err) {}
+    setTimeout(function () { location.replace("/"); }, 200);
+  });
+
+  poll();
+  setTimeout(function () { document.body.classList.add("ready"); }, 1500);   // a slow answer never hides the page
+  setInterval(tick, 1000);
+  setInterval(function () { if (!polling) poll(); }, 5000);
+})();
+</script>
+</body>
+</html>

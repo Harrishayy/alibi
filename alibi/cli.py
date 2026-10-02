@@ -12,22 +12,35 @@ While a session is live, `say` also understands: "add 10", "change to 40", "brea
 import argparse, re, threading, time
 from . import config, db, intent
 
-_lock = threading.RLock()          # FastAPI runs sync endpoints in a thread pool (R2/R3)
+_lock = threading.RLock()          # FastAPI runs sync endpoints in a thread pool
 HINT = 'Say "end", "break 5" or "add 10".'
 
 
 def start(con, text: str) -> str:
+    """Rules first, the model only for what they can't place. A Strava or Health habit with no camera/screen habit in
+    the sentence is a claim ("going for a run" once became a drawing session: the model only sees camera/screen
+    habits). One camera/screen habit plus a duration ("draw for 8") starts at once, no model wait."""
     with _lock:
         s = db.active_session(con)
         if s:
             return f"You're already doing {config.display_name(s['habit'])}. Say \"end\" to finish it first."
+        keys = intent.match_habits(text)
+        src = None if keys else intent.match_habit(text, include_sources=True)
+        if src and config.habits()["habits"][src].get("source") in ("strava", "health"):
+            return _not_a_habit(con, text)
+        try:
+            said = intent.said_minutes(text)
+        except intent.DurationError as e:
+            return str(e)
+        if said and len(keys) == 1:
+            return start_habit(con, keys[0], said, said=True)
         try:
             it = intent.parse(text)
         except intent.DurationError as e:
             return str(e)
         except ValueError:
             return _not_a_habit(con, text)
-        return start_habit(con, it["habit"], it["minutes"], said=intent._minutes(text) is not None)
+        return start_habit(con, it["habit"], it["minutes"], said=said is not None)
 
 
 def start_habit(con, habit: str, minutes: int, said: bool = True) -> str:
@@ -52,7 +65,7 @@ LAST_UNKNOWN: dict | None = None      # {text, ts}: GET /api/habits/suggest (no 
 
 
 def _not_a_habit(con, text: str) -> str:
-    """F9: Strava habits get a claim the daemon checks; Health habits wait for the phone; unknown habits get an
+    """Strava habits get a claim the daemon checks; Health habits wait for the phone; unknown habits get an
     offer to add them (the dashboard/island show it as a one-tap card via /api/habits/suggest)."""
     global LAST_UNKNOWN
     key = intent.match_habit(text, include_sources=True)
@@ -198,7 +211,7 @@ def _calendar_back_to_planned(con, s) -> None:
 
 
 def end(con, artefact: str | None = None, ended_at: float | None = None, missed: bool = False) -> str:
-    """End the live session. Exactly one caller wins (R3); the rest get the recorded verdict, with no second alert.
+    """End the live session. Exactly one caller wins; the rest get the recorded verdict, with no second alert.
     Ending in the first CANCEL_WINDOW_S seconds (before Alibi has looked twice) cancels instead of judging."""
     from . import verifier
     from .notify import notify
@@ -248,7 +261,7 @@ def end(con, artefact: str | None = None, ended_at: float | None = None, missed:
 
 
 def _streak_tail(con, s) -> str:
-    """F5: 'Streak holds at 4 days. Your word is worth 64% this week.'"""
+    """The streak tail: 'Streak holds at 4 days. Your word is worth 64% this week.'"""
     try:
         from . import report
         r = report.build_json()
@@ -282,7 +295,7 @@ def report(con=None) -> str:
     return r.build()
 
 
-# --- live-session controls (F2) ----------------------------------------------------------------------------------
+# --- live-session controls ---------------------------------------------------------------------------------------
 
 def extend(con, s, minutes: int) -> str:
     with _lock:
@@ -450,7 +463,7 @@ def main():
            "end": lambda: end(con, a.artefact), "report": lambda: report(con),
            "say": lambda: say(con, a.text)}[a.cmd]())
     from .daemon import join_reels
-    join_reels()          # R5: a CLI `end` must not exit before its reel is written
+    join_reels()          # a CLI `end` must not exit before its reel is written
 
 
 if __name__ == "__main__":

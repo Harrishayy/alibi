@@ -2,8 +2,8 @@
    area (buttons, inputs, link buttons, keycaps), utilities and gentle reduced motion.
    Loaded after tokens.css and components.css, then shell, now, week, sessions, setup, moments. */
 :root{
-  /* Compatibility block (p16 foundation): tokens.css owns every colour, font and shadow, in both themes.
-     These aliases map the legacy names the area files still use onto tokens; lanes retire them as they port their files. */
+  /* Compatibility block: tokens.css owns every colour, font and shadow, in both themes.
+     These aliases map the legacy names the area files still use onto tokens. */
   --paper:var(--surface-1); --muted:var(--ink-2); --faint:var(--ink-3); --rule:var(--hairline-strong); --rule-2:var(--hairline);
   --on_task:var(--on-task); --off_task:var(--off-task); --on_task-ink:var(--on-task-ink); --idle-ink:var(--partial-ink);
   --phone-ink:var(--warn-ink); --sans:var(--font-sans); --mono:var(--font-mono); --shadow:var(--shadow-float);

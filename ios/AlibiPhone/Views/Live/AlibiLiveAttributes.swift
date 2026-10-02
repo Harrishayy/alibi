@@ -1,6 +1,6 @@
 // The Live Activity's data contract, shared by the app (which starts/updates/ends it) and the AlibiLive widget
 // extension (which draws it). Keep the payload tiny: the system caps it at 4 KB.
-// The ActivityKit conformance is iOS-only so the macOS PNG harness (docs/design/fixtures/live/) can compile the views.
+// The ActivityKit conformance is iOS-only so the macOS PNG harness (ios/AlibiLive/LivePNG.swift) can compile the views.
 import Foundation
 #if os(iOS)
 import ActivityKit

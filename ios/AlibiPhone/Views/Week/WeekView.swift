@@ -1,6 +1,6 @@
 // Week: what you claimed this week against what Alibi saw, per habit (the Mac's `week`, Monday to now), then the
 // last 7 days of exercise from this phone's Health totals. Without a `week` (Mac out of reach, or nothing claimed yet)
-// the first card says when it fills in. Layout follows docs/design/canvas/project/Phone-Week.dc.html.
+// the first card says when it fills in.
 import Charts
 import SwiftUI
 
@@ -95,7 +95,7 @@ struct WeekView: View {
     }
 }
 
-/// Pinch's 20pt avatar beside one line in Pinch's voice (the canvas's `Alibi.PinchLine`, mood `reading`).
+/// Pinch's 20pt avatar beside one line in Pinch's voice (`Alibi.PinchLine`, mood `reading`).
 private struct PinchLineRow: View {
     let text: String
     var body: some View {
@@ -107,7 +107,7 @@ private struct PinchLineRow: View {
     }
 }
 
-/// A card title as the canvas sets it: 15pt semibold.
+/// A card title: 15pt semibold.
 private struct CardTitle: View {
     let text: String
     var body: some View {
@@ -233,7 +233,7 @@ private struct HabitBars: View {
         return "\(name)\(pace). Seen \(TodayFmt.total(Double(seen))) of \(TodayFmt.total(Double(claimed))) claimed."
     }
 
-    /// The canvas's ph-grow: claimed at 200 ms, seen 60 ms later, 40 ms per row after that.
+    /// The bars grow in: claimed at 200 ms, seen 60 ms later, 40 ms per row after that.
     private func grow() {
         if reduceMotion { claimedIn = true; seenIn = true; return }
         let delay = 0.2 + Double(min(index, 5)) * Alibi.Motion.stagger
@@ -276,7 +276,7 @@ private struct PaceMark: View {
     }
 }
 
-/// Claimed (outline) and Seen (accent) swatches, as in the canvas header.
+/// Claimed (outline) and Seen (accent) swatches.
 private struct BarLegend: View {
     var body: some View {
         HStack(spacing: Alibi.Space.s3) {
@@ -296,7 +296,7 @@ private struct BarLegend: View {
     }
 }
 
-/// The words for the pace marks in use, under a hairline (the canvas's day-grid legend).
+/// The words for the pace marks in use, under a hairline (the day-grid legend).
 private struct PaceLegend: View {
     let kinds: [PaceMark.Kind]
     @ScaledMetric(relativeTo: .caption) private var mark: CGFloat = 9

@@ -8,7 +8,7 @@ luminance; rgba() colours are composited over the ground first).
 """
 import json, math, re, sys, os
 
-REPO = "/Users/harrishayyanar/Documents/nvidia_habits"
+REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", ".."))
 OUT_JSON = f"{REPO}/docs/design/system/project/tokens.json"
 OUT_CSS = f"{REPO}/docs/design/tokens/tokens.css"
 
@@ -291,7 +291,7 @@ DUR = [("dur-micro", "120ms", "Press scale, toggles, colour changes, focus ring.
 EASE = [("ease-out", "cubic-bezier(0.23,1,0.32,1)", "Default for every enter and exit: fades, popovers, blur-ins. Never use ease-in on UI."),
         ("ease-drawer", "cubic-bezier(0.32,0.72,0,1)", "Drawer and sheet slides."),
         ("ease-in-out", "cubic-bezier(0.65,0,0.35,1)", "Things moving while on screen (FLIP of a section, ring arc start without a spring).")]
-# research/04 §2, verbatim (simulated from SwiftUI spring(duration, bounce) physics)
+# The six shared springs (Motion.md), simulated from SwiftUI spring(duration, bounce) physics
 SPRING = [
     ("micro", 0.25, 0.0, 376, "linear(0,.086,.252,.419,.569,.688,.777,.844,.891,.925,.949,.965,.977,.984,.989,.993,.995,.997,.998,.999,1)",
      "Toggles, chip select, sample dot recolour."),
@@ -317,7 +317,7 @@ for n, d, b, ms, lin_s, use in SPRING:
 tokens = {
     "name": "Alibi",
     "version": 1,
-    "meta": {"source": "docs/design (Alibi redesign, 2026-10-01)"},
+    "meta": {"source": "docs/design"},
     "color": {"themes": [{"id": "dark", "name": "Dark"}, {"id": "light", "name": "Light"}], "tokens": color_tokens},
     "type": type_block,
     "spacing": {"note": "4-based ladder. Card padding 24 web, 20 iPhone, 16 island; sections 48-72 apart; dashboard column max 880px, prose 62ch.",
@@ -330,7 +330,7 @@ tokens = {
                  "tokens": [{"name": n, "value": v, "usage": u} for n, v, u in DUR]},
     "easing": {"note": "ease-out for enter/exit, ease-in-out for on-screen movement, linear only for time.",
                "tokens": [{"name": n, "value": v, "usage": u} for n, v, u in EASE]},
-    "spring": {"note": "Six springs shared by web, island and iPhone (research/04). CSS values are linear() simulations of the SwiftUI springs; -dur is the settle time.",
+    "spring": {"note": "Six springs shared by web, island and iPhone (Motion.md). CSS values are linear() simulations of the SwiftUI springs; -dur is the settle time.",
                "tokens": spring_tokens},
 }
 
@@ -382,7 +382,7 @@ TYPEDOC = {r[0]: r for r in WEB}
 css = []
 css.append('@import url("https://fonts.googleapis.com/css2?family=Onest:wght@400..700&display=swap");')
 css.append("""
-/* Alibi tokens · docs/design (Alibi redesign, 2026-10-01)
+/* Alibi tokens · docs/design
    Same names as docs/design/system/project/tokens.json. Dark is the primary theme.
    Theme switch: <html data-theme="dark|light">; with no attribute, dark unless the OS prefers light.
    Type: all sans. SF Pro on Apple, Onest for everyone else; Rounded for big numerals; mono for keycaps/IDs only.
@@ -413,7 +413,7 @@ for n, d, b, ms, *_ in SPRING:
     css.append(f"  --spring-{n}: var(--ease-out);")
     css.append(f"  --spring-{n}-dur: {ms}ms; /* SwiftUI .spring(duration: {d}, bounce: {b}) */")
 css.append("}")
-css.append("\n/* Springs: research/04, simulated from the same physics as the SwiftUI springs. */")
+css.append("\n/* Springs (Motion.md), simulated from the same physics as the SwiftUI springs. */")
 css.append("@supports (animation-timing-function: linear(0, 1)) {\n  :root {")
 for n, *_r in SPRING:
     css.append(f"    --spring-{n}: {_r[3]};")
@@ -458,7 +458,7 @@ p, li, blockquote, figcaption { text-wrap: pretty; }
   color: var(--ink);
 }
 
-/* Reduced motion: fewer and gentler, not zero (research/04).
+/* Reduced motion: fewer and gentler, not zero (Motion.md).
    Opacity and colour feedback stay (150ms); transforms, bounces and decorative loops go. */
 @media (prefers-reduced-motion: reduce) {
   :root {

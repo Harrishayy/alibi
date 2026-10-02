@@ -12,7 +12,7 @@ The jaws meet at `close_deg` 13.5°, which the generator solves. The mouth is th
 
 ## Params
 
-- **From research/03:** bodySquash, bodyY, tilt, clawL/R, pinch, eyeOpen, lookX/Y, mouthCurve, blush, antennaSway, sparkle, sweat, zzz.
+- **Body and face:** bodySquash, bodyY, tilt, clawL/R, pinch, eyeOpen, lookX/Y, mouthCurve, blush, antennaSway, sparkle, sweat, zzz.
 - **Detective:**
   - `lens` is an IK macro that moves the glass onto eye-r. The magnified eye shows from 0.72.
   - `lensGlow`, `lensZoom`, `lensOut`, `glint`.

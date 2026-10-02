@@ -1,4 +1,4 @@
-"""Round 3 signals (docs/SIGNALS.md): phone batch ingest + session attach by ts, Health contract (new metrics, heart),
+"""Signals (docs/SIGNALS.md): phone batch ingest + session attach by ts, Health contract (new metrics, heart),
 GET /api/phone/session, timeline hints, fusion that only LOWERS a score with a reason, signal nudges, live/status
 routes (Full Disk Access degrades to a plain status), Focus Shortcuts toggled with sessions (faked), report rows."""
 import datetime as dt, json, os, socket, time
@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from alibi import api, cli, config, db, integrations, nudges, report, signals, verifier
 
 clock = Clock()
+clock.t = dt.datetime.combine(dt.date.fromtimestamp(clock.t), dt.time(10, 0)).timestamp()  # ~90 min of fake time must stay inside one day
 con = db.connect()
 
 # --- fake Shortcuts: never the user's real ones -----------------------------------------------------------------------

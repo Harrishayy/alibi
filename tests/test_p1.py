@@ -1,4 +1,4 @@
-"""P1 DoD: 4-min drawing session: draw 2 min, phone 1 min, leave 1 min -> ~50% partial + contact sheet."""
+"""Desk witness DoD: 4-min drawing session: draw 2 min, phone 1 min, leave 1 min -> ~50% partial + contact sheet."""
 import os, pathlib
 os.environ["SAMPLE_EVERY_S"] = "15"
 from harness import Clock, check
@@ -25,4 +25,4 @@ check(s["evidence_path"] and pathlib.Path(s["evidence_path"]).exists(), f"contac
 a = notify.recent_alerts()[-1]
 check(a["kind"] == "verdict" and a["verdict"] == "partial" and "partial" in a["text"] and a["session_id"] == sid,
       "verdict notified in the witness's voice, with structured fields: " + a["text"])
-print("P1 DoD passed.")
+print("Desk witness DoD passed.")

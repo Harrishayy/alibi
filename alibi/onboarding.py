@@ -240,11 +240,19 @@ def suggest(text: str) -> dict:
 
 
 def add(body: dict) -> dict:
-    """Add one habit from the sheet: {name, minutes?, check?, schedule?, calendar?, template?, target?}."""
+    """Add one habit from the sheet: {name, minutes?, check?, schedule?, calendar?, template?, target?,
+    weekly_target_min?, phone_shield?}. Without weekly_target_min the template derives the goal from the schedule."""
     from . import health
     tid = body.get("template") or "custom"
     key, h = templates.build(tid, name=body.get("name"), minutes=body.get("minutes"), schedule=body.get("schedule"),
                              calendar=body.get("calendar"), check=body.get("check"), target=body.get("target"))
+    if body.get("weekly_target_min") is not None and h.get("modality"):
+        try:
+            h["weekly_target_min"] = max(0, int(body["weekly_target_min"]))
+        except (TypeError, ValueError):
+            raise ValueError(f"weekly_target_min must be a number (got {body['weekly_target_min']!r})")
+    if body.get("phone_shield") is not None:
+        h["phone_shield"] = bool(body["phone_shield"])
     if body.get("key"):
         key = templates.slug(str(body["key"]))
     habits = config.habits().get("habits") or {}

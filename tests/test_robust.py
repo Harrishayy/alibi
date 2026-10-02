@@ -1,4 +1,4 @@
-"""R1-R10: the alibi can't be faked, races don't double-count, bad input never 500s, the data dir isn't public."""
+"""Robustness: the alibi can't be faked, races don't double-count, bad input never 500s, the data dir isn't public."""
 import os, threading, time as _time
 os.environ["SAMPLE_EVERY_S"] = "15"
 from harness import Clock, check
@@ -10,7 +10,7 @@ from alibi import api, cli, config, daemon, db, intent, nudges, notify, report, 
 con = db.connect()
 c = TestClient(api.app)
 
-# R2: parallel starts -> exactly one active session
+# parallel starts -> exactly one active session
 replies = []
 def go():
     replies.append(cli.start(db.connect(), "draw for 3 minutes"))
@@ -19,7 +19,7 @@ ts = [threading.Thread(target=go) for _ in range(6)]
 n_active = con.execute("SELECT count(*) FROM sessions WHERE status='active'").fetchone()[0]
 check(n_active == 1, f"6 parallel starts -> 1 active session (replies: {sum('Session' in r for r in replies)} started)")
 
-# R3: racing ends -> one verdict alert, one close (past the "only just started -> Cancel" window)
+# racing ends -> one verdict alert, one close (past the "only just started -> Cancel" window)
 _cw, cli.CANCEL_WINDOW_S = getattr(cli, "CANCEL_WINDOW_S", 0), 0
 sid = db.active_session(con)["id"]
 before = sum(a["kind"] == "verdict" for a in notify.recent_alerts(500))
@@ -32,7 +32,7 @@ check(after - before == 1, f"4 racing ends -> exactly 1 verdict alert (got {afte
 check(db.get_session(con, sid)["status"] == "done", "session closed once")
 
 clock = Clock()
-# R1: ending a long claim after one sample is not a done verdict and doesn't credit the declared minutes
+# ending a long claim after one sample is not a done verdict and doesn't credit the declared minutes
 r = cli.say(con, "draw for 200 minutes")
 check("Started" in r, r)
 daemon.tick(con); clock.advance(10); daemon.tick(con)
@@ -42,11 +42,11 @@ check(s["verdict"] == "slacked" and s["on_task_ratio"] < 0.01, f"10 s of a 200-m
 row = next(x for x in report.build_json()["rows"] if x["habit"] == "drawing")
 check(row["verified_min"] < 5, f"report verified ≈ elapsed, not declared (verified {row['verified_min']} of {row['declared_min']})")
 check("Ended after 0 min of 200" in v, "verdict says it ended early: " + v)
-cli.CANCEL_WINDOW_S = _cw          # (R1 above is about judging; a 10 s 'end' is a Cancel in normal use — test_journey)
+cli.CANCEL_WINDOW_S = _cw          # (the claim check above is about judging; a 10 s 'end' is a Cancel in normal use — test_journey)
 st = c.get(f"/api/sessions").json()[0]
 check(st["coverage"] < 0.01 and "only 0 of 200 min happened" in st["why"], "session JSON explains coverage: " + st["why"])
 
-# R7 / R6: durations
+# durations
 for text, want in [("draw for 25", 25), ("draw for an hour and a half", 90), ("sketch", 25)]:
     check(intent.parse(text)["minutes"] == want, f"{text!r} -> {want} min")
 for text in ("draw for 0 minutes", "draw for 600 minutes", "draw for 99999999999999999999 minutes"):
@@ -58,7 +58,7 @@ cli.end(con)
 r = cli.say(con, "write the report for 30 min")
 check("habit" in r.lower() and "verified" not in r.lower(), f"'write the report for 30 min' isn't the weekly report: {r}")
 
-# R6: bad input -> 4xx JSON, never 500
+# bad input -> 4xx JSON, never 500
 check(c.get("/api/reel?date=yesterday").status_code == 400, "reel bad date -> 400")
 check(c.post("/api/sessions/9999/correct", json={"ts": 1, "label": "on_task"}).status_code == 404, "correct unknown session -> 404")
 check(c.post(f"/api/sessions/{sid}/correct", json={"ts": 1, "label": "on_task"}).status_code == 400, "correct bogus ts -> 400")
@@ -68,7 +68,7 @@ check(c.put("/api/habits", json={"habits": {"x": {"modality": "physical", "weekl
       "garbage number -> 400")
 check(c.put("/api/habits", json={"habits": habits}).status_code == 200, "habits restored")
 
-# R4: laptop asleep through the bell
+# laptop asleep through the bell
 cli.start(con, "draw for 4 minutes")
 s4 = db.active_session(con)
 for _ in range(4):
@@ -82,7 +82,7 @@ check(len(db.session_events(con, s4["id"], "camera")) == n_before, "no post-wake
 away = [a for a in notify.recent_alerts() if a.get("kind") != "report"]   # run near 20:00, the jump crosses 22:00
 check(away[-1].get("missed") and "While you were away" in away[-1]["text"], away[-1]["text"])
 
-# R5: a correction drops the stale reel; it's rebuilt with ?v= cache-buster
+# a correction drops the stale reel; it's rebuilt with ?v= cache-buster
 daemon.join_reels()
 reel = config.DATA_DIR / "reels" / f"session-{s4['id']}.mp4"
 check(reel.exists(), "reel built after the bell")
@@ -92,7 +92,7 @@ check(out.status_code == 200 and "New score" in out.json()["reply"], out.json()[
 daemon.join_reels()
 check(reel.exists() and "?v=" in c.get("/api/sessions").json()[0]["reel_url"], "reel rebuilt, URL cache-busted")
 
-# R8: nudge cooldown survives a restart (durable), and only fresh samples count
+# nudge cooldown survives a restart (durable), and only fresh samples count
 os.environ["CAMERA_SOURCE"] = str(make_fixtures.video("desk_phone.mp4", [("phone", 400)]))
 config.CAMERA_SOURCE = os.environ["CAMERA_SOURCE"]
 from alibi import camera
@@ -108,13 +108,21 @@ importlib.reload(nudges)          # "restart": no in-memory state survives
 check(first == 1 and nudges.check(con, db.active_session(con)) is None, "restart doesn't repeat the nudge")
 cli.end(con)
 
-# R9: island health from heartbeat
+# island health from heartbeat
 c.get("/api/state", headers={"X-Alibi-Client": "island"})
 isl = next(x for x in c.get("/api/health").json()["checks"] if x["key"] == "island")
 check(isl["ok"] and "last seen" in isl["details"], "island health from heartbeat: " + isl["details"])
 
-# R10: data dir not public; Host check
+# data dir not public; Host check
 check(c.get("/files/alibi.db").status_code == 404 and c.get("/files/alerts.jsonl").status_code == 404,
       "alibi.db and alerts.jsonl not served")
 check(c.get("/api/state", headers={"host": "evil.example"}).status_code == 400, "foreign Host header rejected")
+
+# Apple Vision's phone is its exact "phone" class; substrings read headphones and microphones as a phone
+from alibi import witness
+desk = {"humans": 1, "faces": 1, "hands": 2}
+hp = witness._apple_label({**desk, "classes": {"headphones": 0.9, "microphone": 0.6, "computer_keyboard": 0.4}})
+check(hp["label"] == "on_task", f"'headphones' class -> not phone ({hp})")
+ph = witness._apple_label({**desk, "classes": {"phone": witness.PHONE_MIN + 0.1, "headphones": 0.9}})
+check(ph["label"] == "phone", f"'phone' class above threshold -> phone ({ph})")
 print("Robustness DoD passed.")

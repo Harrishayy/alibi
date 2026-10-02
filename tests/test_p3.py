@@ -1,4 +1,4 @@
-"""P3 DoD: 3-min C++ session: 2 min VS Code + cppreference, 1 min YouTube -> ≈67% partial with title breakdown."""
+"""Laptop witness DoD: 3-min C++ session: 2 min VS Code + cppreference, 1 min YouTube -> ≈67% partial with title breakdown."""
 import os
 os.environ["LAPTOP_EVERY_S"] = "30"
 from harness import Clock, check
@@ -24,4 +24,4 @@ check(s["status"] == "done", "closed by timer")
 check(s["verdict"] == "partial" and 0.6 <= s["on_task_ratio"] <= 0.72, f"≈67% partial (got {s['on_task_ratio']:.0%} {s['verdict']})")
 check(any(b["label"] == "off_task" and "YouTube" in b["title"] for b in bd), "YouTube flagged off task")
 check(con.execute("SELECT count(*) FROM title_cache WHERE habit='cpp'").fetchone()[0] == 3, "titles cached once each")
-print("P3 DoD passed.")
+print("Laptop witness DoD passed.")

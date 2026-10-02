@@ -1,4 +1,4 @@
-"""P0 DoD: start "draw for 2 minutes" with the daemon ticking -> 2 min later a notification fires, no active session."""
+"""Timer DoD: start "draw for 2 minutes" with the daemon ticking -> 2 min later a notification fires, no active session."""
 from harness import Clock, check
 from alibi import cli, daemon, db, intent, notify
 
@@ -20,4 +20,4 @@ check(db.active_session(con) is not None, "still active at 1:55")
 clock.advance(10); daemon.tick(con)
 check(db.active_session(con) is None, "no active session after 2:05")
 check(any("Time's up" in a["text"] for a in notify.recent_alerts()), "notification fired")
-print("P0 DoD passed.")
+print("Timer DoD passed.")

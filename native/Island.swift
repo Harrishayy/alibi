@@ -1,8 +1,10 @@
 // Alibi Island — a Dynamic-Island-style bar that lives in the MacBook notch.
 // Idle it is exactly the notch. A live session adds two 46 pt wings: a still 16 pt Pinch on the left, the time left on
 // the right. Hover (after a short, still dwell) blooms it into a 400 pt panel without stealing focus; click the field
-// or press ⌥⌘A to type. Nudges (400 pt, 56 pt Pinch) and verdicts (440 pt, 64 pt Pinch) drop down on their own; a sync
-// only glints the wings. Look and motion come from native/shared/Theme.swift. Talks to http://127.0.0.1:8765.
+// or press ⌥⌘A to type. With no session the panel is Today: a living 56 pt Pinch beside today's line, what's left on
+// the plan, then the composer. Nudges (400 pt, 56 pt Pinch) and verdicts (440 pt, 64 pt Pinch) drop down on their
+// own; a sync only glints the wings. Look and motion come from native/shared/Theme.swift. Talks to
+// http://127.0.0.1:8765.
 import AppKit
 import Carbon.HIToolbox
 import SwiftUI
@@ -41,7 +43,7 @@ struct Drifting: Decodable { let label: String; let label_text: String?; let sin
 struct OnBreak: Decodable { let until: Double?; let left_s: Double? }
 /// Screen-tracked habits: share of checks per window ("ChatGPT", 0.67, off_task). Titles go through placeName.
 struct WindowShare: Decodable, Hashable { let title: String; let share: Double; let label: String }
-/// Merge windows into plain places ("Slack — Arun (DM) - HyBird - Slack" -> "Slack"), biggest first.
+/// Merge windows into plain places ("Slack — Sam (DM) - Acme - Slack" -> "Slack"), biggest first.
 func places(_ ws: [WindowShare]) -> [(name: String, share: Double, label: String)] {
     var order: [String] = []; var share: [String: Double] = [:]; var on: [String: Double] = [:]
     for w in ws {
@@ -101,6 +103,24 @@ struct AlertAction: Decodable, Equatable, Hashable {
         self.label = label; self.say = say; self.url = url; self.post = post; self.body = body; self.dismiss = dismiss
     }
 }
+/// A structured alert body: the backend builds it (alibi/cards.py), the island only lays it out. Strict on purpose:
+/// inside `Soft`, anything malformed makes the whole card nil, so the alert falls back to its `text`.
+struct Card: Decodable, Equatable {
+    struct Chip: Decodable, Equatable { let text: String; let tone: String?; let icon: String? }
+    struct Bar: Decodable, Equatable {
+        let label: String; let value: Double; let min: Double?; let max: Double?; let tone: String?; let caption: String?
+        /// How much of the track the fill covers: |value| / max(|min|, |max|), at most 1.
+        var share: Double {
+            let span = Swift.max(abs(min ?? 0), abs(max ?? 0))
+            return span > 0 ? Swift.min(1, abs(value) / span) : (value == 0 ? 0 : 1)
+        }
+    }
+    struct Group: Decodable, Equatable { let label: String?; let items: [Chip]?; let bars: [Bar]? }
+    struct Stat: Decodable, Equatable { let value: String; let unit: String?; let caption: String?; let tone: String? }
+    struct Provenance: Decodable, Equatable { let text: String; let source: String?; let detail: String? }
+    let v: Int; let kind: String; let title: String; let subtitle: String?; let tone: String?
+    let chips: [Chip]?; let groups: [Group]?; let stat: Stat?; let provenance: Provenance?
+}
 struct AlertEv: Decodable, Equatable {
     let id: Int64; let ts: Double?; let kind: String; let text: String; let image_url: String?
     let session_id: Int?; let habit: String?; let habit_label: String?; let verdict: String?; let ratio: Double?
@@ -110,16 +130,28 @@ struct AlertEv: Decodable, Equatable {
     let late: Bool?; let check: String?
     // verdict / nudge / synced extras
     let ended_early: Bool?; let label: String?; let title: String?; let detail: String?; let progress: String?
+    // brief (the Spark agent's note) and habits_saved. Lenient: these keys may carry any
+    // JSON on other kinds, and one odd value must not fail the whole state.
+    let slot: Soft<String>?; let source: Soft<String>?; let source_line: Soft<String>?; let digest_kind: Soft<String>?
+    var sourceLine: String? { source_line?.value }
+    /// The card, built at read time. Only v1 with a title renders; anything else falls back to `text`.
+    let card: Soft<Card>?
+    var cardV: Card? { card?.value.flatMap { $0.v == 1 && !$0.title.isEmpty ? $0 : nil } }
     init(id: Int64, kind: String, text: String, ts: Double? = nil, session_id: Int? = nil, habit: String? = nil,
          habit_label: String? = nil, verdict: String? = nil, ratio: Double? = nil, actions: [AlertAction]? = nil,
          minutes: Int? = nil, block_key: String? = nil, start: Double? = nil, end: Double? = nil, at: String? = nil,
-         check: String? = nil, label: String? = nil, title: String? = nil, detail: String? = nil, progress: String? = nil) {
+         check: String? = nil, label: String? = nil, title: String? = nil, detail: String? = nil, progress: String? = nil,
+         slot: String? = nil, source: String? = nil, source_line: String? = nil, digest_kind: String? = nil,
+         card: Card? = nil) {
+        self.card = card.map { Soft($0) }
         self.id = id; self.ts = ts; self.kind = kind; self.text = text; image_url = nil; self.session_id = session_id
         self.habit = habit; self.habit_label = habit_label; self.verdict = verdict; self.ratio = ratio
         self.actions = actions; reel_url = nil
         self.minutes = minutes; self.block_key = block_key; self.start = start; self.end = end; self.at = at
         late = nil; self.check = check; ended_early = nil; self.label = label; self.title = title
         self.detail = detail; self.progress = progress
+        self.slot = Soft(slot); self.source = Soft(source); self.source_line = Soft(source_line)
+        self.digest_kind = Soft(digest_kind)
     }
 }
 struct HabitRef: Codable, Hashable { let key: String; let label: String?; let modality: String; let default_min: Int?
@@ -136,7 +168,51 @@ struct StateResp: Decodable {
     let session: Session?; let alert: AlertEv?; let witness: String; let witness_label: String?
     let habits: [HabitRef]?; let today: Today?; let recent_verdict: Verdict?; let status_text: String?
     let pinch: PinchState?
+    // Optional, and lenient, so a malformed new block hides its feature instead of failing the
+    // whole decode (which would show the island as offline). An older daemon sends none of them.
+    let plan_today: Soft<PlanToday>?; let phrase: Soft<Phrase>?; let agent: Soft<AgentInfo>?
+    var planToday: PlanToday? { plan_today?.value }
+    var idlePhrase: Phrase? { phrase?.value }
+    var agentInfo: AgentInfo? { agent?.value }
 }
+/// Decodes `T` or gives nil; never throws.
+struct Soft<T: Decodable>: Decodable {
+    let value: T?
+    init(_ value: T?) { self.value = value }
+    init(from d: Decoder) throws { value = try? T(from: d) }
+}
+extension Soft: Equatable where T: Equatable {}
+/// One block of `plan_today`: `at`/`end_at` are clock strings, `start`/`end` epochs.
+struct PlanItem: Decodable, Hashable {
+    let key: String; let habit: String; let label: String?; let at: String; let end_at: String?
+    let start: Double; let end: Double; let minutes: Int?; let check: String?; let glyph: String?
+    let status: String; let verdict: String?; let ratio: Double?; let session_id: Int?
+    let startable: Bool?; let once: Bool?; let moved: Bool?
+    var name: String { label ?? displayName(habit) }
+    var mins: Int { minutes ?? max(1, Int(((end - start) / 60).rounded())) }
+    var canStart: Bool { startable ?? !["strava", "health"].contains(check ?? "") }
+    /// The SF Symbol for the web glyph name (camera, laptop, run, heart, moon); `check` when the glyph is missing.
+    var symbol: String {
+        switch glyph ?? check ?? "" {
+        case "laptop", "screen": return "laptopcomputer"
+        case "run", "strava": return "figure.run"
+        case "heart", "health": return "heart"
+        case "moon": return "moon"
+        default: return "camera"
+        }
+    }
+}
+/// What's left today: `left` holds now, next, later and live blocks; `done`, `missed` and `checking`
+/// the rest. Every list is in time order.
+struct PlanToday: Decodable {
+    let date: String?; let now: Double?; let scheduled: Bool?; let total: Int?; let kept: Int?; let left_min: Int?
+    let summary: String?; let next: PlanItem?
+    let left: [PlanItem]?; let done: [PlanItem]?; let missed: [PlanItem]?; let checking: [PlanItem]?
+}
+/// Pinch's ambient line: from the rules, or the agent's latest brief (`source == "agent"`).
+struct Phrase: Decodable { let text: String; let source: String?; let situation: String?; let ts: Double? }
+/// The Spark agent's presence.
+struct AgentInfo: Decodable { let last_seen: Double?; let ago_s: Double?; let online: Bool?; let host: String? }
 /// /api/calendar/plan?days=1 — today's planned blocks (from habits.yaml schedules, calendar connected or not).
 struct PlanBlock: Decodable, Hashable {
     let key: String; let habit: String; let label: String?; let at: String; let min: Int
@@ -171,9 +247,28 @@ func placeName(_ title: String) -> String {
     return p.count > 16 ? String(p.prefix(15)) + "…" : p
 }
 
+/// No raw enums on screen (mirrors the backend's `cards.display`): "off_track" -> "off track",
+/// "OFF_TRACK" -> "off track"; model ids, file names and paths are left alone. Idempotent; free without an underscore.
+let enumPattern = try? NSRegularExpression(pattern: #"(?<![\w/.-])([A-Za-z]+(?:_[A-Za-z0-9]+)+)(?![\w/-]|\.\w)"#)
+let enumWords = ["status3": "status", "buffer_days": "buffer", "need_today_min": "needed today", "verified_min": "seen",
+                 "target_min": "goal", "today_seen_min": "seen today", "today_planned_min": "planned today"]
+func displayText(_ s: String) -> String {
+    guard s.contains("_"), let re = enumPattern else { return s }
+    let ns = s as NSString
+    var out = "", last = 0
+    for m in re.matches(in: s, range: NSRange(location: 0, length: ns.length)) {
+        let r = m.range(at: 1)
+        let w = ns.substring(with: r)
+        out += ns.substring(with: NSRange(location: last, length: r.location - last))
+        out += enumWords[w.lowercased()] ?? (w == w.uppercased() ? w.lowercased() : w).replacingOccurrences(of: "_", with: " ")
+        last = r.location + r.length
+    }
+    return out + ns.substring(from: last)
+}
+
 /// Drop command hints and session numbers from replies ("Say "change to 40" to adjust.", "Session 8: ").
 func plainReply(_ r: String) -> String {
-    var t = r.replacingOccurrences(of: #"^Session \d+:\s*"#, with: "", options: .regularExpression)
+    var t = displayText(r).replacingOccurrences(of: #"^Session \d+:\s*"#, with: "", options: .regularExpression)
     let sentences = t.split(separator: ".", omittingEmptySubsequences: false).map(String.init)
     if sentences.count > 1 {
         let keep = sentences.filter { s in
@@ -208,6 +303,33 @@ func verdictInk(_ v: String?) -> Color {
 func verdictWash(_ v: String?) -> Color {
     v == "done" ? P.accentWash : v == "partial" ? P.partialWash : v == "slacked" ? P.warnWash : P.surface2
 }
+/// Card tones: chip wash and ink, bar fill, stat ink. An unknown tone is neutral.
+func toneWash(_ t: String?) -> Color { t == "accent" ? P.accentWash : t == "partial" ? P.partialWash : t == "warn" ? P.warnWash : P.surface2 }
+func toneInk(_ t: String?) -> Color { t == "accent" ? P.accentInk : t == "partial" ? P.partialInk : t == "warn" ? P.warnInk : P.ink2 }
+func toneFill(_ t: String?) -> Color { t == "accent" ? P.accent : t == "partial" ? P.partial : t == "warn" ? P.warn : P.ink3 }
+func statInk(_ t: String?) -> Color { t == "accent" || t == "partial" || t == "warn" ? toneInk(t) : P.ink }
+/// Belt and braces for the backend's caps: a chip or stat over `n` characters is cut at a word and ends in "…", so a
+/// card that ignores the caps still can't push past the 400 pt frame.
+func cardCap(_ s: String, _ n: Int) -> String {
+    guard s.count > n else { return s }
+    let head = String(s.prefix(n - 1))
+    let word = head.range(of: " ", options: .backwards).map { String(head[..<$0.lowerBound]) } ?? head
+    return (word.isEmpty ? head : word) + "…"
+}
+/// A number keeps its unit on the same line when a card title wraps ("0 min", "60 min?", "5 s"): a no-break space,
+/// never new words.
+let unitPattern = try? NSRegularExpression(pattern: #"(\d) (min|h|d|km|s)\b"#)
+func keepUnits(_ s: String) -> String {
+    guard let re = unitPattern else { return s }
+    return re.stringByReplacingMatches(in: s, range: NSRange(location: 0, length: (s as NSString).length),
+                                       withTemplate: "$1\u{00A0}$2")
+}
+/// Card icon and provenance source -> SF Symbol. Anything else draws no icon.
+let cardSymbols = ["check": "checkmark", "half": "circle.lefthalf.filled", "x": "xmark", "clock": "clock", "phone": "iphone",
+                   "run": "figure.run", "calendar": "calendar", "camera": "camera", "laptop": "laptopcomputer",
+                   "heart": "heart", "moon": "moon", "flag": "flag"]
+let sourceSymbols = ["nemotron": "cpu", "agent": "cpu", "rules": "list.bullet", "strava": "figure.run", "apple_vision": "eye",
+                     "nvidia_vlm": "eye", "health": "heart", "calendar": "calendar"]
 /// Snapshots render a single frame: entrances start at rest and the composer is drawn as plain text.
 nonisolated(unsafe) var snapshotting = false
 
@@ -217,9 +339,12 @@ enum Mode: Equatable { case collapsed, expanded, alert }
 /// How the island opened. The hotkey moves the shape only: no blur, no stagger (Motion.md, recipe 3).
 enum Via { case hover, key, alert }
 
-/// The server's Pinch rulebook for this moment (`/api/state` → `pinch`; LANES.md). Optional so an older daemon decodes.
+/// The server's Pinch rulebook for this moment (`/api/state` → `pinch`). Optional so an older daemon decodes.
 struct PinchState: Decodable, Equatable {
     let mood: String?; let event: String?; let seq: Double?; let age_s: Double?; let line: String?
+    /// What produced `event`: started, nudge, verdict, plan_done, planned, synced, habits_saved, brief.
+    let moment: Soft<String>?
+    var momentName: String? { moment?.value }
 }
 
 @MainActor
@@ -257,8 +382,10 @@ final class Island: ObservableObject {
     @Published var shakeID = 0                // a phone nudge shakes the shape once
     @Published var peeking = false            // the pointer rests in the notch, before the 0.35 s dwell opens it
     @Published var peekSide: Double = 0       // -1 pointer left of centre, 1 right: the wing Pinch tilts toward it
+    @Published var lookSide: Double = 0       // open panel: the Today Pinch looks toward the pointer's side (±0.4)
     var lastSeq: Double?                      // nil until the first state arrives: record it without playing
     var lastClipAt: Double = 0
+    var lastClipPriority = 0
     var clipTask: Task<Void, Never>?
     var closeTask: Task<Void, Never>?
     var closedAt: Double = 0
@@ -353,11 +480,12 @@ final class Island: ObservableObject {
 
     /// Hands a one-shot to the rig (which keeps the 90 s cooldown and chains side-eye into nudge). `force` is for
     /// verdicts and nudges, which ride the server's own cooldowns. `pinchClip` stays set while the clip plays, so the
-    /// bloom can follow it.
+    /// bloom can follow it. Inside the 90 s only a higher-priority clip plays (the rig's own rule), so the hello on
+    /// opening Today never swallows the nod for a habits save or an agent note a minute later.
     func play(_ clip: PinchClip, force: Bool = false, after delay: Double = 0) {
         let t = Date().timeIntervalSince1970
-        if !force && t - lastClipAt < 90 { return }
-        lastClipAt = t
+        if !force && t - lastClipAt < 90 && clip.priority <= lastClipPriority { return }
+        lastClipAt = t; lastClipPriority = clip.priority
         if clip == .connected { glintUntil = t + 3 }
         clipTask?.cancel()
         clipTask = Task { @MainActor in
@@ -485,6 +613,11 @@ final class Island: ObservableObject {
         switch a.kind {
         case "nudge", "planned": return nil
         case "verdict": return 15
+        case "brief": return 14
+        case "habits_saved": return 8
+        // A night review or morning brief card holds more to read: as long as a verdict.
+        case "report" where a.cardV != nil: return 15
+        case "digest" where a.cardV != nil && ["night", "morning"].contains(a.digest_kind?.value ?? ""): return 15
         default: return isSynced(a) ? 6 : 10
         }
     }
@@ -640,7 +773,7 @@ func alertButtons(_ a: AlertEv) -> [AlertButton] {
     }
 }
 
-/// Every name `--act` accepts for a button: the label on screen, the server's label, and the pre-redesign label.
+/// Every name `--act` accepts for a button: the label on screen, the server's label, and an older label.
 func actLabels(_ b: AlertButton) -> [String] {
     var names = [b.title, b.action.label]
     let say = b.action.say ?? ""
@@ -864,6 +997,48 @@ struct VerdictPill: View {
     }
 }
 
+/// A card chip: a 22 pt capsule in its tone's wash, a 10 pt symbol, then the words in the tone's ink.
+struct CardChip: View {
+    let text: String; var tone: String? = nil; var icon: String? = nil
+    var body: some View {
+        HStack(spacing: 4) {
+            if let s = icon.flatMap({ cardSymbols[$0] }) { Image(systemName: s).font(F.sans(10, .bold)) }
+            Text(cardCap(displayText(text), 32)).font(F.islandSecondary.weight(.medium)).monospacedDigit().lineLimit(1).fixedSize()
+        }
+        .foregroundStyle(toneInk(tone))
+        .padding(.horizontal, Alibi.Space.s2).frame(height: 22)
+        .background(Capsule().fill(toneWash(tone)))
+    }
+}
+
+/// A card bar: the label and its caption ("−5 d", which carries the sign) on one line, a 6 pt capsule under them.
+/// The fill grows from the leading edge, |value| / max(|min|, |max|) of the hairline track.
+struct CardBar: View {
+    let bar: Card.Bar
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: Alibi.Space.s2) {
+                Text(displayText(bar.label)).foregroundStyle(P.ink).lineLimit(1)
+                Spacer(minLength: 0)
+                if let c = bar.caption, !c.isEmpty { Text(c).monospacedDigit().foregroundStyle(P.ink2).fixedSize() }
+            }
+            .font(F.islandSecondary)
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(P.hairline)
+                    if bar.share > 0 {
+                        Capsule().fill(toneFill(bar.tone)).frame(width: max(6, g.size.width * bar.share))
+                    }
+                }
+            }
+            .frame(height: 6)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(bar.label): \(bar.caption ?? "")")
+    }
+}
+
 struct Keycap: View {
     let text: String
     var body: some View {
@@ -940,6 +1115,25 @@ struct IconButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(Pressable()).onHover { hover = $0 }.help(help).accessibilityLabel(help)
+    }
+}
+
+/// A small quiet text button inside a card (Edit, +2 more): ink-2 words, a wash on hover, 22 pt tall.
+struct LinkButton: View {
+    let title: String; var icon: String? = nil; let action: () -> Void
+    @State private var hover = false
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 3) {
+                Text(title).font(F.sans(12, .medium)).lineLimit(1).fixedSize()
+                if let icon { Image(systemName: icon).font(F.sans(9, .semibold)) }
+            }
+            .foregroundStyle(hover ? P.ink : P.ink2)
+            .padding(.horizontal, Alibi.Space.s2).frame(height: 22)
+            .background(RoundedRectangle(cornerRadius: Alibi.Radius.xs, style: .continuous).fill(hover ? P.surface2 : .clear))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(Pressable()).onHover { hover = $0 }
     }
 }
 
@@ -1060,7 +1254,7 @@ struct IslandView: View {
         return u
     }
     var onBreak: Bool { breakUntil != nil }
-    /// Work time left. A break pauses it (the backend moves ends_at out by the break), so it never shows break time.
+    /// Work time left. A break pauses it (the daemon moves ends_at out by the break), so it never shows break time.
     var sessionLeft: Double {
         guard let s = session else { return 0 }
         return max(0, s.ends_at - (breakUntil ?? m.now))
@@ -1078,6 +1272,19 @@ struct IslandView: View {
     var cameraSampling: Bool {
         guard let s = session, !onBreak else { return false }
         return s.modality == "physical" || s.modality == "hybrid"
+    }
+    /// No session, online: the open panel is Today once the daemon sends `phrase` or `plan_today`. An older daemon sends
+    /// neither, so the panel stays exactly as it was.
+    var todayLayout: Bool {
+        session == nil && m.online && !welcoming && (m.state?.idlePhrase != nil || m.state?.planToday != nil)
+    }
+    var planToday: PlanToday? { m.state?.planToday }
+    /// The Today card: only in the Today layout, and only when something is planned today.
+    var todayPlan: PlanToday? { todayLayout ? planToday.flatMap { ($0.total ?? 0) > 0 ? $0 : nil } : nil }
+    /// Pinch's mood is the server's (alibi/pinch.py); the old local rule only stands in for an older daemon.
+    var baseMood: PinchMood {
+        if let s = m.state?.pinch?.mood, let mood = PinchMood(rawValue: s) { return mood }
+        return onBreak ? .sleepy : session != nil ? .focused : .idle
     }
 
     var body: some View {
@@ -1131,7 +1338,8 @@ struct IslandView: View {
         case .expanded: expanded.transition(.exitFade)
         case .alert:
             Group {
-                if m.alert?.kind == "verdict" { verdictView } else { alertView }
+                // A run claim settled by Strava has no frames: its card rides the alert frame (still 440 wide).
+                if m.alert?.kind == "verdict" && m.alert?.cardV?.kind != "claim" { verdictView } else { alertView }
             }
             .id(m.alert?.id ?? 0)
             .transition(.exitFade)
@@ -1143,7 +1351,8 @@ struct IslandView: View {
     /// Pinch at a rung of the size ladder, playing the current one-shot. The rig rests after 2 minutes without news,
     /// lights the lens only while the camera samples, and draws key frames under reduced motion. Snapshots draw the
     /// clip's key frame (one still image can't wait for a timeline).
-    @ViewBuilder func pinch(_ mood: PinchMood, size: CGFloat) -> some View {
+    /// `ambient` (the Today panel's 56 pt hero only) adds fidgets and never rests; `look` leans its gaze (±0.4).
+    @ViewBuilder func pinch(_ mood: PinchMood, size: CGFloat, ambient: Bool = false, look: Double = 0) -> some View {
         if snapshotting {
             let c = m.pinchClip
             var p = PinchView.pose(mood: mood, clip: c, ms: c?.motion.key ?? mood.motion.key)
@@ -1151,7 +1360,7 @@ struct IslandView: View {
             PinchFigure(pose: p, size: size).accessibilityHidden(true)
         } else {
             PinchView(mood: mood, clip: m.pinchClip, clipID: m.pinchClipID, size: size, camera: cameraSampling,
-                      force: m.pinchForce)
+                      force: m.pinchForce, look: CGSize(width: look, height: 0), ambient: ambient)
                 .accessibilityHidden(true)
         }
     }
@@ -1255,6 +1464,8 @@ struct IslandView: View {
                     welcomeCard
                 } else if let s = session {
                     VStack(alignment: .leading, spacing: Alibi.Space.s3) { sessionCard(s); sessionControls(s) }
+                } else if todayLayout {
+                    todayPanel
                 } else {
                     VStack(alignment: .leading, spacing: Alibi.Space.s3) {
                         if let b = plannedNow { upNextCard(b) }
@@ -1267,12 +1478,14 @@ struct IslandView: View {
             if let r = m.reply { replyLine(r).padding(.top, Alibi.Space.s3).tier(1, plain: plain) }
             if !welcoming {
                 VStack(alignment: .leading, spacing: Alibi.Space.s3) {
-                    if session == nil && !m.habits.isEmpty && (m.online || m.connecting) {
+                    if todayLayout {
+                        todayChips
+                    } else if session == nil && !m.habits.isEmpty && (m.online || m.connecting) {
                         chips.opacity(m.online ? 1 : 0.45)
                     }
                     if session == nil && m.needsSetup && m.online { finishSetupRow }
                     Rectangle().fill(P.hairline).frame(height: 1).padding(.horizontal, Alibi.Space.s1)
-                    footer
+                    if todayLayout { todayFooter } else { footer }
                 }
                 .padding(.top, Alibi.Space.s3)
                 .tier(2, lift: true, plain: plain)
@@ -1300,10 +1513,11 @@ struct IslandView: View {
     /// The notch row: only the far edges are visible beside the camera. Pinch, the wordmark and the online dot on the
     /// left; open-dashboard and quit on the right.
     var header: some View {
-        let mood: PinchMood = m.composing ? .listening : onBreak ? .sleepy : session != nil ? .focused : .idle
+        let mood: PinchMood = m.composing ? .listening : baseMood
         return HStack(spacing: Alibi.Space.s2) {
-            // No Pinch on system errors (Mascot.md); one Pinch per view, so the welcome's 56 pt Pinch replaces this one.
-            if (m.online || m.connecting) && !welcoming { pinch(mood, size: 28) }
+            // No Pinch on system errors (Mascot.md); one Pinch per view, so the welcome's and Today's 56 pt Pinch
+            // replace this one.
+            if (m.online || m.connecting) && !welcoming && !todayLayout { pinch(mood, size: 28) }
             Text("ALIBI").font(F.islandWordmark).tracking(F.wordmarkTracking).foregroundStyle(P.ink)
             Circle().fill(m.online ? P.accent : P.partial).frame(width: 6, height: 6)
                 .accessibilityLabel(m.online ? "Online" : "Offline")
@@ -1521,8 +1735,9 @@ struct IslandView: View {
         .card()
     }
 
-    func skip(_ b: PlanBlock) {
-        m.act(AlertAction("Skip today", post: "/api/calendar/plan/skip", body: ["key": .str(b.key)]))
+    func skip(_ b: PlanBlock) { skip(key: b.key) }
+    func skip(key: String) {
+        m.act(AlertAction("Skip today", post: "/api/calendar/plan/skip", body: ["key": .str(key)]))
     }
 
     /// Up to four habits as one-tap chips (⌘1–⌘4): today's planned ones first, then the rest. Right-click for a length.
@@ -1535,26 +1750,278 @@ struct IslandView: View {
         let nowKey = plannedNow?.habit
         let hs = Array((plannedNow != nil ? all.filter { $0.key != nowKey } : all).prefix(4))   // the card offers it
         return Flow(spacing: Alibi.Space.s2) {
-            ForEach(Array(hs.enumerated()), id: \.element) { i, h in
-                let block = planned.first { $0.habit == h.key }
-                let mins = block?.min ?? h.default_min ?? 25
-                let doneToday = (m.plan?.blocks ?? []).contains { $0.habit == h.key && ["done", "partial"].contains($0.state) }
-                Button { Task { await m.send("\(h.key) for \(mins) minutes") } } label: {
-                    chipLabel(h.name, detail: block.map(\.at) ?? "\(mins) min", done: doneToday)
+            ForEach(Array(hs.enumerated()), id: \.element) { i, h in habitChip(h, i, planned: planned) }
+            howChip
+        }
+    }
+
+    /// One habit as a chip: a tap starts it for its planned (or usual) length, ⌘1–⌘4, right-click for another.
+    func habitChip(_ h: HabitRef, _ i: Int, planned: [PlanBlock]) -> some View {
+        let block = planned.first { $0.habit == h.key }
+        let mins = block?.min ?? h.default_min ?? 25
+        let doneToday = (m.plan?.blocks ?? []).contains { $0.habit == h.key && ["done", "partial"].contains($0.state) }
+        return Button { Task { await m.send("\(h.key) for \(mins) minutes") } } label: {
+            chipLabel(h.name, detail: block.map(\.at) ?? "\(mins) min", done: doneToday)
+        }
+        .buttonStyle(Chip())
+        .keyboardShortcut(KeyEquivalent(Character("\(i + 1)")), modifiers: .command)
+        .help("Start \(h.name) for \(mins) min (⌘\(i + 1)) · right-click for another length")
+        .contextMenu {
+            ForEach([15, 25, 45, 60], id: \.self) { n in
+                Button("\(h.name) for \(n) min") { Task { await m.send("\(h.key) for \(n) minutes") } }
+            }
+        }
+    }
+
+    var howChip: some View {
+        Button { Task { await m.send("how am I doing") } } label: {
+            chipLabel("How am I doing?", detail: nil, done: false)
+        }.buttonStyle(Chip())
+    }
+
+    // MARK: Today (no session): Pinch and today's line, what's left on the plan, the composer
+
+    var todayPanel: some View {
+        VStack(alignment: .leading, spacing: Alibi.Space.s3) {
+            heroRow
+            if let p = todayPlan { todayCard(p) }
+            else if let b = plannedNow { upNextCard(b) }     // no plan_today (it failed to build): keep Start / Skip
+            composer
+        }
+        // A wave hello as the panel opens. Not forced, so the island's 90 s cap keeps it to once in a while; none
+        // under Reduce Motion.
+        .onAppear { if !snapshotting && !m.reduceMotion { m.play(.hello) } }
+    }
+
+    /// Pinch at 56 (ambient: it breathes, blinks, glances and fidgets) beside the line for right now: a fresh moment or
+    /// mood line from the rulebook, else the idle phrase. The agent's phrase says whose it is.
+    var heroRow: some View {
+        let mood: PinchMood = m.composing ? .listening : baseMood
+        let line = m.state?.pinch?.line.flatMap { $0.isEmpty ? nil : $0 }
+        let ph = m.state?.idlePhrase
+        // The agent's phrase is its brief's first sentence: no raw enums on screen.
+        let text = displayText(line ?? ph?.text ?? planToday?.summary ?? "Say what you're about to do. I'll check it.")
+        let byAgent = line == nil && ph?.source == "agent"
+        return HStack(alignment: .center, spacing: Alibi.Space.s3) {
+            pinch(mood, size: 56, ambient: true, look: m.lookSide)
+            VStack(alignment: .leading, spacing: Alibi.Space.s1) {
+                // A long agent phrase (up to 140 characters) shrinks to fit three lines rather than lose its end.
+                Text(text).font(F.islandVoice).foregroundStyle(P.ink).lineSpacing(2)
+                    .lineLimit(3).minimumScaleFactor(0.8).fixedSize(horizontal: false, vertical: true)
+                if byAgent {
+                    Text("Your agent · \(clock(ph?.ts ?? m.now))").font(F.islandSecondary).monospacedDigit()
+                        .foregroundStyle(P.ink2).lineLimit(1)
                 }
-                .buttonStyle(Chip())
-                .keyboardShortcut(KeyEquivalent(Character("\(i + 1)")), modifiers: .command)
-                .help("Start \(h.name) for \(mins) min (⌘\(i + 1)) · right-click for another length")
-                .contextMenu {
-                    ForEach([15, 25, 45, 60], id: \.self) { n in
-                        Button("\(h.name) for \(n) min") { Task { await m.send("\(h.key) for \(n) minutes") } }
-                    }
+                if planToday?.scheduled == false {      // no habit has a time yet: one step to the habits editor
+                    LinkButton(title: "Set times", icon: "arrow.up.right") { m.open("/#habits") }
+                        .padding(.leading, -Alibi.Space.s2)
+                        .help("Give your habits times on the dashboard")
                 }
             }
-            Button { Task { await m.send("how am I doing") } } label: {
-                chipLabel("How am I doing?", detail: nil, done: false)
-            }.buttonStyle(Chip())
+            .id(text)
+            .transition(.opacity)
+            Spacer(minLength: 0)
         }
+        .animation(Alibi.Motion.adaptive(Alibi.Motion.smooth, reduceMotion: reduce), value: text)
+        .padding(.horizontal, Alibi.Space.s1)
+    }
+
+    /// What's left today: up to four blocks in time order (the next one first-class), then one quiet line for the
+    /// rest of the day. Edit opens the habits editor on the dashboard.
+    func todayCard(_ p: PlanToday) -> some View {
+        let left = p.left ?? []
+        let rows = Array(left.prefix(4))
+        // No gaps between the rows: each is 28 pt with its text centred, so the air is already in them.
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: Alibi.Space.s2) {
+                Text("Today").font(F.sans(12, .semibold)).foregroundStyle(P.ink2)
+                Spacer(minLength: Alibi.Space.s2)
+                Text(left.isEmpty ? "Nothing left" : "\(left.count) left · \(p.left_min ?? 0) min")
+                    .font(F.islandSecondary).monospacedDigit().foregroundStyle(P.ink2).lineLimit(1).fixedSize()
+                LinkButton(title: "Edit", icon: "arrow.up.right") { m.open("/#habits") }
+                    .padding(.trailing, -Alibi.Space.s2)
+                    .help("Change habits and times on the dashboard")
+            }
+            .frame(height: 22)
+            if !rows.isEmpty {
+                VStack(spacing: 0) {
+                    ForEach(rows, id: \.key) { b in todayRow(b, lead: b.key == p.next?.key || b.status == "live") }
+                }
+            }
+            tallyRow(p, more: left.count - rows.count)
+        }
+        .padding(.horizontal, Alibi.Space.cardIsland).padding(.vertical, Alibi.Space.s3)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(p.summary ?? "Today")
+    }
+
+    /// One block: its time, how it's checked, its name, then what you can do about it (now: Start or Skip; next: when,
+    /// and a play button; later: its length; live: a live mark).
+    func todayRow(_ b: PlanItem, lead: Bool) -> some View {
+        HStack(spacing: Alibi.Space.s2) {
+            Text(b.at).font(F.islandSecondary).monospacedDigit().foregroundStyle(lead ? P.ink : P.ink2)
+                .frame(width: 36, alignment: .leading)
+            Image(systemName: b.symbol).font(F.sans(12)).foregroundStyle(P.ink3).frame(width: 16)
+            // A long name (labels run to 24 characters) wraps to a second line rather than lose a word.
+            Text(b.name).font(lead ? F.sans(14, .semibold) : F.islandBody).foregroundStyle(P.ink)
+                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: Alibi.Space.s2)
+            todayTrailing(b)
+        }
+        .frame(minHeight: b.status == "now" ? 32 : 28)
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder func todayTrailing(_ b: PlanItem) -> some View {
+        switch b.status {
+        case "now":
+            HStack(spacing: Alibi.Space.s1) {
+                if b.canStart {
+                    IslandButton(title: "Start", variant: .primary, icon: "play.fill", small: true) {
+                        Task { await m.start(b.habit, b.mins) }
+                    }
+                    .help("Start \(b.name) for \(b.mins) min")
+                }
+                IslandButton(title: "Skip", variant: .quiet, small: true) { skip(key: b.key) }
+                    .help("Skip \(b.name) for today")
+            }
+        case "live":
+            HStack(spacing: 6) {
+                StatusDot(label: "on_task", size: 8)
+                Text("Live").font(F.islandSecondary).foregroundStyle(P.accentInk)
+            }
+            .padding(.trailing, Alibi.Space.s1)
+        default:
+            HStack(spacing: Alibi.Space.s1) {
+                Text(b.status == "next" ? until(b.start) : "\(b.mins) min").font(F.islandSecondary).monospacedDigit()
+                    .foregroundStyle(b.status == "next" ? P.ink2 : P.ink3).lineLimit(1).fixedSize()
+                // One column for play, so every row's time lines up whether or not it has the button.
+                Group {
+                    if b.status == "next" && b.canStart {
+                        IconButton(icon: "play.fill", help: "Start \(b.name) now, \(b.mins) min") {
+                            Task { await m.start(b.habit, b.mins) }
+                        }
+                    } else {
+                        Color.clear
+                    }
+                }
+                .frame(width: 28, height: 28)
+            }
+            .padding(.trailing, -Alibi.Space.s1)
+        }
+    }
+
+    /// "in 13 min", "in 1h 12m".
+    func until(_ t: Double) -> String {
+        let s = t - m.now
+        if s <= 0 { return "now" }
+        if s >= 3600 { return "in " + short(s) }
+        return s >= 60 ? "in \(Int((s / 60).rounded(.up))) min" : "in \(Int(s))s"
+    }
+
+    /// The rest of the day on one quiet line: "✓ 1 kept · 2 missed · 1 checking" (verdict glyphs at 11 pt, ink-3
+    /// words, never a slab), and "+2 more" when more blocks are left than the card lists.
+    @ViewBuilder func tallyRow(_ p: PlanToday, more: Int) -> some View {
+        let done = p.done ?? [], missed = p.missed ?? [], checking = p.checking ?? []
+        let slacked = done.filter { $0.verdict == "slacked" }.count
+        let skipped = missed.filter { $0.status == "skipped" }.count
+        let tally: [(n: Int, glyph: String, ink: Color, word: String)] = [
+            (p.kept ?? done.count - slacked, "checkmark", P.accentInk, "kept"),
+            (slacked, "xmark", P.warnInk, "slacked"),
+            (missed.count - skipped, "circle.dashed", P.ink3, "missed"),
+            (skipped, "arrow.uturn.right", P.ink3, "skipped"),
+            (checking.count, "hourglass", P.ink3, "checking"),
+        ].filter { $0.n > 0 }
+        if !tally.isEmpty || more > 0 {
+            HStack(spacing: Alibi.Space.s2) {
+                ForEach(Array(tally.enumerated()), id: \.offset) { i, x in
+                    if i > 0 { Text("·").foregroundStyle(P.ink3) }
+                    HStack(spacing: 3) {
+                        Image(systemName: x.glyph).font(F.sans(11, .bold)).foregroundStyle(x.ink)
+                        Text("\(x.n) \(x.word)").foregroundStyle(P.ink3).monospacedDigit()
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+                Spacer(minLength: Alibi.Space.s2)
+                if more > 0 {
+                    LinkButton(title: "+\(more) more") { m.open("/") }.padding(.trailing, -Alibi.Space.s2)
+                        .help("See the whole day on the dashboard")
+                }
+            }
+            .font(F.islandSecondary).lineLimit(1)
+            .frame(height: 22)
+        }
+    }
+
+    /// Today's chips: one row of up to three habits the card doesn't already offer (its rows have their own start),
+    /// and "How am I doing?" only when there's no card.
+    @ViewBuilder var todayChips: some View {
+        let planned = (m.plan?.blocks ?? []).filter { ["now", "planned"].contains($0.state) }
+        let offered = Set((todayPlan?.left ?? []).map(\.habit))
+        let kept = Set((todayPlan?.done ?? []).filter { $0.verdict != "slacked" }.map(\.habit))
+        let rank = { (i: Int, h: HabitRef) in (kept.contains(h.key) ? 1 : 0, i) }      // not yet kept today first
+        let hs = Array(m.habits.filter { $0.modality != "strava" && $0.modality != "health" && !offered.contains($0.key) }
+            .enumerated().sorted { rank($0.offset, $0.element) < rank($1.offset, $1.element) }
+            .map(\.element).prefix(3))
+        let how = todayPlan == nil
+        // A card listing four blocks already offers plenty to start; the chips would push the panel past 440 pt.
+        if (todayPlan?.left?.count ?? 0) < 4 && (!hs.isEmpty || how) {
+            ViewThatFits(in: .horizontal) {
+                chipRow(hs, how: how, planned: planned)
+                chipRow(Array(hs.prefix(2)), how: how, planned: planned)
+                chipRow(Array(hs.prefix(2)), how: false, planned: planned)
+                chipRow(Array(hs.prefix(1)), how: false, planned: planned)
+            }
+        }
+    }
+
+    func chipRow(_ hs: [HabitRef], how: Bool, planned: [PlanBlock]) -> some View {
+        HStack(spacing: Alibi.Space.s2) {
+            ForEach(Array(hs.enumerated()), id: \.element) { i, h in habitChip(h, i, planned: planned) }
+            if how { howChip }
+        }
+    }
+
+    /// Today's footer: kept against the plan (the web's metric), then your agent's presence (or the hotkey).
+    var todayFooter: some View {
+        HStack(spacing: Alibi.Space.s2) {
+            if let p = todayPlan, let total = p.total {
+                let kept = p.kept ?? 0, left = p.left?.count ?? 0
+                HStack(spacing: Alibi.Space.s1) {
+                    ForEach(0..<min(total, 8), id: \.self) { i in
+                        if i < kept { StatusDot(label: "on_task", size: 8) }
+                        else if i < kept + left { Circle().strokeBorder(P.ink2, lineWidth: 1.5).frame(width: 8, height: 8) }
+                        else { StatusDot(label: "absent", size: 8) }
+                    }
+                }
+                .accessibilityHidden(true)
+                Text("\(kept) of \(total) kept today").monospacedDigit().fixedSize()
+            } else if let t = m.state?.today, let total = t.habits_total, total > 0 {
+                HStack(spacing: Alibi.Space.s1) {
+                    ForEach(0..<min(total, 8), id: \.self) { i in
+                        StatusDot(label: i < (t.habits_done ?? 0) ? "on_task" : "absent", size: 8)
+                    }
+                }
+                .accessibilityHidden(true)
+                Text("\(t.habits_done ?? 0) of \(total) today").monospacedDigit().fixedSize()
+                    .accessibilityLabel("\(t.habits_done ?? 0) of \(total) habits done today")
+            } else {
+                Text(statusText)
+            }
+            Spacer(minLength: Alibi.Space.s2)
+            if let a = m.state?.agentInfo, a.online == true,
+               let secs = a.ago_s ?? a.last_seen.map({ (m.state?.now ?? m.now) - $0 }) {
+                let ago = short(secs + drift)
+                Text("Your agent · \(ago) ago").monospacedDigit().foregroundStyle(P.ink3)
+                    .help("Your agent on the \(a.host ?? "DGX Spark") last read Alibi \(ago) ago")
+            } else {
+                Keycap(text: "⌥⌘A")
+            }
+        }
+        .font(F.islandSecondary).foregroundStyle(P.ink2).lineLimit(1)
+        .padding(.horizontal, Alibi.Space.s1)
     }
 
     func chipLabel(_ name: String, detail: String?, done: Bool) -> some View {
@@ -1571,7 +2038,7 @@ struct IslandView: View {
         .contentShape(shape)
     }
 
-    /// The live session (canvas Island-Expanded): name and plan, ring + big timer + on-task %, the last checks,
+    /// The live session: name and plan, ring + big timer + on-task %, the last checks,
     /// and one line in Pinch's voice.
     func sessionCard(_ s: Session) -> some View {
         let warming = s.warming_up ?? ((s.samples ?? s.labels.count) < 6)
@@ -1696,11 +2163,18 @@ struct IslandView: View {
 
     // MARK: Alerts
 
-    func alertHeader(_ trailing: String?) -> some View {
+    /// `short`: what to show instead when `trailing` doesn't fit beside the notch (a long habit name keeps the time).
+    func alertHeader(_ trailing: String?, short: String? = nil) -> some View {
         HStack(spacing: Alibi.Space.s2) {
             Text("ALIBI").font(F.islandWordmark).tracking(F.wordmarkTracking).foregroundStyle(P.ink)
             Spacer(minLength: notch.width)
-            if let t = trailing {
+            if let t = trailing, let s = short {
+                ViewThatFits(in: .horizontal) {
+                    Text(t).fixedSize()
+                    Text(s).fixedSize()
+                }
+                .font(F.islandSecondary).monospacedDigit().foregroundStyle(P.ink2).lineLimit(1)
+            } else if let t = trailing {
                 Text(t).font(F.islandSecondary).monospacedDigit().foregroundStyle(P.ink2).lineLimit(1)
             }
         }
@@ -1711,13 +2185,14 @@ struct IslandView: View {
     /// Buttons: primary, secondary, quiet on nudges and plans; the verdict leads with secondary (See proof).
     func actionRow(_ a: AlertEv, extra: [AlertButton] = []) -> some View {
         let verdict = a.kind == "verdict"
+        let calm = a.kind == "brief" || a.kind == "habits_saved"     // news, not a question: one primary, then quiet
         let xs = Array((extra + alertButtons(a)).prefix(verdict ? 2 + extra.count : 3))
         return HStack(spacing: Alibi.Space.s2) {
             ForEach(Array(xs.enumerated()), id: \.offset) { i, x in
                 let isExtra = i < extra.count
                 let v: IslandButton.Variant = isExtra ? .primary
                     : verdict ? (i == extra.count ? .secondary : .quiet)
-                    : i == 0 ? .primary : i == 1 ? .secondary : .quiet
+                    : i == 0 ? .primary : calm ? .quiet : i == 1 ? .secondary : .quiet
                 IslandButton(title: x.title, variant: v, icon: x.icon) { m.act(x.action) }
             }
             Spacer(minLength: 0)
@@ -1734,16 +2209,145 @@ struct IslandView: View {
             default: [habitName, clock(a.ts ?? m.now)].compactMap { $0 }.joined(separator: " · ")
         }
         return VStack(alignment: .leading, spacing: 0) {
-            alertHeader(trailing).tier(0)
+            alertHeader(trailing, short: ["brief", "habits_saved"].contains(a.kind) ? clock(a.ts ?? m.now) : nil).tier(0)
+            if let c = cardOf(a) {
+                cardBody(a, c)
+                actionRow(a).padding(.top, Alibi.Space.s3).padding(.horizontal, Alibi.Space.s1).tier(2, lift: true)
+            } else {
+                HStack(alignment: .center, spacing: Alibi.Space.s3) {
+                    pinch(a.kind == "nudge" ? .focused : a.kind == "brief" ? .reading : .idle, size: 56)
+                    if a.kind == "brief" {
+                        // Your agent's note, as written (its own voice, not trimmed like a reply), then where it came from.
+                        VStack(alignment: .leading, spacing: Alibi.Space.s1) {
+                            Text(displayText(a.text)).font(F.islandVoice).foregroundStyle(P.ink).lineSpacing(2)
+                                .lineLimit(4).fixedSize(horizontal: false, vertical: true)
+                            if let src = a.sourceLine, !src.isEmpty {
+                                Text(src).font(F.islandSecondary).foregroundStyle(P.ink2).lineLimit(1)
+                            }
+                        }
+                    } else {
+                        alertLine(a).font(F.islandVoice).foregroundStyle(P.ink).lineSpacing(2)
+                            .lineLimit(4).fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(.top, Alibi.Space.s1).padding(.horizontal, Alibi.Space.s1)
+                .tier(0)
+                actionRow(a).padding(.top, Alibi.Space.s3).padding(.horizontal, Alibi.Space.s1).tier(1, lift: true)
+            }
+        }
+    }
+
+    // MARK: Cards
+
+    /// The card this alert lays out, if any. Nudges, plans and pace keep their composed lines.
+    func cardOf(_ a: AlertEv) -> Card? { ["nudge", "planned", "pace"].contains(a.kind) ? nil : a.cardV }
+
+    /// Pinch at 56 beside the title, subtitle and where the card came from (the stat trailing), then loose chips and
+    /// at most two groups at full width. Fixed caps, never measured: 4 chips or items then "+N", 4 bars then "+N more".
+    /// A small card (no groups, one or two chips: a run, a reel, a saved habit) keeps its chips under the title.
+    func cardBody(_ a: AlertEv, _ c: Card) -> some View {
+        let groups = Array((c.groups ?? []).filter { !($0.items ?? []).isEmpty || !($0.bars ?? []).isEmpty }.prefix(2))
+        let inline = groups.isEmpty && (c.chips ?? []).count <= 2 ? c.chips ?? [] : []
+        let chips = inline.isEmpty ? c.chips ?? [] : []
+        return VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: Alibi.Space.s3) {
-                pinch(a.kind == "nudge" ? .focused : .idle, size: 56)
-                alertLine(a).font(F.islandVoice).foregroundStyle(P.ink).lineSpacing(2)
-                    .lineLimit(4).fixedSize(horizontal: false, vertical: true)
+                cardPinch(a)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(keepUnits(displayText(c.title))).font(F.islandVoice.weight(.semibold)).foregroundStyle(P.ink)
+                        .lineLimit(2).minimumScaleFactor(0.85).fixedSize(horizontal: false, vertical: true)
+                    if let s = c.subtitle, !s.isEmpty {
+                        Text(keepUnits(displayText(s))).font(F.islandBody).foregroundStyle(P.ink2)
+                            .lineLimit(2).minimumScaleFactor(0.85).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if let p = c.provenance, !p.text.isEmpty {
+                        HStack(spacing: 5) {
+                            if let s = p.source.flatMap({ sourceSymbols[$0] }) { Image(systemName: s).font(F.sans(10, .semibold)) }
+                            Text(displayText(p.text)).monospacedDigit().lineLimit(1)
+                        }
+                        .font(F.islandSecondary).foregroundStyle(P.ink2).padding(.top, 2)
+                    }
+                    if !inline.isEmpty { cardChips(inline).padding(.top, 5) }
+                }
+                .layoutPriority(1)
                 Spacer(minLength: 0)
+                if let s = c.stat { cardStat(s, tone: s.tone ?? c.tone) }
             }
             .padding(.top, Alibi.Space.s1).padding(.horizontal, Alibi.Space.s1)
             .tier(0)
-            actionRow(a).padding(.top, Alibi.Space.s3).padding(.horizontal, Alibi.Space.s1).tier(1, lift: true)
+            if !chips.isEmpty || !groups.isEmpty {
+                VStack(alignment: .leading, spacing: Alibi.Space.s3) {
+                    if !chips.isEmpty { cardChips(chips) }
+                    ForEach(Array(groups.enumerated()), id: \.offset) { _, g in cardGroup(g) }
+                }
+                .padding(.top, Alibi.Space.s3).padding(.horizontal, Alibi.Space.s1)
+                .tier(1)
+            }
+        }
+    }
+
+    /// The verdict's bloom carries over to a run Strava confirmed (done only, only while the clip plays).
+    func cardPinch(_ a: AlertEv) -> some View {
+        ZStack {
+            if a.kind == "verdict" && a.verdict == "done" && m.pinchClip == .celebrate && !reduce {
+                RadialGradient(colors: [P.bloom, P.bloom.opacity(0)], center: .center, startRadius: 0, endRadius: 45) // bloom
+                    .frame(width: 90, height: 90)
+                    .allowsHitTesting(false)
+            }
+            pinch(a.kind == "brief" ? .reading : .idle, size: 56)
+        }
+        .frame(width: 56, height: 56)
+    }
+
+    /// "5.2 km / on Strava": the value in its tone's ink (the card's tone when the stat has none), tabular digits.
+    func cardStat(_ s: Card.Stat, tone: String?) -> some View {
+        VStack(alignment: .trailing, spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text(cardCap(s.value, 8)).font(.system(size: 22, weight: .semibold)).monospacedDigit()
+                if let u = s.unit, !u.isEmpty { Text(cardCap(u, 8)).font(F.sans(12, .medium)) }
+            }
+            .foregroundStyle(statInk(tone))
+            if let cap = s.caption, !cap.isEmpty {
+                Text(cardCap(displayText(cap), 24)).font(F.islandSecondary).foregroundStyle(P.ink2).lineLimit(1)
+            }
+        }
+        .fixedSize()
+        .accessibilityElement(children: .combine)
+    }
+
+    func cardChips(_ xs: [Card.Chip]) -> some View {
+        Flow(spacing: 6) {
+            ForEach(Array(xs.prefix(4).enumerated()), id: \.offset) { _, c in CardChip(text: c.text, tone: c.tone, icon: c.icon) }
+            if xs.count > 4 { CardChip(text: "+\(xs.count - 4)") }
+        }
+    }
+
+    /// A labelled group: chips that wrap, or bars two to a row with "+N more" beside the label.
+    func cardGroup(_ g: Card.Group) -> some View {
+        let bars = g.bars ?? [], items = g.items ?? []
+        let shown = Array(bars.prefix(4))
+        let rows = stride(from: 0, to: shown.count, by: 2).map { Array(shown[$0..<min($0 + 2, shown.count)]) }
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: Alibi.Space.s2) {
+                if let l = g.label, !l.isEmpty { Text(displayText(l)).foregroundStyle(P.ink2).lineLimit(1) }
+                Spacer(minLength: Alibi.Space.s2)
+                if bars.count > shown.count {
+                    Text("+\(bars.count - shown.count) more").monospacedDigit().foregroundStyle(P.ink3).fixedSize()
+                }
+            }
+            .font(F.islandSecondary)
+            if !shown.isEmpty {
+                VStack(spacing: Alibi.Space.s2) {
+                    ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                        HStack(spacing: Alibi.Space.s4) {
+                            ForEach(Array(row.enumerated()), id: \.offset) { _, b in CardBar(bar: b) }
+                            if row.count == 1 { Color.clear.frame(maxWidth: .infinity, maxHeight: 1) }
+                        }
+                    }
+                }
+            } else if !items.isEmpty {
+                cardChips(items)
+            }
         }
     }
 
@@ -1755,11 +2359,12 @@ struct IslandView: View {
             let name = a.habit_label ?? a.habit.map(displayName) ?? "A block"
             if a.late == true { return Text("\(name) was planned for \(a.at ?? "earlier"). Start now?") }
             return Text("\(name) is planned now. Start?")
+        case "habits_saved": return Text(a.text)        // already Pinch's line (pinch.habits_line): keep its hint
         default: return Text(plainReply(a.text))
         }
     }
 
-    /// "You said drawing. I've seen your phone for 3 minutes." Composed like the web (M3): from the habit, the label
+    /// "You said drawing. I've seen your phone for 3 minutes." Composed like the web: from the habit, the label
     /// and how long the drift has run; a server line already in Pinch's voice is used as it is.
     func nudgeLine(_ a: AlertEv) -> Text {
         let d = session?.drifting
@@ -1817,7 +2422,7 @@ struct IslandView: View {
         return verdict == "slacked" ? line + " Tap any frame if I got it wrong." : line
     }
 
-    /// The verdict (canvas Island-Verdict, 440 wide): Pinch 64 plays its clip (a bloom behind it on done), the pill and
+    /// The verdict (440 wide): Pinch 64 plays its clip (a bloom behind it on done), the pill and
     /// the sentence, three frames of proof, then See proof and Fix a moment. Pinch stays green whatever the verdict.
     var verdictView: some View {
         let a = m.alert ?? AlertEv(id: 0, kind: "verdict", text: "")
@@ -1855,6 +2460,9 @@ struct IslandView: View {
                         if !sentence.isEmpty {
                             Text(sentence).font(F.islandVoice).foregroundStyle(P.ink).lineSpacing(2).monospacedDigit()
                                 .lineLimit(3).fixedSize(horizontal: false, vertical: true)
+                        }
+                        if m.state?.pinch?.momentName == "plan_done" && v != "slacked" {
+                            Text("That was today's last block.").font(F.islandSecondary).foregroundStyle(P.ink2)
                         }
                     }
                     .tier(0)
@@ -2013,7 +2621,7 @@ final class Controller {
     func start() {
         let screen = NSScreen.screens.first { $0.safeAreaInsets.top > 0 } ?? NSScreen.main!
         notch = Notch(screen: screen)
-        let W: CGFloat = 640, H: CGFloat = 460
+        let W: CGFloat = 640, H: CGFloat = 560      // headroom for the Today panel; the hit rect is the measured shape
         let f = screen.frame
         panel = Panel(contentRect: NSRect(x: f.midX - W / 2, y: f.maxY - H, width: W, height: H),
                       styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -2132,6 +2740,9 @@ final class Controller {
             : NSRect(x: hit.minX - 32, y: hit.minY - 48, width: hit.width + 64, height: hit.height + 48).contains(p)
         island.hovering = inside
         defer { wasInside = inside }
+        // The open Today Pinch looks toward the side the pointer is on (a 40 pt dead zone in the middle).
+        let look: Double = island.mode == .expanded && inside && abs(p.x - f.midX) > 20 ? (p.x < f.midX ? -0.4 : 0.4) : 0
+        if look != island.lookSide { island.lookSide = look }
         // Peek while the pointer rests in the closed notch, until the dwell opens it.
         island.setPeek(inside && island.mode == .collapsed && !island.leaving, side: p.x < f.midX ? -1 : 1)
 
@@ -2241,24 +2852,39 @@ struct SnapExtras: Decodable {
         m.glintIcon = alert.map { $0.text.hasPrefix("Strava") ? "figure.run" : "heart.fill" } ?? "heart.fill"
         m.pinchClip = mode != .alert ? nil
             : alert?.kind == "nudge" ? .sideeye
-            : alert?.kind == "verdict" ? Island.verdictClip[alert?.verdict ?? ""] : nil
+            : alert?.kind == "verdict" ? Island.verdictClip[alert?.verdict ?? ""]
+            : alert?.kind == "habits_saved" ? .surprise : nil
         m.startingUntil = name == "offline_starting" ? m.now + 20 : 0
         let v = ZStack(alignment: .top) {
             Color(white: 0.82)   // stand-in for the menu bar / wallpaper
             IslandView(m: m, notch: notch)
-        }.frame(width: 640, height: 460)
-        let r = ImageRenderer(content: v)
-        r.scale = 2
-        if let img = r.nsImage, let tiff = img.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),
-           let png = rep.representation(using: .png, properties: [:]) {
-            try? png.write(to: URL(fileURLWithPath: "\(dir)/\(prefix)island_\(name).png"))
-        }
+        }.frame(width: 640, height: 560)
+        writePNG(v, "\(dir)/\(prefix)island_\(name).png")
     }
-    print("notch \(notch.width)x\(notch.height) hasNotch=\(notch.hasNotch) online=\(saved != nil) renders=\(renders.count)")
+    // Ambient fidgets at their peak, beside the idle key pose they move from (a still can't show motion). Rendered
+    // when asked for by name in `_only`, or on a plain --snapshot of the live island.
+    let fidgets = ["fidget_idle"] + PinchFidget.allCases.map { "fidget_\($0.rawValue)" }
+    let wanted = fidgets.filter { extras?._only?.contains($0) ?? (stateFile == nil) }
+    for name in wanted {
+        let f = PinchFidget(rawValue: String(name.dropFirst("fidget_".count)))
+        let v = ZStack { P.island; PinchFigure(pose: PinchView.fidgetPose(f?.rawValue ?? "", ms: f?.peak ?? 0), size: 96) }
+            .frame(width: 160, height: 160)
+        writePNG(v, "\(dir)/\(prefix)pinch_\(name).png")
+    }
+    print("notch \(notch.width)x\(notch.height) hasNotch=\(notch.hasNotch) online=\(saved != nil) renders=\(renders.count + wanted.count)")
+}
+
+@MainActor func writePNG(_ v: some View, _ path: String) {
+    let r = ImageRenderer(content: v)
+    r.scale = 2
+    if let img = r.nsImage, let tiff = img.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),
+       let png = rep.representation(using: .png, properties: [:]) {
+        try? png.write(to: URL(fileURLWithPath: path))
+    }
 }
 
 /// --act LABEL: press a button on the current alert exactly as a click would (say / post+body / url), print the reply.
-/// LABEL may be the island's label ("Back to it"), the server's, or the pre-redesign one ("I'm back").
+/// LABEL may be the island's label ("Back to it"), the server's, or an older one ("I'm back").
 @MainActor func actOnce(_ label: String) async {
     let m = Island()
     await m.refresh()

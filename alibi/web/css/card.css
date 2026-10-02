@@ -1,0 +1,99 @@
+/* card.css: the backend card (js/card.js) in the toast, the agent card and the Night review card, plus the Night
+   review shell and the week report list. Tokens only. Green stays an accent: bar fills, chip ink and the one primary
+   button; never a green background. Status is colour plus an icon or a caption. Motion: transform and opacity only,
+   40 ms stagger capped at 6, a 150 ms fade under reduced motion. */
+
+/* ---------- tone pairs ---------- */
+.cd--accent{--cd-wash:var(--accent-wash);--cd-ink:var(--accent-ink);--cd-fill:var(--accent)}
+.cd--partial{--cd-wash:var(--partial-wash);--cd-ink:var(--partial-ink);--cd-fill:var(--partial)}
+.cd--warn{--cd-wash:var(--warn-wash);--cd-ink:var(--warn-ink);--cd-fill:var(--warn)}
+.cd--neutral{--cd-wash:var(--surface-2);--cd-ink:var(--ink-2);--cd-fill:var(--ink-3)}
+
+/* ---------- the card ---------- */
+.cd{position:relative;display:flex;flex-direction:column;gap:var(--space-3);min-width:0;white-space:normal;font-variant-numeric:tabular-nums}
+.cd-body{position:relative;display:flex;flex-direction:column;gap:var(--space-3);min-width:0}
+.cd--page>.cd-body{padding-left:var(--space-4)}
+.cd--page>.cd-body::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:2px;border-radius:1px;background:var(--cd-fill)}
+.cd--page.cd--neutral>.cd-body::before{background:var(--hairline-strong)}
+.cd-head{display:flex;align-items:flex-start;gap:var(--space-4);min-width:0}
+.cd-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:var(--space-1)}
+.cd-title{margin:0;font-size:17px;line-height:1.35;font-weight:600;letter-spacing:-.01em;color:var(--ink);text-wrap:balance;overflow-wrap:anywhere}
+.cd--compact .cd-title{font-size:16px;line-height:1.4}
+.cd-sub{margin:0;font-size:15px;line-height:1.45;color:var(--ink-2);text-wrap:pretty;overflow-wrap:anywhere}
+.cd--compact .cd-sub{font-size:14px}
+
+/* stat: one number, trailing in the title row */
+.cd-stat{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.cd-stat__v{font-family:var(--font-rounded);font-size:28px;line-height:1;font-weight:600;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
+.cd-stat.cd--accent .cd-stat__v,.cd-stat.cd--partial .cd-stat__v,.cd-stat.cd--warn .cd-stat__v{color:var(--cd-ink)}
+.cd-stat__v small{margin-left:3px;font-family:var(--font-sans);font-size:13px;font-weight:500;letter-spacing:0;color:var(--ink-2)}
+.cd-stat__v small.is-pct{margin-left:1px}
+.cd-stat__c{font-size:12px;line-height:1.3;color:var(--ink-2);white-space:nowrap}
+.cd--compact .cd-stat__v{font-size:24px}
+
+/* provenance: who made this line, one quiet stamp */
+.cd-prov{margin:calc(-1 * var(--space-1)) 0 0;font-size:12px;line-height:1.45;color:var(--ink-3);text-wrap:pretty}
+.cd-prov .cd-ic{display:inline-block;margin-right:var(--space-1);vertical-align:-1px;color:var(--ink-2)}
+.cd-prov__t{font-weight:600;color:var(--ink-2)}
+.cd-prov__d{color:var(--ink-3)}
+
+/* chips: spans, never buttons */
+.cd-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cd-chip{display:inline-flex;align-items:center;gap:5px;box-sizing:border-box;max-width:100%;height:24px;padding:0 var(--space-2);border-radius:var(--radius-xs);border:1px solid transparent;background:var(--cd-wash);color:var(--cd-ink);font-size:13px;line-height:1;font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cd-chip>span{overflow:hidden;text-overflow:ellipsis}
+.cd-chip.cd--neutral{border-color:var(--hairline)}
+.toast .cd-chip.cd--neutral{background:var(--surface-3);border-color:transparent}
+.cd-chip .cd-ic{flex:none}
+
+/* groups: a sentence-case label, then chips or bars */
+.cd-group{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cd-glabel{margin:0;font-size:12px;line-height:1.3;font-weight:600;letter-spacing:.01em;color:var(--ink-2)}
+.cd-bars{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(176px,calc(50% - var(--space-3))),1fr));gap:var(--space-2) var(--space-6)}
+.cd-bar{display:grid;grid-template-columns:minmax(0,6.5em) minmax(24px,1fr) 3.25em;align-items:center;gap:var(--space-2);min-width:0;font-size:13px;line-height:1.3}
+.cd-bar__l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-weight:500}
+.cd-bar__t{position:relative;display:block;height:6px;border-radius:var(--radius-pill);background:var(--hairline);overflow:hidden}
+.cd-bar__t i{position:absolute;inset:0;border-radius:inherit;background:var(--cd-fill);transform-origin:left center;transform:scaleX(var(--f,0))}
+.cd-bar__c{text-align:right;white-space:nowrap;font-size:12px;font-weight:600;color:var(--cd-ink);font-variant-numeric:tabular-nums}
+.cd-bar.cd--neutral .cd-bar__c{color:var(--ink-2)}
+.cd-more{font-size:12px;line-height:1.3;color:var(--ink-3)}
+.cd-acts{display:flex;flex-wrap:wrap;gap:var(--space-2);padding-top:var(--space-1)}
+
+/* ---------- in the toast ---------- */
+.toast.has-card{width:min(420px,calc(100vw - 32px))}
+.toast .tx .cd,.toast .tx .cd-body{gap:10px}
+@media (max-width:600px){.toast.has-card{width:auto}}
+
+/* ---------- Night review on Today (above the agent card) ---------- */
+.nightcard{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4) var(--space-6) var(--space-6)}
+.nightcard[hidden]{display:none}
+.nc-ic{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--surface-2);color:var(--ink-2)}
+.nightcard .cd-acts{padding-top:var(--space-2)}
+
+/* ---------- the agent card: card body, then the verbatim text on request ---------- */
+.agentcard .cd{margin-top:var(--space-1)}
+.agentcard .ag-full{display:none;margin:0;padding-top:var(--space-3);border-top:1px solid var(--hairline)}
+.agentcard.is-full .ag-full{display:block}
+.agentcard .ag-full .ag-text{color:var(--ink-2);font-size:15px}
+
+/* ---------- the week card's full report: one sentence per row ---------- */
+ul.wk-full{list-style:none;padding:0;display:flex;flex-direction:column}
+ul.wk-full li{padding:var(--space-2) 0;border-top:1px solid var(--hairline)}
+ul.wk-full li:first-child{border-top:0;padding-top:0}
+ul.wk-full[hidden]{display:none}
+
+/* ---------- entrance: once per new card ---------- */
+.cd-enter .cd-chip,.cd-enter .cd-bar{animation:cd-rise var(--dur-medium) var(--ease-out) both;animation-delay:calc(var(--i, 0) * 40ms + 60ms)}
+.cd-enter .cd-bar__t i{animation:cd-fill var(--dur-reveal) var(--ease-out) both;animation-delay:calc(var(--i, 0) * 40ms + 120ms)}
+.cd-enter .cd-stat{animation:cd-rise var(--dur-medium) var(--ease-out) both}
+@keyframes cd-rise{from{opacity:0;transform:translateY(4px)}}
+@keyframes cd-fill{from{transform:scaleX(0)}}
+@keyframes cd-fade{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  .cd-enter .cd-chip,.cd-enter .cd-bar,.cd-enter .cd-stat,.cd-enter .cd-bar__t i{animation:cd-fade 150ms ease both!important;animation-delay:0s!important}
+}
+
+@media (max-width:640px){
+  .nightcard{padding:var(--space-4)}
+  .cd--page>.cd-body{padding-left:var(--space-3)}
+  .cd-title{font-size:16px}
+}

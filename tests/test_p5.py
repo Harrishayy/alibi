@@ -1,4 +1,4 @@
-"""P5 DoD: strava sync prints this week's runs; report shows Running 1/3 — behind by 2 (fixture, no keys)."""
+"""Strava DoD: strava sync prints this week's runs; report shows Running 1/3 — behind by 2 (fixture, no keys)."""
 import subprocess, sys, os
 from harness import check
 import make_fixtures
@@ -11,4 +11,4 @@ check("Morning Run: 5.4 km" in out and "Commute" not in out, "runs synced, ride 
 check("Running 1/3 — behind by 2" in out, "5 km rule applied: 1/3, behind by 2")
 again = subprocess.run(cmd, capture_output=True, text=True, cwd=root, env=os.environ).stdout
 check("+" not in again, "re-sync dedupes on activity id")
-print("P5 DoD passed.")
+print("Strava DoD passed.")

@@ -2,7 +2,7 @@
 
 The Mac is the hub and owns the truth: camera, window titles, the notch island, sessions and verdicts. The DGX
 Spark runs the always-on agent: OpenClaw inside a NemoClaw / OpenShell sandbox. It reads Alibi's context and writes
-briefs, and it can't start, stop or change anything. Contract: `docs/NEMOCLAW.md` (§5 agent API, §6 jobs, §7 egress).
+briefs, and it can't start, stop or change anything. How it works: [AGENT.md](AGENT.md) (agent API, jobs, egress).
 
 ```
  MacBook  ─ Alibi daemon: :8765 dashboard (loopback only) · :8766 phone + agent API (tailnet only)
@@ -33,8 +33,8 @@ briefs, and it can't start, stop or change anything. Contract: `docs/NEMOCLAW.md
 With the Omni witness on, one-minute camera clips go to NVIDIA. Say so; the default witness (Apple Vision) keeps
 frames on the Mac.
 
-Local mode (not working yet): Nemotron 3 Nano 30B-A3B GGUF is downloaded, but NemoClaw's managed llama.cpp recipe caps
-requests at 32 KB and OpenClaw's tool loop exceeds that (HTTP 413). Needs an operator-run server without the cap.
+Local mode is not supported yet: NemoClaw's managed llama.cpp recipe caps requests at 32 KB and OpenClaw's tool loop
+exceeds that (HTTP 413), so a local Nemotron 3 Nano 30B-A3B needs an operator-run server without the cap.
 **Gotcha:** an OpenShell gateway has ONE inference route shared by every sandbox; onboarding a second sandbox on
 another model silently repoints the first. Switch with `nemoclaw inference set`, don't add sandboxes.
 
@@ -50,9 +50,13 @@ set -a; . ./.env; set +a; NVIDIA_INFERENCE_API_KEY="$NVIDIA_API_KEY" NEMOCLAW_PR
 ```
 Then put the Mac's agent token in the Spark's `.env` as `ALIBI_AGENT_TOKEN` (it's `nemoclaw_token` in the Mac's
 `data/secrets.json`, created the first time the agent API is used; hand it over out of band) and run
-`bash scripts/spark_setup.sh`. It installs the relay service, the egress preset, the skill, the heartbeat checklist
+`MAC_HOST=<your-mac>.<tailnet>.ts.net bash scripts/spark_setup.sh` (the Mac's tailnet name or IP; it is saved to
+`.env` as `MAC_URL`). It installs the relay service, the egress preset, the skill, the heartbeat checklist
 and the three cron jobs. The first `openclaw cron add` asks for an `operator.admin` scope for the sandbox's own CLI:
 approve it with `nemoclaw alibi exec -- openclaw devices approve <requestId>`.
+
+To bring the agent back by itself after a reboot or a crash, install the keep-alive timer:
+`bash spark/keepalive/install.sh` ([AGENT.md](AGENT.md#staying-up)).
 
 Mac: turn on iPhone sync (the :8766 listener). Nothing else changes; :8765 stays loopback-only.
 
@@ -67,21 +71,12 @@ nemoclaw alibi exec -- openclaw cron run <night-job-id>     # posts a brief now
 nemoclaw alibi dashboard-url --quiet                        # OpenClaw web UI (Spark loopback)
 ```
 
-## Report back (NEMOCLAW.md §10), 2026-10-01 22:20
+## Tested with
 
-```
-model_id:                 nvidia/nemotron-3-super-120b-a12b (NVIDIA Build); witness nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
-server + port:            none local; NemoClaw inference.local -> Build. Nothing on :8000/:11434 on the Spark.
-bound to tailnet:         n/a (the Mac calls Build directly, tagged llm:build)
-tool calling works:       inside OpenClaw yes (exec/read/write); raw tools= against Build not yet run from the Mac (§8 test 3)
-thinking-off method:      chat_template_kwargs {"enable_thinking": false} accepted by Build (Omni); Super untested
-nemoclaw version:         v0.0.124, OpenClaw 2026.7.1, OpenShell 0.0.116
-gateway chatCompletions:  not attempted (Ask, §4)
-gateway URL:              none; dashboard on Spark loopback :18789
-web_search provider:      none
-sandbox -> Mac egress:    works via the Spark relay (sandbox -> relay on the Docker bridge -> Mac :8766); the relay holds
-                          the token. Verified end to end against a stand-in Mac: night cron -> brief stored, shown_as agent
-tokens handed over OOB:   ALIBI_AGENT_TOKEN needed on the Spark (from the Mac's data/secrets.json)
-open issues hit:          managed llama.cpp 32 KB request cap (413); one inference route shared across sandboxes;
-                          cron add needs an operator.admin scope approval
-```
+NemoClaw v0.0.124, OpenClaw 2026.7.1, OpenShell 0.0.116, with Nemotron 3 Super on NVIDIA Build through
+`inference.local` (nothing serves a model on the Spark itself). The sandbox reaches the Mac only through the relay;
+the night job posting a brief that the Mac stores and shows as the agent's was checked end to end against a
+stand-in Mac.
+
+Known limits: the managed llama.cpp 32 KB request cap (HTTP 413) blocks local mode; an OpenShell gateway has one
+inference route shared by every sandbox; the first `openclaw cron add` needs an `operator.admin` scope approval.

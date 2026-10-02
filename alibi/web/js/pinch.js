@@ -1,6 +1,11 @@
 /* Pinch engine: window.AlibiPinch. One classic script, no modules, safe to concatenate into the design-system bundle.
 
-   AlibiPinch.mount(el, {size=96, mood='idle', theme='auto'|'dark'|'light', still=false, rim=false, seed}) -> inst
+   AlibiPinch.mount(el, {size=96, mood='idle', theme='auto'|'dark'|'light', still=false, rim=false, seed, ambient=false}) -> inst
+     ambient: true gives a visible instance some life of its own: four short fidgets (inspect,
+                                    perk, glance, click) layered under any clip, only in mood idle, first 6-10 s after
+                                    mount then one every 14-28 s (seeded), and no 2-minute rest while visible. Never with
+                                    still, reduced motion, a glyph size or Quiet lobster (localStorage alibi.quiet = "1").
+                                    inst.ambient(on) switches it; inst.state().fidget names the one playing (or null).
      inst.set(mood)                 held/looping mood, crossfaded over 420 ms
      inst.play(clip, {force, chain}) -> Promise<boolean>  true when it played to the end; false when dropped or pre-empted.
                                     Priority + 90 s cooldown: a higher priority clip pre-empts, equal or lower is dropped.
@@ -14,7 +19,7 @@
    AlibiPinch.svg({size, mood|clip, ms, theme, camera}) -> static SVG markup (no argument: pinch.svg byte for byte)
    AlibiPinch.moods, AlibiPinch.clips, AlibiPinch.params, AlibiPinch.duration(name), AlibiPinch.reducedMotion([bool|null])
 
-   Layers per frame (research/03, clips.json policy.composition): neutral <- held pose <- mood loop (bodySquash multiplies,
+   Layers per frame (clips.json policy.composition): neutral <- held pose <- mood loop (bodySquash multiplies,
    numbers add) <- gaze + lookAt <- one-shot clip (absolute). Blink multiplies eyeOpen. Every discontinuity (clip in 120 ms,
    clip out 240 ms, mood 420 ms, wake 260 ms) crossfades from the last rendered frame. Still mode, reduced motion and the
    16/20 px glyphs never run rAF: they show key poses and crossfade a ghost copy over 200 ms. One shared rAF drives every
@@ -243,6 +248,26 @@
   var R = LIB.AlibiPinchRig, POL = CLIPS.policy, MOODS = CLIPS.moods, SHOTS = CLIPS.clips, BLINK = CLIPS.blink;
   var GAZE = POL.idle_gaze, COOLDOWN = POL.cooldown_ms, REST = POL.rest_after_ms;
   var MOOD_MS = 420, WAKE_MS = 260, REST_MS = 600, FADE_MS = 200;
+  // Ambient fidgets (the island's Pinch.swift plays the same tracks). Absolute values on their
+  // params, blended in over 120 ms and out over 240 ms, under any clip. They never drive lensGlow: the lens glows only
+  // while the camera samples.
+  var FIDGETS = {
+    inspect: { dur: 1600, tracks: {
+      lens: [[0, 0], [420, 0.92, 'out'], [1150, 0.92], [1600, 0, 'in-out']],
+      glint: [[0, 0], [520, 0], [980, 1, 'in-out'], [981, 0, 'step']],
+      lookX: [[0, 0], [420, 0.2, 'out'], [1150, 0.2], [1600, 0, 'in-out']] } },
+    perk: { dur: 700, tracks: {
+      antennaLift: [[0, 0], [140, -3, 'anticip'], [300, 9, 'overshoot'], [700, 0, 'settle']],
+      eyeOpen: [[0, 1], [220, 1.1, 'out'], [600, 1, 'out']],
+      bodySquash: [[0, 1], [140, 0.97, 'anticip'], [300, 1.03, 'overshoot'], [600, 1, 'settle']] } },
+    glance: { dur: 1800, tracks: {
+      lookX: [[0, 0], [260, -0.55, 'out'], [760, -0.55], [1060, 0.5, 'in-out'], [1500, 0.5], [1800, 0, 'in-out']],
+      lookY: [[0, 0], [260, -0.1, 'out'], [1500, -0.1], [1800, 0, 'in-out']] } },
+    click: { dur: 1100, tracks: {
+      clawL: [[0, 0], [150, -6, 'anticip'], [320, 14, 'overshoot'], [800, 10], [1100, 0, 'settle']],
+      pinchL: [[320, 0], [410, 1, 'out'], [540, 0, 'out'], [630, 1, 'out'], [760, 0, 'out']] } }
+  };
+  var FID_NAMES = ['inspect', 'perk', 'glance', 'click'], FID_IN = 120, FID_OUT = 240;
   var HAS_DOM = typeof document !== 'undefined';
   var STYLE_RE = /<style>([\s\S]*?)<\/style>/;
   var GLYPH_FEET = { g16: [8.5, 15.5], g20: [10.6, 19.4] };
@@ -354,8 +379,14 @@
     }
     p.lookX += L.x; p.lookY += L.y;
     limit(p);
+    var fc = I.fid && I.fid.cur;
+    if (fc && !I.shot) {
+      var fv = R.sample(fc.def, fc.t);
+      for (var k in fv) if (k !== 'lensGlow') p[k] = fv[k];
+      limit(p);
+    }
     if (I.shot) overlay(p, I.shot.def, I.shot.t);
-    return finish(I, p, I.shot && I.shot.def, I.clock, true);
+    return finish(I, p, (I.shot && I.shot.def) || (fc && fc.def), I.clock, true);
   }
   function stillPose(I) {
     var p = limit(base(I, I.mood, MOODS[I.mood].key));
@@ -498,7 +529,8 @@
     var L = I.look, a = 1 - Math.exp(-dt / 90);
     L.x += (L.tx - L.x) * a; L.y += (L.ty - L.y) * a; L.w += ((L.on ? 1 : 0) - L.w) * a;
     if (I.shot) { I.shot.t += dt; if (I.shot.t >= I.shot.def.dur) endShot(I); }
-    if (!I.resting && !I.shot && !I.xf && now() - I.input > REST) { I.resting = true; startXf(I, REST_MS, 'in-out'); }
+    if (!I.resting && !I.shot && !I.xf && !I.opts.ambient && now() - I.input > REST) { I.resting = true; startXf(I, REST_MS, 'in-out'); }
+    if (!I.resting) stepFidget(I);
     var p = I.resting ? stillPose(I) : livePose(I);
     if (I.xf) {
       var k = (I.clock - I.xf.t0) / I.xf.dur;
@@ -509,6 +541,40 @@
   }
   function render(I, p, t) { applyView(I.view, p, t); I.last = p; I.lastT = t; }
   function startXf(I, dur, ease) { if (I.last) I.xf = { from: I.last, t0: I.clock, dur: dur, ease: ease }; }
+
+  /* ---------- ambient fidgets: seeded, on the instance clock (which only runs while it is visible) ---------- */
+  function quietLobster() { try { return !!(root.localStorage && root.localStorage.getItem('alibi.quiet') === '1'); } catch (e) { return false; } }
+  function fidgetsOn(I) { return !!I.opts.ambient && I.mood === 'idle' && !still(I) && !quietLobster(); }
+  function nextFidget(F) { // a seeded shuffle of the four, never the same one twice in a row
+    if (!F.order.length) {
+      var a = FID_NAMES.slice();
+      for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(F.rng() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
+      if (a[0] === F.last) a.push(a.shift());
+      F.order = a;
+    }
+    return F.order.shift();
+  }
+  function stepFidget(I) {
+    var F = I.fid;
+    if (!F) return;
+    if (F.cur) {
+      F.cur.t = I.clock - F.cur.t0;
+      if (I.shot) { F.cur = null; return; }                     // a clip pre-empts it; the clip's blend-in carries the fade
+      if (F.cur.t >= F.cur.def.dur || !fidgetsOn(I)) endFidget(I, true);
+      return;
+    }
+    if (I.shot || I.clock < F.next || !fidgetsOn(I)) return;
+    var name = nextFidget(F);
+    F.last = name;
+    F.cur = { name: name, def: FIDGETS[name], t0: I.clock, t: 0 };
+    F.next = I.clock + 14000 + 14000 * F.rng();
+    startXf(I, FID_IN, 'in-out');
+  }
+  function endFidget(I, blend) {
+    if (!I.fid || !I.fid.cur) return;
+    I.fid.cur = null;
+    if (blend && !still(I)) startXf(I, FID_OUT, 'in-out');
+  }
 
   /* ---------- still mode: key poses, crossfaded through a ghost copy (no rAF) ---------- */
   function stillShow(I, fade) {
@@ -604,12 +670,14 @@
     boot();
     var id = ++uid;
     var I = assign(newState(opts.seed != null ? opts.seed : id * 7919 + 17), {
-      id: id, opts: { still: !!opts.still, theme: opts.theme || 'auto', rim: !!opts.rim },
+      id: id, opts: { still: !!opts.still, theme: opts.theme || 'auto', rim: !!opts.rim, ambient: !!opts.ambient },
       size: opts.size || 96, mood: MOODS[opts.mood] ? opts.mood : 'idle',
       shot: null, xf: null, last: null, lastT: 0, clock: 0, moodT: 0, mode: 'live', timer: 0,
       look: { x: 0, y: 0, tx: 0, ty: 0, w: 0, on: false }, onscreen: true, resting: false, rested: false, input: now(),
       lastShotAt: -Infinity, lastShotPrio: -1, sideeyes: 0, dead: false
     });
+    var fr = rng(((opts.seed != null ? opts.seed : id * 7919 + 17) ^ 0x5BD1E995) >>> 0);
+    I.fid = { rng: fr, next: 6000 + 4000 * fr(), cur: null, order: [], last: null };
     I.wrap = document.createElement('span');
     I.wrap.className = 'alibi-pinch';
     el.appendChild(I.wrap);
@@ -673,7 +741,14 @@
       state: function () {
         return { mood: I.mood, clip: I.shot ? I.shot.name : null, rung: I.rung, size: I.size, camera: I.camera,
           mode: I.dead ? 'destroyed' : I.mode === 'seek' ? 'seek' : still(I) ? 'still' : I.rested ? 'resting' : 'live',
-          cooldownLeft: Math.max(0, Math.round(COOLDOWN - (now() - I.lastShotAt))), sideeyes: I.sideeyes };
+          cooldownLeft: Math.max(0, Math.round(COOLDOWN - (now() - I.lastShotAt))), sideeyes: I.sideeyes,
+          ambient: !!I.opts.ambient, fidget: I.fid && I.fid.cur ? I.fid.cur.name : null };
+      },
+      ambient: function (on) {
+        if (I.dead) return o;
+        I.opts.ambient = !!on;
+        if (!on) endFidget(I, true); else if (!still(I)) wake(I);
+        return o;
       },
       destroy: function () {
         if (I.dead) return;

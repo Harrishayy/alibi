@@ -1,4 +1,4 @@
-"""F5 DoD (NEXT_PHASE §3): digest slots, checkpoint suppression and deltas, the night replan tool loop against a local
+"""Digest DoD: digest slots, checkpoint suppression and deltas, the night replan tool loop against a local
 stub (scripted tool_calls; invalid slot, no tools and server down all fall back to rules), accept -> add_once, and the
 morning memory callback ("22 of 25"), undo, and the replan trace totals (turns, total_ms, per-step result). Fake clock, no network beyond 127.0.0.1."""
 import os
@@ -144,11 +144,27 @@ script("07:00")                                                  # overlaps tomo
 p, trace, via = digest.replan(con, clock.t, use_llm=True, base_url=STUB, model="stub")
 err = next((t.get("error") for t in trace if t.get("error")), None)
 check(via == "rules" and p and p["via"] == "rules" and p["at"] == "07:30" and err and trace[-1]["tool"] == "rules picker",
-      f"an invalid slot is dropped -> rules picker ({p and p['at']}, {err})")
+      f"an invalid slot the model never fixes -> rules picker ({p and p['at']}, {err})")
+
+# a rejected proposal goes back to the model as that call's result (with the validator's reason); it fixes it
+script("07:00")
+SCRIPT.append({"tools": [call("propose", habit="drawing", day=T1, at="07:30", minutes=25, why="Furthest behind.")]})
+rp = digest._replan(con, clock.t, use_llm=True, base_url=STUB, model="stub")
+told = [m for m in SEEN[-1]["messages"] if m.get("role") == "tool"]
+check(rp["via"].startswith("llm") and rp["proposal"]["at"] == "07:30" and rp["turns"] == 4
+      and [t["tool"] for t in rp["trace"]] == ["week_status", "plan", "free_gaps", "propose", "propose"]
+      and rp["trace"][3].get("error") and "overlaps" in told[-1]["content"] and rp["model"] == "stub",
+      f"invalid then valid proposal -> the model's, via {rp['via']} in {rp['turns']} turns ({told[-1]['content'][:60]})")
+wk = json.loads(next(m for m in SEEN[-1]["messages"] if m.get("role") == "tool")["content"])
+cap = next(x for x in wk if x["habit"] == "drawing").get("max_minutes")
+check(cap == 50 and digest.validate(con, {"habit": "drawing", "day": T1, "at": "08:00", "minutes": cap + 1}, clock.t)[1]
+      == "minutes must be 1–50", f"week_status shows the validator's cap: drawing max_minutes {cap}")
 
 SCRIPT[:] = [{"content": "Draw tomorrow morning."}]
 p, trace, via = digest.replan(con, clock.t, use_llm=True, base_url=STUB, model="stub")
-check(via == "rules" and p and p["habit"] == "drawing", "no tool calls -> rules")
+check(via == "rules" and p and p["habit"] == "drawing" and [t["tool"] for t in trace] == ["no tool call", "rules picker"]
+      and trace[0]["result"] == "answered in prose: Draw tomorrow morning.",
+      f"no tool calls -> a trace step, then rules ({trace[0]})")
 
 s = socket.socket(); s.bind(("127.0.0.1", 0)); dead = s.getsockname()[1]; s.close()
 t0 = time.monotonic()
@@ -165,14 +181,31 @@ check(rep["text"] == night["text"] and rep.get("slot") == night["slot"], "the re
 check(night["via"] == "rules" and night["proposal"]["at"] == "07:30" and "Move drawing to tomorrow 07:30, 25 min?"
       in night["text"], f"night proposal via rules ({night['text']!r})")
 check("Day closed." in night["text"] and "Buffer:" in night["text"], "night: lists and buffers")
+check(night["text"].startswith("Move drawing to tomorrow 07:30, 25 min? No buffer left this week.\n")
+      and "Checked" not in night["text"], f"night text leads with the question and its reason; rules rows have no "
+                                          f"model line ({night['text'].splitlines()[0]!r})")
+same = dict(night["json"], fix_tomorrow={"habit": "drawing", "label": "Drawing", "reason": "40 min behind."})
+other = dict(same, fix_tomorrow={"habit": "building", "label": "Building", "reason": "30 min behind."})
+check("Fix tomorrow" not in digest.text(same) and "Fix tomorrow: Building. 30 min behind." in digest.text(other),
+      "'Fix tomorrow' is dropped when it repeats the proposal, kept for another habit")
 
-# the same night through the API with a model on (the demo beat), via llm:spark, then accepted
+# the same night through the API with a model on, via llm:spark, then accepted
 config.TEXT_READY, config.LLM_BASE_URL, config.LLM_MODEL = True, STUB, "stub"
 script("07:30")
 row = c.post("/api/digests/run", json={"kind": "night"}).json()
 config.TEXT_READY, config.LLM_BASE_URL, config.LLM_MODEL = False, "http://127.0.0.1:9/v1", ""
 check(row["slot"] == "2026-10-05-night-2" and row["via"] == "llm:spark" and len(row["trace"]) >= 3,
       f"run night via API: llm:spark with a trace, scheduled row kept ({row['slot']})")
+lines = row["text"].splitlines()
+check(lines[0] == "Move drawing to tomorrow 07:30, 25 min? Furthest behind; 07:30 is free after building."
+      and lines[1].startswith("Checked your week, tomorrow's plan and free gaps · Stub · ") and lines[1].endswith(" s")
+      and lines[2].startswith("Day closed.") and row["model"] == "stub",
+      f"model night: question, then what it checked, which model and how long, then the day ({lines[:2]})")
+check(notify.last_alert("digest").get("habit_label") == "Night review", "the night alert's island header: Night review")
+check(digest._provenance({"generated_at": clock.t, "total_ms": 6400, "model": "nvidia/nemotron-3-super-120b-a12b",
+                          "trace": [{"tool": "week_status", "args": {}}, {"tool": "plan", "args": {"day": T1}},
+                                    {"tool": "free_gaps", "args": {"day": T1}}, {"tool": "propose", "args": {}}]})
+      == "Checked your week, tomorrow's plan and free gaps · Nemotron 3 Super · 6 s", "provenance line for Build")
 check(c.get("/api/digests/latest").json()["slot"] == row["slot"] and
       len(c.get("/api/digests", params={"limit": 3}).json()["digests"]) == 3, "GET /api/digests and /latest")
 check(not any(b["habit"] == "drawing" for b in calendar_sync.plan(con, D + dt.timedelta(days=1), 1, clock.t)),

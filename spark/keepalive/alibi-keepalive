@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Keeps the Alibi agent running on the Spark. After a reboot or a crash: start the sandbox, then make sure its OpenClaw
+# gateway (which runs the cron jobs and the heartbeat) answers, and that the relay is up. Quiet when all is well.
+# Installed by install.sh; alibi-keepalive.timer runs it 2 minutes after boot and every 10 minutes.
+set -u
+export PATH="$HOME/.local/bin:$PATH"
+SB="${ALIBI_SANDBOX:-alibi}"
+
+# A user systemd manager started before you joined the docker group doesn't have it until the next reboot: borrow it.
+D() { if [[ " $(id -nG) " == *" docker "* ]]; then "$@"; else sg docker -c "$(printf '%q ' "$@")"; fi; }
+up() { [ -n "$(D docker ps --filter "name=openshell-default--$SB" --format '{{.Status}}' 2>/dev/null)" ]; }
+agent_ok() { D nemoclaw "$SB" exec --timeout 30 -- openclaw cron list --json >/dev/null 2>&1; }
+
+systemctl --user is-active --quiet nemoclaw-openshell-gateway || systemctl --user restart nemoclaw-openshell-gateway
+if ! up; then
+  echo "sandbox $SB is down: starting it"
+  D nemoclaw "$SB" start || D nemoclaw "$SB" recover
+  sleep 30
+fi
+if ! agent_ok; then
+  echo "agent gateway in $SB isn't answering: restarting it"
+  D nemoclaw "$SB" gateway restart --quiet || D nemoclaw "$SB" recover
+  sleep 15
+  if agent_ok; then echo "agent is back"; else echo "agent still down; see: nemoclaw $SB doctor"; exit 1; fi
+fi
+systemctl --user is-active --quiet alibi-relay || { echo "relay down: restarting"; systemctl --user restart alibi-relay; }
+exit 0

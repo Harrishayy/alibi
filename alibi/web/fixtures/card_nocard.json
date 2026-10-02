@@ -1,0 +1,208 @@
+{
+ "now": 1790974813.0,
+ "session": null,
+ "alert": {
+  "id": 1790974801000000010,
+  "ts": 1790974811.0,
+  "image": null,
+  "image_url": null,
+  "kind": "report",
+  "text": "Move math to tomorrow 08:00, 60 min? Furthest behind this week.\nChecked your week, tomorrow's plan and free gaps · Nemotron 3 Super · 5 s\nDay closed. Missed: Math 11:00, C++ 14:00, Drawing 19:00.\nBuffer: Drawing -3 d, Building -2 d, Math -5 d, C++ -5 d, Internships -4 d, Portfolio -2 d, Running -5 d.",
+  "day": "2026-10-02",
+  "slot": "2026-10-02-night",
+  "via": "llm:build",
+  "habit_label": "Night review",
+  "actions": [
+   {
+    "label": "Accept",
+    "post": "/api/digests/2026-10-02-night/accept",
+    "body": {},
+    "dismiss": true
+   },
+   {
+    "label": "Not now",
+    "dismiss": true
+   }
+  ]
+ },
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "portfolio",
+   "label": "Portfolio",
+   "modality": "digital",
+   "default_min": 45
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790971211.0
+ },
+ "today": {
+  "sessions": 1,
+  "verified_min": 23,
+  "declared_min": 25,
+  "habits_done": 1,
+  "habits_total": 6,
+  "tally": "1/6",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Idle — nothing declared",
+ "pinch": {
+  "mood": "reading",
+  "event": null,
+  "seq": 0,
+  "age_s": null,
+  "line": null
+ },
+ "plan_today": {
+  "date": "2026-10-02",
+  "now": 1790975120.0,
+  "scheduled": true,
+  "total": 4,
+  "kept": 2,
+  "left_min": 0,
+  "summary": "Nothing left today. 2 of 4 kept.",
+  "next": null,
+  "left": [],
+  "done": [
+   {
+    "key": "drawing@2026-10-02T19:00",
+    "habit": "drawing",
+    "label": "Drawing",
+    "at": "19:00",
+    "end_at": "19:25",
+    "start": 1790964000.0,
+    "end": 1790965500.0,
+    "minutes": 25,
+    "check": "camera",
+    "glyph": "camera",
+    "status": "done",
+    "verdict": "done",
+    "ratio": 0.92,
+    "session_id": 41,
+    "startable": true,
+    "once": false,
+    "moved": false
+   },
+   {
+    "key": "piano@2026-10-02T21:00",
+    "habit": "piano",
+    "label": "Piano",
+    "at": "21:00",
+    "end_at": "21:20",
+    "start": 1790971200.0,
+    "end": 1790972400.0,
+    "minutes": 20,
+    "check": "camera",
+    "glyph": "camera",
+    "status": "done",
+    "verdict": "done",
+    "ratio": 0.95,
+    "session_id": 42,
+    "startable": true,
+    "once": false,
+    "moved": false
+   }
+  ],
+  "missed": [
+   {
+    "key": "math@2026-10-02T11:00",
+    "habit": "math",
+    "label": "Math",
+    "at": "11:00",
+    "end_at": "11:30",
+    "start": 1790935200.0,
+    "end": 1790937000.0,
+    "minutes": 30,
+    "check": "both",
+    "glyph": "camera",
+    "status": "missed",
+    "verdict": null,
+    "ratio": null,
+    "session_id": null,
+    "startable": true,
+    "once": false,
+    "moved": false
+   },
+   {
+    "key": "cpp@2026-10-02T14:00",
+    "habit": "cpp",
+    "label": "C++",
+    "at": "14:00",
+    "end_at": "14:30",
+    "start": 1790946000.0,
+    "end": 1790947800.0,
+    "minutes": 30,
+    "check": "screen",
+    "glyph": "laptop",
+    "status": "missed",
+    "verdict": null,
+    "ratio": null,
+    "session_id": null,
+    "startable": true,
+    "once": false,
+    "moved": false
+   }
+  ],
+  "checking": [],
+  "away": null
+ },
+ "phrase": {
+  "text": "Math, C++, Drawing blocks missed today.",
+  "source": "rules",
+  "situation": "missed"
+ },
+ "agent": {
+  "last_seen": 1790974511.0,
+  "ago_s": 300,
+  "online": true,
+  "host": "DGX Spark"
+ },
+ "clients": {
+  "island_ago_s": 0.8,
+  "dashboard_ago_s": 0.4
+ }
+}

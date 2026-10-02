@@ -1,6 +1,6 @@
 // What `GET /api/phone/session` returns (alibi/integrations.py session_info), decoded leniently: every field is
 // optional and a wrong type drops that one field rather than the reply, so older Macs (the flat coupling keys only)
-// still decode. Read by Today, Week and the Live Activity controller (Views/Live). IMPLEMENTATION Appendix C.
+// still decode. Read by Today, Week and the Live Activity controller (Views/Live).
 import Foundation
 
 struct PhoneSession: Decodable, Equatable {

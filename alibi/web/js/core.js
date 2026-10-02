@@ -4,7 +4,12 @@ const LABELS = ["on_task","phone","off_task","idle","absent"];
 const LBL_TXT = {on_task:"on task",phone:"on phone",off_task:"something else",idle:"idle",absent:"away"};
 const VWORD = {done:"Done", partial:"Partly", slacked:"Slacked"};
 const CHECK_WORD = {physical:"checked by camera", digital:"checked by screen", hybrid:"camera + screen", strava:"Strava", health:"Apple Health"};
-const plain = t => String(t || "").replace(/\bthe witness\b/gi, "Alibi").replace(/\bwitness\b/gi, "Alibi").replace(/(\d+) looks\b/g, "$1 checks").replace(/\bdeclared\b/g, "planned").replace(/\bdeclare\b/g, "start").replace(/: slacked\./g, ": didn't count.").replace(/: partial\b/g, ": partly done").replace(/ — a claim isn't evidence;/g, ";").replace(/\bmin seen\b/g, "min seen by Alibi").replace(/you're (.+?) behind pace/g, "$1 to go to stay on pace");
+// Display text: no raw enums on screen ("off_track" reads "off track"). Same regex as the backend's cards.display,
+// so it's idempotent with it. Built with new RegExp so an engine without lookbehind skips it, not the page.
+const DISP_WORDS = {status3: "status", buffer_days: "buffer", need_today_min: "needed today", verified_min: "seen", target_min: "goal", today_seen_min: "seen today", today_planned_min: "planned today"};
+let DISP_RX = null; try { DISP_RX = new RegExp("(?<\u0021[\\w/.-])([A-Za-z]+(?:_[A-Za-z0-9]+)+)(?\u0021[\\w/-]|\\.\\w)", "g"); } catch {}
+const dispText = t => { const x = String(t ?? ""); return DISP_RX ? x.replace(DISP_RX, (m, w) => DISP_WORDS[w.toLowerCase()] || (w === w.toUpperCase() && w !== w.toLowerCase() ? w.toLowerCase() : w).replace(/_/g, " ")) : x; };
+const plain = t => dispText(t || "").replace(/\bthe witness\b/gi, "Alibi").replace(/\bwitness\b/gi, "Alibi").replace(/(\d+) looks\b/g, "$1 checks").replace(/\bdeclared\b/g, "planned").replace(/\bdeclare\b/g, "start").replace(/: slacked\./g, ": didn't count.").replace(/: partial\b/g, ": partly done").replace(/ — a claim isn't evidence;/g, ";").replace(/\bmin seen\b/g, "min seen by Alibi").replace(/you're (.+?) behind pace/g, "$1 to go to stay on pace");
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const TOK = {on_task:"on-task", off_task:"off-task", phone:"phone", idle:"idle", absent:"absent"};
 const cvar = l => `var(--${TOK[l] || "absent"})`;
@@ -48,6 +53,7 @@ async function pollState() {
   renderStatus(s);
   renderNow(s.session, s.now, s.recent_verdict);
   renderToday(s.today);
+  if (typeof renderTodayExtras === "function") renderTodayExtras(s);
   renderHeroStrip();
   renderPrivacy(s);
   handleAlert(s.alert, s.now, s);
@@ -166,18 +172,29 @@ function handleAlert(a, now, s) {
   if (kind === "info" && /daemon up|dashboard:|witness:/i.test(a.text || "")) return;   // developer chatter, not for users
   if (!(a.text || "").trim()) return;                                                       // never show an empty toast
   if (kind === "planned") { plannedKey = a.block_key; loadPlan(); }
+  if (kind === "brief" && typeof loadBriefs === "function") loadBriefs();
+  if ((kind === "report" || kind === "digest") && typeof loadNight === "function") loadNight();   // the Today Night review card
+  if (kind === "habits_saved") { loadPlan(); if (window.AlibiHabits && AlibiHabits.isOpen()) return; }   // the sheet shows its own receipt
   if (kind === "verdict" && s && !s.session && s.recent_verdict) return;                   // the Now panel holds the verdict
   const t = $("#toast");
   t.className = "toast " + kind;
   if (kind === "verdict") t.style.setProperty("--c", vvar(a.verdict || (/\b(done|partial|slacked)\b/i.exec(a.text || "") || [])[1]?.toLowerCase()));
-  $("#toastKind").textContent = ({nudge:"Still with it?", verdict:"How it went", report:"Your week", info:"Note", pace:"This week", recap:"Today's reel", planned:"Planned now", synced:"Synced"})[kind] || "Note";
-  $("#toastText").textContent = plain(a.text || "");
+  // A night review, morning brief or check-in names itself (habit_label: "Night review"), not "Your week".
+  const named = (kind === "report" || kind === "digest") && typeof a.habit_label === "string" && a.habit_label.trim() ? a.habit_label.trim() : "";
+  $("#toastKind").textContent = named || ({nudge:"Still with it?", verdict:"How it went", report:"Your week", info:"Note", pace:"This week", recap:"Today's reel", planned:"Planned now", synced:"Synced", brief:"From your agent", habits_saved:"Noted"})[kind] || "Note";
+  // A card is laid out, never parsed; without one, or with one this page can't read, the alert's text shows instead.
+  const card = window.AlibiCard && AlibiCard.ok(a.card) ? AlibiCard.html(a.card, {compact: true}) : "";
+  t.classList.toggle("has-card", !!card);
+  if (card) { $("#toastText").innerHTML = card; AlibiCard.enter($("#toastText")); }
+  // A brief is the agent's own words: shown verbatim (enums aside), its source line under it (never through plain()).
+  else if (kind === "brief") $("#toastText").innerHTML = `${esc(dispText(a.text || ""))}${a.source_line ? `<span class="tsrc">${esc(a.source_line)}</span>` : ""}`;
+  else $("#toastText").textContent = plain(a.text || "");
   const img = $("#toastImg");
   if (a.image_url && kind !== "nudge") { img.src = a.image_url; img.hidden = false; } else { img.hidden = true; img.removeAttribute("src"); }
   renderToastActs(a.actions || []);
   requestAnimationFrame(() => t.classList.add("show"));
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(hideToast, kind === "info" ? 5000 : kind === "nudge" || kind === "planned" ? 60000 : a.image_url ? 16000 : 11000);
+  toastTimer = setTimeout(hideToast, kind === "info" ? 5000 : kind === "habits_saved" ? 8000 : kind === "brief" ? 14000 : kind === "nudge" || kind === "planned" ? 60000 : a.image_url || (card && (kind === "report" || kind === "digest")) ? 16000 : 11000);
 }
 let toastActs = [];
 function renderToastActs(acts) {
@@ -189,11 +206,15 @@ $("#toastActs").addEventListener("click", e => {
   const x = toastActs[+b.dataset.ti]; if (!x) return;
   hideToast();
   if (x.undo) return x.undo();
-  if (x.post) return postJSON(x.post, x.body || {}).then(j => { loadPlan(); if (j && j.reply) showToast("note", j.reply); }).catch(() => showToast("note", "That didn't save. Check Alibi is running, then try again."));
+  // Stage: a fixture's post never reaches the daemon serving the page (the night fixtures carry a real night's slot); a
+  // night review Accept flips the Today card to the fixture's accepted row instead, as the card's own Accept does.
+  if (x.post && STAGE) { if (/^\/api\/digests\//.test(x.post) && typeof stageNightAccept === "function") stageNightAccept(); return; }
+  if (x.post) return postJSON(x.post, x.body || {}).then(j => { loadPlan(); if (typeof loadNight === "function") loadNight(); if (j && j.reply) showToast("note", j.reply); }).catch(() => showToast("note", "That didn't save. Check Alibi is running, then try again."));
   if (x.say) return say(x.say);
   if (x.url) {
     if (x.url.startsWith("/api/reel")) return playReel(x.url, x.label);
     const m = /#session-(\d+)/.exec(x.url); if (m) return gotoSession(+m[1]);
+    if (/^\/?#/.test(x.url)) { location.hash = x.url.replace(/^\//, ""); return route(); }
     window.open(x.url, "_blank", "noopener");
   }
 });
@@ -224,14 +245,14 @@ function closeLayer(id) {
 // Closed overlays (drawer, lightbox, onboarding) stay out of the tab order, and an open drawer or lightbox makes the page
 // behind it inert, so Tab stays inside the dialog. Watches the .show class, so onboarding.js needs no change.
 function syncInert() {
-  const L = ["drawer", "lightbox", "onb"].map(id => document.getElementById(id)).filter(Boolean);
+  const L = ["drawer", "lightbox", "onb", "habitsSheet"].map(id => document.getElementById(id)).filter(Boolean);
   L.forEach(el => { el.inert = !el.classList.contains("show"); });
-  const modal = document.querySelector(".drawer.show,.lightbox.show"), wrap = document.querySelector(".wrap");
+  const modal = document.querySelector(".drawer.show,.lightbox.show,.hs.show"), wrap = document.querySelector(".wrap");
   if (wrap) wrap.inert = !!modal;
   document.querySelectorAll("body > .skip").forEach(el => { el.inert = !!modal; });
 }
 { const mo = new MutationObserver(syncInert);
-  ["drawer", "lightbox", "onb"].forEach(id => { const el = document.getElementById(id); if (el) mo.observe(el, {attributes: true, attributeFilter: ["class"]}); });
+  ["drawer", "lightbox", "onb", "habitsSheet"].forEach(id => { const el = document.getElementById(id); if (el) mo.observe(el, {attributes: true, attributeFilter: ["class"]}); });
   syncInert(); }
 // The count beside Setup is warn ink only; say it too.
 { const n = $("#setupN"), b = $("#setupBtn");
@@ -245,6 +266,7 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
+  if (window.AlibiHabits && AlibiHabits.isOpen()) return;          // habits.js handles Esc inside the sheet
   if ($("#pop").classList.contains("show")) return closePop(true);
   if ($("#lightbox").classList.contains("show")) return closeLayer("lightbox");
   closeLayer("drawer");
@@ -300,11 +322,15 @@ async function refreshSlow() {
   if (r.status === "fulfilled") { renderReport(r.value); renderHealthLines(); loadWeekPlan(); }
   if (s.status === "fulfilled") lastSessions = Array.isArray(s.value) ? s.value : (s.value?.sessions || []);
   loadPlan();
+  if (typeof loadBriefs === "function") loadBriefs();
   renderHeroStrip(); renderLatest();
   $("#foot").textContent = `Updated ${clockT(Date.now()/1000)}`;
 }
 
 function route() {
-  if (/^#setup/.test(location.hash)) openSetup();
-  else if (location.hash === "#plan") $("#todayBlock").scrollIntoView({behavior: "smooth"});
+  const h = location.hash, hb = /^#habits(?:\/([a-z][a-z0-9_]*))?$/.exec(h);
+  if (/^#setup/.test(h)) openSetup();
+  else if (hb && typeof openHabits === "function") openHabits(hb[1] || null);
+  else if (h === "#plan") $("#todayBlock").scrollIntoView({behavior: "smooth"});
+  else if (h === "#agent") { const el = document.getElementById("agent"); if (el && !el.hidden) el.scrollIntoView({behavior: "smooth", block: "center"}); else $("#todayBlock").scrollIntoView({behavior: "smooth"}); }
 }

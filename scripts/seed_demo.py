@@ -14,7 +14,8 @@ TINT = {"on_task": (95, 150, 90), "phone": (70, 80, 210), "idle": (60, 150, 215)
         "off_task": (60, 60, 170)}
 NOTES = {"on_task": "hands on the work", "phone": "phone in hand", "idle": "at the desk, hands still",
          "absent": "nobody at the desk", "off_task": "something else on the desk"}
-HABIT_LOOK = {"drawing": "pen on paper", "building": "hands on robot", "math": "notebook + equations"}
+HABIT_LOOK = {"drawing": "pen on paper", "piano": "hands on the keys", "cooking": "knife and board",
+              "math": "notebook + equations"}
 
 
 def frame(path, label, habit, t):
@@ -44,7 +45,6 @@ def session(con, habit, minutes, start, mix):
                                                   "reused": False, "backend": "apple"}, session_id=sid, ts=ts)
     if h["modality"] in ("digital", "hybrid"):
         on = {"cpp": [("Visual Studio Code", "main.cpp — learncpp"), ("Google Chrome", "std::vector - cppreference.com")],
-              "internships": [("Google Chrome", "Software Engineer Intern - Greenhouse"), ("Pages", "Cover letter")],
               "math": [("Preview", "Linear Algebra Done Right.pdf")]}.get(habit, [("Code", habit)])
         off = [("Google Chrome", "YouTube"), ("Messages", "Messages")]
         for i in range(minutes * 2):
@@ -64,18 +64,18 @@ def main():
     t0 = report.week_start()
     day = 86400
     plan = [  # (day offset, hour, habit, minutes, mix)
-        (0, 10, "building", 90, {"on_task": .85, "phone": .1, "absent": .05}),
+        (0, 10, "piano", 45, {"on_task": .85, "phone": .1, "absent": .05}),
         (0, 20, "drawing", 45, {"on_task": .5, "phone": .35, "idle": .15}),
         (1, 9, "cpp", 40, {"on_task": .8}),
-        (1, 15, "building", 60, {"on_task": .9, "absent": .1}),
-        (2, 11, "internships", 30, {"on_task": .55}),
+        (1, 18, "cooking", 50, {"on_task": .9, "absent": .1}),
+        (2, 14, "cpp", 30, {"on_task": .55}),
         (2, 21, "drawing", 30, {"on_task": .3, "phone": .5, "absent": .2}),
         (3, 10, "math", 50, {"on_task": .75, "idle": .25}),
     ]
     now = time.time()
     for d, hr, habit, mins, mix in plan:
         start = t0 + d * day + hr * 3600
-        if start + mins * 60 < now:
+        if start + mins * 60 < now and habit in config.habits()["habits"]:
             session(con, habit, mins, start, mix)
     for d, km, mins in [(0, 5.4, 29), (2, 3.1, 19)]:
         ts = t0 + d * day + 7 * 3600
@@ -89,7 +89,7 @@ def main():
 
 
 def seed_plan_and_health(con, t0, now):
-    """Round 3: planned blocks (schedule + calendar) and Apple Health habits/samples — only into a scratch
+    """Planned blocks (schedule + calendar) and Apple Health habits/samples — only into a scratch
     habits.yaml (ALIBI_HABITS), never the real one."""
     import datetime as dt
     from alibi import health
@@ -99,7 +99,7 @@ def seed_plan_and_health(con, t0, now):
         hs = config.habits()["habits"]
         plan = {"drawing": [{"days": ["mon", "wed", "fri"], "at": "19:00", "min": 25}],
                 "cpp": [{"days": ["mon", "tue", "wed", "thu", "fri"], "at": "09:00", "min": 40}],
-                "building": [{"days": ["sat", "sun"], "at": "10:00", "min": 90}],
+                "piano": [{"days": ["mon", "tue", "thu", "sat"], "at": "18:00", "min": 30}],
                 "running": [{"days": ["tue", "thu", "sat"], "at": "07:30", "min": 30}]}
         for k, sched in plan.items():
             if k in hs:

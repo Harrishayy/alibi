@@ -1,8 +1,8 @@
-"""P12 — a fast, real run for recording the demo video.
+"""A fast, real run of one whole session, to show Alibi working end to end.
 
   ./alibi.sh demo                 live camera + Apple Vision, samples every 10 s, 2-minute drawing session
   ./alibi.sh demo --fixture       no camera: replays a synthetic desk video with the mock witness (dry run)
-  ./alibi.sh demo --say "build for 3 minutes" --every 8
+  ./alibi.sh demo --say "piano for 3 minutes" --every 8
 
 Uses data/demo (seeded week, so the dashboard looks lived-in). Ctrl-C stops everything and turns the camera off.
 """

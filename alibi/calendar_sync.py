@@ -8,8 +8,11 @@
 Prompts work without Calendar access (they come from the schedule). Everything Calendar goes through one small
 native helper (bin/alibi-calendar, or the copy inside Alibi.app so macOS asks on behalf of "Alibi"); tests point
 ALIBI_CALENDAR_BIN at tests/fake_calendar.py. Helper calls run off the tick thread. State: data/calendar.json.
+
+DAYS OFF  data/away.json: a block on a day off is skipped ("Day off"), never prompted, never "didn't happen",
+          and the night planner won't use the day. No file (or ALIBI_AWAY=0) and the plan is exactly as before.
 """
-import datetime as dt, hashlib, json, os, pathlib, subprocess, threading, time
+import datetime as dt, hashlib, json, os, pathlib, re, subprocess, threading, time
 from . import config, db
 from .notify import notify
 
@@ -108,6 +111,99 @@ def update(fn) -> dict:
         return st
 
 
+# --- days off -------------------------------------------------------------------------------------------------------
+
+AWAY_AHEAD_DAYS, AWAY_MAX, AWAY_LABEL_MAX, AWAY_KEEP_PAST_DAYS = 60, 30, 24, 30
+
+
+def _away_path() -> pathlib.Path:
+    return config.DATA_DIR / "away.json"
+
+
+def load_away() -> list[dict]:
+    """Every stored day off, by date: [{"date": "2026-10-05", "label": "Holiday"}]. No file or a broken one is []."""
+    try:
+        raw = json.loads(_away_path().read_text())
+    except (FileNotFoundError, ValueError):
+        return []
+    days = {}
+    for d in (raw.get("days") if isinstance(raw, dict) else None) or []:
+        try:
+            day = dt.date.fromisoformat(str(d.get("date"))[:10]).isoformat()
+        except (AttributeError, ValueError):
+            continue
+        days[day] = str(d.get("label") or "").strip()[:AWAY_LABEL_MAX] or "Day off"
+    return [{"date": k, "label": days[k]} for k in sorted(days)]
+
+
+def save_away(days: list[dict]) -> list[dict]:
+    """Write {"days": [...]} atomically (checking is clean_away's job) and read it back."""
+    with _lock:
+        config.DATA_DIR.mkdir(parents=True, exist_ok=True)
+        tmp = _away_path().with_suffix(".tmp")
+        tmp.write_text(json.dumps({"days": days}, indent=1))
+        os.replace(tmp, _away_path())
+    return load_away()
+
+
+def clean_away(days, today: dt.date) -> list[dict]:
+    """The days-off rules -> the list to store, or ValueError with one sentence. Dates today..today+60, labels 1-24
+    characters after trimming, at most 30 days; a repeated date keeps its last label."""
+    if not isinstance(days, list):
+        raise ValueError('Send {"days": [{"date": "YYYY-MM-DD", "label": "..."}]}.')
+    out = {}
+    for d in days:
+        raw = str(d.get("date") if isinstance(d, dict) else d)
+        try:
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw):
+                raise ValueError
+            day = dt.date.fromisoformat(raw)
+        except ValueError:
+            raise ValueError(f"{raw[:40]} isn't a date.")
+        if not today <= day <= today + dt.timedelta(days=AWAY_AHEAD_DAYS):
+            raise ValueError("Pick a day between today and 60 days from now.")
+        label = d.get("label") if isinstance(d, dict) else None
+        label = "Day off" if label is None else str(label).strip()          # no label at all reads "Day off"
+        if not 1 <= len(label) <= AWAY_LABEL_MAX:
+            raise ValueError("Labels are 1–24 characters.")
+        out.pop(day.isoformat(), None)
+        out[day.isoformat()] = label
+    if len(out) > AWAY_MAX:
+        raise ValueError("At most 30 days off.")
+    return [{"date": k, "label": out[k]} for k in sorted(out)]
+
+
+def set_away(days: list[dict], today: dt.date) -> list[dict]:
+    """Replace the days off from today on with `days` (already clean). Past days stay for a while as history, so a
+    day off that's over never turns into "didn't happen" when the list is edited later."""
+    keep = (today - dt.timedelta(days=AWAY_KEEP_PAST_DAYS)).isoformat()
+    past = [d for d in load_away() if keep <= d["date"] < today.isoformat()]
+    return save_away(past + days)
+
+
+def away_on() -> bool:
+    """The kill switch: ALIBI_AWAY=0 keeps the stored days but changes nothing. Read on every call: no restart."""
+    return os.getenv("ALIBI_AWAY", "1") != "0"
+
+
+def days_off(day0: dt.date, days: int) -> list[dict]:
+    """Days off in [day0, day0 + days); [] with the kill switch on. What the plan, the prompts and the planner read."""
+    if not away_on():
+        return []
+    lo, hi = day0.isoformat(), (day0 + dt.timedelta(days=days)).isoformat()
+    return [d for d in load_away() if lo <= d["date"] < hi]
+
+
+def away_days(day0: dt.date, days: int) -> list[dict]:
+    """The name other modules read (the agent context). The plan itself reads days_off(), so a test that
+    patches this one only changes what its own caller sees."""
+    return days_off(day0, days)
+
+
+def _away_map(day0: dt.date, days: int) -> dict:
+    return {d["date"]: d["label"] for d in days_off(day0, days)}
+
+
 # --- the plan -------------------------------------------------------------------------------------------------------
 
 def _days(v) -> set[int]:
@@ -192,11 +288,13 @@ def blocks(day0: dt.date, days: int = 1, cfg: dict | None = None, st: dict | Non
 
 
 def upcoming(now: float, cfg: dict | None = None, st: dict | None = None) -> list[dict]:
-    """Blocks the calendar should show as planned: not over yet, within 14 days, not skipped or already answered."""
+    """Blocks the calendar should show as planned: not over yet, within 14 days, not skipped, answered or on a day off."""
     st = st if st is not None else load()
-    return [b for b in blocks(dt.date.fromtimestamp(now) - dt.timedelta(days=1), HORIZON_DAYS + 2, cfg, st)
+    day0 = dt.date.fromtimestamp(now) - dt.timedelta(days=1)
+    off = _away_map(day0, HORIZON_DAYS + 2)
+    return [b for b in blocks(day0, HORIZON_DAYS + 2, cfg, st)
             if b["calendar"] and b["end"] > now and b["start"] < now + HORIZON_DAYS * 86400
-            and b["key"] not in st["skipped"] and b["key"] not in st["outcomes"]]
+            and b["key"] not in st["skipped"] and b["key"] not in st["outcomes"] and b["date"] not in off]
 
 
 def _sched_hash(cfg: dict) -> str:
@@ -265,6 +363,7 @@ def plan(con, day0: dt.date | None = None, days: int = 1, now: float | None = No
     now = now or time.time()
     day0 = day0 or dt.date.fromtimestamp(now)
     st, cfg = load(), config.habits()
+    off = _away_map(day0, days)
     out = []
     for b in blocks(day0, days, cfg, st):
         h = cfg["habits"].get(b["habit"], {})
@@ -273,8 +372,13 @@ def plan(con, day0: dt.date | None = None, days: int = 1, now: float | None = No
         s = match_session(con, b) if b["check"] not in ("strava", "health") else None
         src = _source_result(con, b, h) if b["check"] in ("strava", "health") else None
         oc = st["outcomes"].get(b["key"], {})
-        if b["key"] in st["skipped"]:
+        away = off.get(b["date"])
+        if away:                         # a day off; what you did anyway still shows as done
+            b["away_label"] = away
+        if b["key"] in st["skipped"] or (away and s is None and not src):
             b["state"] = "skipped"
+            if away:
+                b["detail"] = "Day off"
         elif s is not None:
             b.update(session_id=s["id"], verdict=s["verdict"], ratio=s["on_task_ratio"],
                      state="live" if s["status"] == "active" else (s["verdict"] or "done"))
@@ -715,11 +819,17 @@ def tick(con, now: float) -> None:
     active = db.active_session(con)
     since = st.get("since", now)
     prompted_any = False
+    off = _away_map(today - dt.timedelta(days=1), 2)
     for b in blocks(today - dt.timedelta(days=1), 2, cfg, st):
         k = b["key"]
         if k in st["skipped"] or (k in st["outcomes"] and st["outcomes"][k].get("state") != "unknown"):
             continue     # "no data" stays open: late Strava/iPhone data can still settle it
+        if b["date"] in off:
+            continue     # a day off: no prompt, and never "didn't happen"
         h = cfg["habits"].get(b["habit"], {})
+        made = config.habit_created_ts(h)
+        if made and b["end"] < made:
+            continue     # added at 21:29: never offered (or marked missed for) its 21:00 block, as in today.plan_today
         # --- missed: nothing seen an hour after the block ended (and it was planned while Alibi was running)
         if now >= b["end"] + MISSED_AFTER_S:
             if b["end"] < since:

@@ -1,4 +1,4 @@
-"""P1 — contact sheet of keyframes; P3 — title breakdown for digital sessions.
+"""Evidence images: a contact sheet of keyframes, and a title breakdown for digital sessions.
 
 Drawn on the dark-first tokens (docs/design/tokens/tokens.css): surface-1 sheet, ink text, all-sans (SF Pro),
 status = colour + shape + word, and black text on the green verdict pill.

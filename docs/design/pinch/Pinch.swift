@@ -7,7 +7,9 @@
 //
 //   PinchFigure(pose:size:dark:)                     pure drawing, LOD by size (full / no legs / lod24 / 20 and 16 glyphs)
 //   PinchView(mood:clip:clipID:size:dark:)           animated: mood loop + one-shot clips + blink + idle gaze
+//   PinchView(..., ambient: true)                    + fidgets and no rest while visible (ambient Pinches only)
 //   PinchView.pose(mood:clip:ms:)                    deterministic frame for renders and tests
+//   PinchView.fidgetPose(_:ms:)                      a fidget's frame over the idle key pose (still renders)
 //   PinchPose.still("sideeye")                       a mood's or clip's key frame by name (Live Activity content state)
 import SwiftUI
 
@@ -25,6 +27,64 @@ enum PinchClip: String, CaseIterable, Sendable {
     var motion: PinchMotion { PinchMotions.clip(self) }
     /// Higher pre-empts lower, even inside the cooldown (clips.json policy).
     var priority: Int { motion.priority }
+}
+
+/// Ambient life: short param tracks an ambient Pinch plays now and then in the idle mood, so a
+/// Pinch with nothing to report still looks alive. Client-side like blink and gaze, not a mood. They sit under clips,
+/// never touch the clip cooldown or priority, and never drive lensGlow (the lens glows only while the camera samples).
+/// The keyframes mirror the web engine's (pinch.js); change both together.
+enum PinchFidget: String, CaseIterable, Sendable {
+    case inspect, perk, glance, click
+
+    var motion: PinchMotion {
+        switch self {
+        case .inspect: return PinchFidget.data[0]
+        case .perk: return PinchFidget.data[1]
+        case .glance: return PinchFidget.data[2]
+        case .click: return PinchFidget.data[3]
+        }
+    }
+
+    /// The frame a still render shows: where the fidget reads best.
+    var peak: Double {
+        switch self {
+        case .inspect: return 800
+        case .perk: return 300
+        case .glance: return 600
+        case .click: return 410
+        }
+    }
+
+    /// The first fidget comes this long after the view appears; then one every `every` (uniform, seeded per view).
+    static let first: ClosedRange<Double> = 6000...10000
+    static let every: ClosedRange<Double> = 14000...28000
+
+    static let data: [PinchMotion] = [
+        // inspect: the lens comes up to the eye, one glint sweeps the glass, a small lean toward it
+        PinchMotion(loop: false, dur: 1600, key: 800, priority: 0, tracks: [
+            PinchTrack(.lens, [(0, 0, .out), (420, 0.92, .out), (1150, 0.92, .out), (1600, 0, .inOut)]),
+            PinchTrack(.glint, [(0, 0, .out), (520, 0, .out), (980, 1, .inOut), (981, 0, .step)]),
+            PinchTrack(.lookX, [(0, 0, .out), (420, 0.2, .out), (1150, 0.2, .out), (1600, 0, .inOut)]),
+        ]),
+        // perk: antennae flick up, eyes widen, a small hop of the body
+        PinchMotion(loop: false, dur: 700, key: 300, priority: 0, tracks: [
+            PinchTrack(.antennaLift, [(0, 0, .out), (140, -3, .anticip), (300, 9, .overshoot), (700, 0, .settle)]),
+            PinchTrack(.eyeOpen, [(0, 1, .out), (220, 1.1, .out), (600, 1, .out)]),
+            PinchTrack(.bodySquash, [(0, 1, .out), (140, 0.97, .anticip), (300, 1.03, .overshoot), (600, 1, .settle)]),
+        ]),
+        // glance: a look left, then right, then back
+        PinchMotion(loop: false, dur: 1800, key: 600, priority: 0, tracks: [
+            PinchTrack(.lookX, [(0, 0, .out), (260, -0.55, .out), (760, -0.55, .out), (1060, 0.5, .inOut),
+                                (1500, 0.5, .out), (1800, 0, .inOut)]),
+            PinchTrack(.lookY, [(0, 0, .out), (260, -0.1, .out), (1500, -0.1, .out), (1800, 0, .inOut)]),
+        ]),
+        // click: the crusher comes up and clicks twice
+        PinchMotion(loop: false, dur: 1100, key: 410, priority: 0, tracks: [
+            PinchTrack(.clawL, [(0, 0, .out), (150, -6, .anticip), (320, 14, .overshoot), (800, 10, .out),
+                                (1100, 0, .settle)]),
+            PinchTrack(.pinchL, [(320, 0, .out), (410, 1, .out), (540, 0, .out), (630, 1, .out), (760, 0, .out)]),
+        ]),
+    ]
 }
 
 // MARK: - Motion data types (filled by PinchData.swift)
@@ -531,6 +591,8 @@ struct PinchFigure: View {
 /// cooldown unless it outranks the last one or `force` is set; sideeye chains into nudge.
 /// The TimelineView only exists while Pinch is visible, moving and not resting (2 min without news); reduced motion,
 /// `still` and sizes under 24 pt draw key frames and crossfade between them instead.
+/// `ambient` (off by default) is for a Pinch that sits in view with nothing to report (the island's Today panel): it
+/// never rests while visible and, in the idle mood at 40 pt and up, plays a fidget now and then (PinchFidget).
 struct PinchView: View {
     var mood: PinchMood = .idle
     var clip: PinchClip? = nil
@@ -547,6 +609,8 @@ struct PinchView: View {
     var look: CGSize = .zero
     var tint: Color? = nil
     var rim: Bool = false
+    /// Ambient life: no 2-minute rest while visible, and idle fidgets (sizes 40 and up). Off keeps the old behaviour.
+    var ambient: Bool = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var engine = PinchEngine()
@@ -589,6 +653,10 @@ struct PinchView: View {
             engine.moodChanged = Date()
             engine.wake()
         }
+        .onChange(of: look) { old, _ in      // a new host gaze eases in like a glance, from wherever the eyes are
+            engine.lookFrom = engine.look(at: Date(), to: old)
+            engine.lookChanged = Date()
+        }
         .task(id: engine.token) {
             guard let play = engine.play else { return }
             let left = play.clip.motion.dur + PinchMotions.blendOut - Date().timeIntervalSince(play.start) * 1000
@@ -600,7 +668,7 @@ struct PinchView: View {
         }
         .task(id: engine.activity) {
             try? await Task.sleep(nanoseconds: UInt64(PinchMotions.restAfter * 1_000_000))
-            if !Task.isCancelled { engine.resting = true }
+            if !Task.isCancelled && !ambient { engine.resting = true }   // an ambient Pinch never rests while visible
         }
     }
 
@@ -631,6 +699,7 @@ struct PinchView: View {
             engine.fadeStart = now
         }
         engine.play = PinchPlay(clip: c, start: now)
+        engine.lastPlay = engine.play
         engine.lastClipAt = now
         engine.lastPriority = pri
         engine.token &+= 1
@@ -657,10 +726,20 @@ struct PinchView: View {
             p.lookX += g.width * moodW
             p.lookY += g.height * moodW
         }
-        p.lookX = max(-1, min(1, p.lookX + look.width))
-        p.lookY = max(-1, min(1, p.lookY + look.height))
+        let lk = engine.look(at: date, to: look)
+        p.lookX = max(-1, min(1, p.lookX + lk.width))
+        p.lookY = max(-1, min(1, p.lookY + lk.height))
 
         var eyesDriven = false
+        // Ambient fidget: absolute values under any clip, in the idle mood only (it fades with the mood crossfade).
+        if ambient && size >= 40, let f = engine.fidget(t) {
+            let idleW = mood == .idle ? moodW : (engine.moodFrom == .idle ? 1 - moodW : 0)
+            let w = fidgetWeight(f.fidget, start: f.start, at: t) * idleW
+            if w > 0 {
+                f.fidget.motion.apply(to: &p, ms: min(t - f.start, f.fidget.motion.dur), weight: w)
+                if f.fidget.motion.drives(.eyeOpen) { eyesDriven = true }   // no blink through a perk
+            }
+        }
         for (play, fade) in [(engine.fading, true), (engine.play, false)] {
             guard let play else { continue }
             let m = play.clip.motion
@@ -674,6 +753,27 @@ struct PinchView: View {
         }
         if !eyesDriven { p.eyeOpen *= engine.blink(t) }
         if camera { p.lensGlow = max(p.lensGlow, 1) }
+        return p
+    }
+
+    /// A fidget's mix at engine time `t`: in over 120 ms, out over 240 ms after its last key. A clip pre-empts it: one
+    /// that starts during the fidget fades it out over 120 ms, and one still playing when the fidget is due skips it.
+    private func fidgetWeight(_ f: PinchFidget, start s: Double, at t: Double) -> Double {
+        let e = t - s, dur = f.motion.dur
+        var w = min(1, max(0, e / PinchMotions.blendIn))
+        if e > dur { w *= max(0, 1 - (e - dur) / PinchMotions.blendOut) }
+        if let c = engine.lastPlay {
+            let cs = engine.ms(at: c.start)
+            if cs >= s { w *= min(1, max(0, 1 - (t - cs) / PinchMotions.blendIn)) }
+            else if cs + c.clip.motion.dur + PinchMotions.blendOut > s { w = 0 }
+        }
+        return w
+    }
+
+    /// A fidget at `ms` over the idle key pose, for still renders and checks (unknown names give the idle key pose).
+    static func fidgetPose(_ name: String, ms: Double) -> PinchPose {
+        var p = pose(mood: .idle, clip: nil, ms: PinchMood.idle.motion.key)
+        PinchFidget(rawValue: name)?.motion.apply(to: &p, ms: ms)
         return p
     }
 
@@ -706,6 +806,9 @@ private struct PinchEngine {
     var fading: PinchPlay?
     var fadeStart = Date.distantPast
     var lastClipAt: Date?
+    var lastPlay: PinchPlay?   // the last clip started, kept after it ends (a fidget it overlapped stays skipped)
+    var lookFrom = CGSize.zero
+    var lookChanged = Date.distantPast
     var lastPriority = 0
     var token = 0
     var activity = 0
@@ -745,6 +848,48 @@ private struct PinchEngine {
             }
         }
         return f
+    }
+
+    /// The host gaze (`look`) at `date`: eases from `lookFrom` to `target` over a glance's 420 ms after a change, and
+    /// is exactly `target` otherwise.
+    func look(at date: Date, to target: CGSize) -> CGSize {
+        let k = date.timeIntervalSince(lookChanged) * 1000 / PinchMotions.gazeDur
+        if k >= 1 { return target }
+        let e = PinchMotions.gazeEase.value(max(0, k), elapsedMs: 0)
+        return CGSize(width: lookFrom.width + (target.width - lookFrom.width) * e,
+                      height: lookFrom.height + (target.height - lookFrom.height) * e)
+    }
+
+    /// The fidget due at engine time `t` (still playing or fading out) and its start, else nil. A pure function of the
+    /// seed, like blink and gaze: the first 6–10 s in, then one every 14–28 s, in a seeded shuffle of the four with no
+    /// repeat back to back.
+    func fidget(_ t: Double) -> (fidget: PinchFidget, start: Double)? {
+        let a = PinchFidget.first, b = PinchFidget.every
+        var s = a.lowerBound + rand(0, 6) * (a.upperBound - a.lowerBound)
+        var k = 0
+        while s <= t && k < 100_000 {
+            let f = fidgetOrder(k)
+            if t < s + f.motion.dur + PinchMotions.blendOut { return (f, s) }
+            k += 1
+            s += b.lowerBound + rand(k, 7) * (b.upperBound - b.lowerBound)
+        }
+        return nil
+    }
+
+    /// The k-th fidget: cycles of four in a seeded order; a cycle never starts with the one the last cycle ended on.
+    private func fidgetOrder(_ k: Int) -> PinchFidget {
+        let c = k / 4
+        var order = fidgetCycle(c)
+        if c > 0 && order[0] == fidgetCycle(c - 1)[3] { order.swapAt(0, 1) }
+        return PinchFidget.allCases[order[k % 4]]
+    }
+
+    private func fidgetCycle(_ c: Int) -> [Int] {
+        var a = [0, 1, 2, 3]
+        for i in stride(from: 3, to: 0, by: -1) {
+            a.swapAt(i, min(i, Int(rand(c, UInt64(20 + i)) * Double(i + 1))))
+        }
+        return a
     }
 
     /// Idle glance: every 4–8 s the gaze eases to a new point in the clips.json ranges and holds there.

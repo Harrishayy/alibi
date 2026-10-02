@@ -1,4 +1,4 @@
-"""F7 DoD: the phone can start and end a session over the tailnet. Same op_id twice (and racing) gives one answer and
+"""Phone writes DoD: the phone can start and end a session over the tailnet. Same op_id twice (and racing) gives one answer and
 one session; a stale session_id and a stale start get 409; ?key= gets 401; a LAN source gets 403."""
 import threading, time
 from harness import check
@@ -9,7 +9,7 @@ KEY = integrations.phone_secret()
 H = {"X-Alibi-Secret": KEY}
 app = integrations.phone_app()
 ph = TestClient(app, client=("127.0.0.1", 50000))         # tailscale serve arrives as loopback
-tail = TestClient(app, client=("100.66.226.12", 50000))    # the phone's tailnet address
+tail = TestClient(app, client=("100.101.102.103", 50000))  # the phone's tailnet address
 lan = TestClient(app, client=("192.168.1.5", 1234))
 con = db.connect()
 

@@ -2,7 +2,7 @@
    drift line, every-check strip for corrections); verdict card (pill, meter, sentence, proof frames); the idle
    "Latest verdict" card. Classic script; load order icons, pinch, moments, pinch-wire, confetti, core, now, week, sessions, setup, onboarding, boot.
 
-   DOM contract for lane M (moments.js): #composer (composer wrapper, keeps #sayForm), #now (the swapping card slot),
+   DOM contract for moments.js: #composer (composer wrapper, keeps #sayForm), #now (the swapping card slot),
    #pinch-now (persistent 96px Pinch mount: parked off-screen when idle, moved into .pn-slot of the live and verdict
    cards, never re-created), #pinch-hero (64px, hero strip, hidden while live or verdict).
    Verdict card parts follow moments.js: [data-m=card|pill|pct|meter|frames|line|actions]; meter is on the fill, frames on the grid.
@@ -47,7 +47,7 @@ $("#sayForm").addEventListener("submit", e => {
 // "/" focuses the composer; ⌘1–⌘3 pick a habit chip (Surfaces.md, keyboard).
 document.addEventListener("keydown", e => {
   const t = e.target, typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
-  const open = document.querySelector(".drawer.show,.lightbox.show,.onb.show");
+  const open = document.querySelector(".drawer.show,.lightbox.show,.onb.show,.hs.show");
   if (open || document.body.classList.contains("live")) return;
   if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); $("#sayInput").focus(); return; }
   if ((e.metaKey || e.ctrlKey) && /^[1-3]$/.test(e.key)) { e.preventDefault(); pickChip(+e.key - 1); }
@@ -73,7 +73,7 @@ function reply(t) {
 }
 
 /* ---------- Now: one slot that swaps between idle, live and verdict ---------- */
-// The 96px Pinch is mounted once by lane M and moved between cards, so its animation state survives a swap.
+// The 96px Pinch is mounted once by pinch-wire.js and moved between cards, so its animation state survives a swap.
 function parkPinch() { const pn = $("#pinch-now"), park = document.querySelector(".parking"); if (pn && park && pn.parentElement !== park) park.appendChild(pn); }
 function placePinch(root) { const slot = root.querySelector(".pn-slot"), pn = $("#pinch-now"); if (slot && pn) slot.replaceWith(pn); }
 const minutes = n => `${n} minute${n === 1 ? "" : "s"}`;
@@ -388,6 +388,7 @@ async function suggestCard(text) {
     catch (err) { reply(`Couldn't add it: ${err.message}`); el.querySelectorAll("button").forEach(b => b.disabled = false); }
   });
   el.lastElementChild.addEventListener("click", async () => {
+    if (typeof openHabits === "function") return openHabits(null, {name: d.name, check: d.check, minutes: d.minutes});
     await openSetup("Habits");
     habModel.push({key: "", isNew: true, h: {label: d.name, modality: CHECK_TO_MOD[d.check] || "physical", default_min: d.minutes || 25, weekly_target_min: (d.minutes || 25) * 3, schedule: [], calendar: true}});
     renderHabitsEd(); setMsg("unsaved changes");

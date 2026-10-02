@@ -173,6 +173,16 @@ function habCard(m, i) {
 }
 function syncSched(card) { const m = habModel[+card.dataset.i]; m.h.schedule = readSched(card, "s"); }
 function renderHabitsEd() {
+  // The "Your habits" sheet (habits.js) is the editor now; this tab points at it. The form below stays as the fallback.
+  if (window.AlibiHabits) {
+    const hs = habitsCfg?.habits || {}, n = Object.keys(hs).length;
+    const tot = Object.values(hs).reduce((a, h) => a + (h.schedule || []).reduce((b, r) => b + (r.days || []).length * (+r.min || 0), 0), 0);
+    $("#habitsEd").innerHTML = `<div class="conn hsum"><div class="ci" aria-hidden="true">${ico("calendar")}</div><div><h4><span>${n} habit${n === 1 ? "" : "s"}</span></h4>
+      <p>${tot ? `${esc(tot >= 60 ? `${Math.floor(tot / 60)}h${tot % 60 ? " " + (tot % 60) + "m" : ""}` : tot + " min")} planned a week. Times, length and how each one is checked.` : "No set times yet."}</p></div>
+      <div class="cacts"><button type="button" class="primary" data-openhabits="1">Open habits</button></div></div>`;
+    $("#addHabit").hidden = true;
+    return;
+  }
   $("#habitsEd").innerHTML = habModel.length ? habModel.map(habCard).join("") : `<div class="quiet">No habits yet. Add one below.</div>`;
 }
 function setMsg(t, cls = "") { const m = $("#saveMsg"); m.textContent = t; m.className = "msg " + cls; habDirty = /unsaved|fix|keep/.test(t); updateFoot(); }
@@ -186,6 +196,7 @@ $("#habitsEd").addEventListener("input", e => {
   setMsg("unsaved changes");
 });
 $("#habitsEd").addEventListener("click", e => {
+  if (e.target.closest("[data-openhabits]")) { closeLayer("drawer"); return openHabits(); }
   const card = e.target.closest(".hab"); if (!card) return;
   const m = habModel[+card.dataset.i];
   const day = e.target.closest("[data-day]");
@@ -234,7 +245,7 @@ $("#saveHabits").addEventListener("click", async () => {
     const base = {...h}; delete base.aliases;
     const extra = sched.length ? {schedule: sched, calendar: h.calendar !== false} : {schedule: [], calendar: false};
     if (h.source === "strava") { out[key] = {...base, ...extra, label: label || base.label, weekly_sessions: +h.weekly_sessions || 0, min_km: +h.min_km || 0}; return; }
-    if (h.source === "health") { if (!(+h.daily_target > 0)) return fail("The daily goal needs to be more than 0.", "daily_target"); out[key] = {...base, display: label || base.display, daily_target: +h.daily_target}; delete out[key].schedule; delete out[key].calendar; if (label) out[key].label = label; return; }
+    if (h.source === "health") { if (!(+h.daily_target > 0)) return fail("The daily goal needs to be more than 0.", "daily_target"); out[key] = {...base, display: label || base.display, daily_target: +h.daily_target}; if (sched.length) Object.assign(out[key], {schedule: sched, calendar: h.calendar !== false}); else { delete out[key].schedule; delete out[key].calendar; } if (label) out[key].label = label; return; }
     if (!(+h.default_min >= 1)) return fail("Usual length needs to be at least 1 minute.", "default_min");
     if (!(+h.weekly_target_min >= 0)) return fail("Weekly goal can't be negative.", "weekly_target_min");
     delete base.check;

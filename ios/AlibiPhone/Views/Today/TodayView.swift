@@ -1,7 +1,6 @@
 // Today: a live mirror of the Mac. Four states, swapped in place with opacity and scale 0.96 → 1 on spring-smooth:
 // live (160pt Pinch beside the ring, the drift line, on-task and done-today stats), verdict (Pinch's clip, the pill,
 // the on-task meter), idle (the honesty line, what's next, how to start) and offline (plain chrome copy with a fix).
-// Layout and copy follow docs/design/canvas/project/Phone-Today-*.dc.html and Phone-Verdict.dc.html.
 import SwiftUI
 
 struct TodayView: View {

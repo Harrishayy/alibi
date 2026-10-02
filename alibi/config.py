@@ -65,11 +65,14 @@ def photo_where() -> str:
 def photo_text(text: str) -> str:
     return text.replace("Photos stay on this Mac.", photo_where())
 
-# --- added: limits, pace reminders, drift consequences --------------------------------------------------------
+# --- limits, pace reminders, drift consequences ---------------------------------------------------------------
 MAX_SESSION_MIN = int(os.getenv("MAX_SESSION_MIN", "240"))       # longer claims must be said in chunks
 PACE_HOURS = tuple(int(h) for h in os.getenv("PACE_HOURS", "11,15,19").split(",") if h.strip())
 BLOCK_ON_DRIFT = os.getenv("BLOCK_ON_DRIFT", "0") == "1"           # hide the off-task app on the 2nd nudge (digital)
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALIBI_ALLOWED_HOSTS", "").split(",") if h.strip()]
+# Phone push through the ntfy app: empty = off. The topic works like a password; keep it long and random.
+NTFY_TOPIC = os.getenv("NTFY_TOPIC", "")
+NTFY_URL = os.getenv("NTFY_URL", "https://ntfy.sh").rstrip("/")
 
 DISPLAY_NAMES = {"cpp": "C++"}
 
@@ -93,7 +96,7 @@ def spoken_name(key: str) -> str:
     return key.replace("_", " ") if n == key.replace("_", " ").capitalize() else n
 
 
-# --- round 3: plain-language habit kinds, schedules, health habits, secrets, first-run flag ---------------------
+# --- plain-language habit kinds, schedules, health habits, secrets, first-run flag ------------------------------
 DAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 HEALTH_METRICS = {   # metric -> (plain name, unit, default target, how it's said in a sentence)
     "steps": ("Steps", "steps", 8000, "{v:,.0f} steps"),
@@ -140,7 +143,7 @@ def habit_created_ts(h: dict) -> float | None:
     except ValueError:
         return None
 
-# --- F5 digests: 07:30 brief, checkpoints, the night review (alibi/digest.py) ------------------------------------------
+# --- digests: 07:30 brief, checkpoints, the night review (alibi/digest.py) ---------------------------------------------
 MORNING_AT = os.getenv("MORNING_AT", "07:30")                     # HH:MM, minute-aware
 CHECK_HOURS = tuple(int(h) for h in os.getenv("CHECK_HOURS", "12,16,20").split(",") if h.strip())
 DIGESTS = os.getenv("DIGESTS", "1") == "1"                        # morning + checkpoint slots (the night one always runs)

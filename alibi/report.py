@@ -1,4 +1,4 @@
-"""P4 — weekly alignment table + 3 dry sentences. Fired nightly by the daemon; `cli report` on demand."""
+"""Weekly alignment table + 3 dry sentences. Fired nightly by the daemon; `cli report` on demand."""
 import datetime as dt, time
 from . import config, db, llm
 
@@ -149,7 +149,7 @@ def _streak(con, habit: str, now: float) -> tuple[int, bool]:
 
 
 def _headline(r: dict) -> str:
-    """One line for the top of the dashboard (D2)."""
+    """One line for the top of the dashboard."""
     t = r["totals"]
     if not t["target_min"]:
         return "No targets set."
@@ -281,7 +281,7 @@ def build() -> str:
     return build_json()["text"]
 
 
-# --- Pace v2 (NEXT_PHASE §4, formulas 1–6): on_track | at_risk | off_track | done | stale, plus buffer days -----------
+# --- Pace: on_track | at_risk | off_track | done | stale, plus buffer days --------------------------------------------
 
 STALE_S = {"strava": 24 * 3600, "phone": 6 * 3600}   # primary evidence this old = "Can't see"; camera/screen never stale
 
@@ -325,8 +325,8 @@ def _num(x: float) -> str:
 
 def pace3(h: dict, t0: float, now: float, verified: float, stale: bool = False, q90: float = 0.0,
           stale_source: str | None = None) -> dict:
-    """Formulas 1–6 for one habit. `verified` is V(now): minutes × on-task ratio, or qualifying sessions for count
-    habits. Pure arithmetic: the caller does the queries."""
+    """Pace status, buffer days and need per day for one habit. `verified` is V(now): minutes × on-task ratio, or
+    qualifying sessions for count habits. Pure arithmetic: the caller does the queries."""
     t1 = t0 + 7 * 86400
     now = min(max(now, t0), t1)
     count = is_count(h)

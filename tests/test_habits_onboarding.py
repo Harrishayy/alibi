@@ -1,4 +1,4 @@
-"""Round 3 DoD (build:habits): schedules + calendar flag survive saves, Apple Health habits validate, templates and the
+"""Habits and onboarding DoD: schedules + calendar flag survive saves, Apple Health habits validate, templates and the
 first-run wizard API, the one-tap 'Add Guitar' card, plain-language copy, honest correction toasts, Health summary."""
 import os, json, re, stat, time
 os.environ["SAMPLE_EVERY_S"] = "15"
@@ -12,7 +12,7 @@ con = db.connect()
 c = TestClient(api.app)
 JARGON = re.compile(r"witness|modality|daemon|ingest|on_task_ratio|physical|digital|hybrid|alias", re.I)
 
-# --- INT-1: schedule + calendar survive a save; bad schedules get plain errors ---------------------------------
+# --- schedule + calendar survive a save; bad schedules get plain errors ----------------------------------------
 hs = config.habits()["habits"]
 hs["drawing"]["schedule"] = [{"days": ["wed", "mon", "Mon"], "at": "7:05", "min": "25"}]
 health.save_habits(hs)
@@ -36,7 +36,7 @@ for bad, why in [({"days": ["funday"], "at": "10:00", "min": 5}, "isn't a day"),
     r = c.put("/api/habits", json={"habits": hs})
     check(r.status_code == 400 and why in r.json()["detail"], f"bad schedule rejected in plain words: {r.json()['detail']}")
 
-# --- INT-2: Apple Health habits validate; display works as a label ---------------------------------------------
+# --- Apple Health habits validate; display works as a label ----------------------------------------------------
 hs = config.habits()["habits"]
 hs["steps"] = {"source": "health", "metric": "steps", "daily_target": "8000", "display": "Walk"}
 hs["sleep"] = {"source": "health", "metric": "sleep_h", "daily_target": 7.5,
@@ -58,7 +58,7 @@ for bad in [{"source": "health", "metric": "heartbeats", "daily_target": 1},
 st = {x["key"]: x for x in c.get("/api/state").json()["habits"]}
 check(st["steps"]["label"] == "Walk", "/api/state still lists health habits")
 
-# INT-4 (my half): a Health habit said out loud is not 'not a habit'
+# a Health habit said out loud is not 'not a habit'
 r = cli.say(con, "walk 8000 steps")
 check("Apple Health" in r and "isn't one of your habits" not in r, r)
 r = cli.say(con, "go for a run")
@@ -73,7 +73,7 @@ check(r.status_code == 200 and j["modality"] == "physical" and j["aliases"] and 
       f"check: camera -> physical, aliases {j['aliases']} generated")
 check(intent.parse("journaling for 10 min")["habit"] == "journaling", "generated aliases match")
 
-# --- J3: unknown habit -> one-tap card ---------------------------------------------------------------------------
+# --- unknown habit -> one-tap card -------------------------------------------------------------------------------
 r = cli.say(con, "I want to practice guitar for 20 minutes")
 check(r.startswith("Guitar isn't one of your habits yet") and "Add Guitar · 20 min" in r and "physical" not in r, r)
 s = c.get("/api/habits/suggest").json()
@@ -97,7 +97,7 @@ check("Added Reading" in cli.say(con, "add habit reading, 20 min") and
       config.habits()["habits"]["reading"]["modality"] == "physical", "typed add without the jargon")
 check("checked by what's on my screen" in cli.say(con, "add habit coding, screen, 30 min"), "typed add with plain check word")
 
-# --- J8: camera correction toast is honest ------------------------------------------------------------------------
+# --- camera correction toast is honest ----------------------------------------------------------------------------
 clock = Clock()
 cli.say(con, "draw for 4 minutes")
 sid = db.active_session(con)["id"]
@@ -121,7 +121,7 @@ db.add_event(con, "health", "samples", {"date": time.strftime("%Y-%m-%d"), "step
 r = cli.say(con, "how am I doing?")
 check(r.startswith("Today:") and "Walk" in r, f"idle 'how am I doing': {r}")
 
-# --- Health summary (INT-3 helper) ---------------------------------------------------------------------------------
+# --- Health summary --------------------------------------------------------------------------------------------------
 rows = {x["habit"]: x for x in health.health_summary(con)}
 check(rows["steps"]["today"] == 9500 and rows["steps"]["days_met"] == 1 and rows["steps"]["streak"] == 1,
       f"latest sample per day wins: {rows['steps']['line']}")

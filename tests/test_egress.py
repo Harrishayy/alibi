@@ -1,4 +1,4 @@
-"""F6 DoD: the egress view says exactly where data goes (AGENTS.md rule 5), flips when the Spark stops answering,
+"""Egress DoD: the egress view says exactly where data goes (AGENTS.md rule 5), flips when the Spark stops answering,
 hourly() gives 24 ints per key, the git row waits instead of nagging, Strava gets a row only when set up, and no secret
 ever appears in the JSON."""
 import json, os, subprocess, sys, time
@@ -6,7 +6,7 @@ from harness import check, ROOT
 from fastapi.testclient import TestClient
 from alibi import api, config, db, signals
 
-SPARK = "http://100.76.35.21:8000/v1"
+SPARK = "http://100.100.100.100:8000/v1"
 SECRET = "nvapi-PLANTEDsecret0123456789"
 c = TestClient(api.app)
 up = {"v": True}
@@ -31,6 +31,30 @@ f = rows(d)["Camera frames"]
 check(f["where"] == "mac" and f["active"] and f["why"].startswith("Frames never leave the Mac."),
       "apple: frames stay on the Mac, worded per rule 5")
 check(d["summary"]["where"] == "mac" and not d["summary"]["active"], "no model: summary stays on the Mac")
+w = rows(d).get("Window titles, app names, coordinates, notification text")
+check(w and w["where"] == "mac" and w["why"].startswith("Never sent.") and
+      "Window titles, app names and what you type" not in rows(d), "no model: window titles are never sent")
+
+# ntfy on, no model: a push is the island's text, so a nudge names a short tab title; no row may say titles stay
+import requests
+from alibi import notify, nudges
+config.NTFY_TOPIC, sent, post = "alibi-PLANTED-topic", [], requests.post
+requests.post = lambda url, json=None, **kw: sent.append(json) or type("R", (), {"raise_for_status": lambda s: None})()
+line = nudges._window_line("C++", [{"title": "Google Chrome — Flat viewing notes"}] * 3, "2 minutes")
+t = notify.push(line, "nudge", {})
+t and t.join(5)
+requests.post = post
+check(sent and "Flat viewing notes" in sent[0]["message"], "ntfy on: a nudge push carries a short tab title")
+d = get()
+n = rows(d)["Alerts on your phone"]
+check(n["where"] == "ntfy" and n["active"] and n["host"] and "/" not in n["host"] and
+      n["why"] == "Nudges, verdicts, runs and briefs go to your phone through ntfy, the same text the island shows. "
+                  "A nudge or verdict can name the app, site or short window title you drifted to.",
+      "ntfy on, no model: the push row says it can name the app, site or a short window title")
+check(not any(("Window titles" in r["what"] or "app names" in r["what"]) and "Never sent" in r["why"] for r in d["rows"])
+      and rows(d)["Coordinates, notification text"]["why"].startswith("Never sent.") and "PLANTED" not in json.dumps(d),
+      "ntfy on, no model: no 'Never sent' row for titles or app names; coordinates and notification text still never sent")
+config.NTFY_TOPIC = ""
 config.VISION_BACKEND = "mock"
 check(rows(get())["Camera frames"]["where"] == "mac", "mock: frames stay on the Mac")
 
@@ -75,11 +99,33 @@ check(t["where"] == "tailnet:spark" and not t["active"], "Spark down: the row st
 check(d["summary"]["where"] == "mac" and not d["summary"]["active"] and d["summary"]["text"] == "Summaries stay on this Mac.",
       "Spark down: summary falls back to mac")
 check(not rows(d)["Search questions"]["active"], "Spark down: search is inactive too")
+w = rows(d)["Window titles, app names and what you type"]
+check(w["where"] == "tailnet:spark" and not w["active"] and w["why"].endswith("so the rules on this Mac read them instead."),
+      "Spark down: the window-titles row dims and says the rules read them")
 
 # the cache expires after 60 s: the Spark comes back and the row flips on its own
 up["v"] = True
 signals.probe(SPARK, now=time.time() + 61)
 check(signals.egress(now=time.time() + 62)["summary"]["where"] == "tailnet:spark", "after 60 s a fresh probe flips it back")
+
+# --- window titles: "Never sent" only while no text model is set up; ntfy listed without its topic --------------------
+w = rows(signals.egress(now=time.time() + 62))["Window titles, app names and what you type"]
+check(w["where"] == "tailnet:spark" and w["active"] and
+      w["why"] == "Window titles, app names and what you type go to your Spark over Tailscale.",
+      "text model on the Spark: window titles and what you type go over Tailscale")
+config.LLM_BASE_URL, config.NTFY_TOPIC = "https://integrate.api.nvidia.com/v1", "alibi-PLANTED-topic"
+d = get()
+w = rows(d)["Window titles, app names and what you type"]
+check(w["where"] == "nvidia_build" and w["active"] and w["host"] == "integrate.api.nvidia.com" and
+      w["why"] == "Window titles, app names and what you type go to NVIDIA Build.",
+      "text model on Build: window titles and what you type go to NVIDIA Build")
+check(not any("Window titles" in r["what"] and "Never sent" in r["why"] for r in d["rows"]) and
+      rows(d)["Coordinates, notification text"]["why"].startswith("Never sent."),
+      "text model on: no 'Never sent' titles row; coordinates and notification text still never sent")
+act = [(r["what"], r["where"]) for r in d["rows"] if r["active"]]
+check(("Alerts on your phone", "ntfy") in act and "PLANTED-topic" not in c.get("/api/signals/egress").text,
+      "ntfy push on: listed as leaving the Mac, the topic never shown")
+config.LLM_BASE_URL, config.NTFY_TOPIC = SPARK, ""
 
 blob = c.get("/api/signals/egress").text
 check(SECRET not in blob and "nemo-PLANTED" not in blob and "PLANTED" not in blob, "no planted secret appears in the JSON")

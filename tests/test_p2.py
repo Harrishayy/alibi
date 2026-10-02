@@ -1,4 +1,4 @@
-"""P2 DoD: declare from the chat surface (API); pick up the phone at the desk; within ~3 samples a nudge fires."""
+"""Nudge DoD: declare from the chat surface (API); pick up the phone at the desk; within ~3 samples a nudge fires."""
 import os
 os.environ["SAMPLE_EVERY_S"] = "60"
 from harness import Clock, check
@@ -33,4 +33,4 @@ check("Drawing:" in r and c.get("/api/state").json()["alert"]["kind"] == "verdic
 sessions = c.get("/api/sessions").json()
 check(sessions and sessions[0]["evidence_url"] and c.get(sessions[0]["evidence_url"]).status_code == 200,
       "contact sheet served over HTTP")
-print("P2 DoD passed.")
+print("Nudge DoD passed.")

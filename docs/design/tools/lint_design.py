@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Design-rule lint for the Alibi redesign (all-sans, dark-first, token-only colour, token-only motion).
+"""Design-rule lint for Alibi (all-sans, dark-first, token-only colour, token-only motion).
 
 Usage (from the repo root):
   python3 docs/design/tools/lint_design.py                 # web + swift

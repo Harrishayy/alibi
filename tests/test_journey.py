@@ -2,7 +2,8 @@
 'Run the welcome tour again' that reopens the wizard without wiping habits."""
 import os, json, time, datetime as dt
 from harness import Clock, check, ROOT
-os.environ["CAMERA_SOURCE"] = str(ROOT / "tests" / "fixtures" / "desk_4min.mp4")
+import make_fixtures
+os.environ["CAMERA_SOURCE"] = str(make_fixtures.video("desk_4min.mp4", [("on_task", 120), ("phone", 60), ("absent", 60)]))
 os.environ["ALIBI_CALENDAR_BIN"] = ""
 from fastapi.testclient import TestClient
 from alibi import api, cli, config, db, health, onboarding, report

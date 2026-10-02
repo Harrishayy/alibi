@@ -4,8 +4,8 @@ pyyaml
 opencv-python
 pillow
 requests
-# P2 fallback chat
+# Telegram fallback chat
 python-telegram-bot>=21
-# P6 webhook
+# API, dashboard and phone endpoints
 fastapi
 uvicorn

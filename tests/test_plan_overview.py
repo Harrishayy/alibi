@@ -1,4 +1,4 @@
-"""F4b DoD: GET /api/plan/overview — one row per habit, planned blocks inside the week with outcomes, sessions, pace
+"""Plan overview DoD: GET /api/plan/overview — one row per habit, planned blocks inside the week with outcomes, sessions, pace
 v2 status, and milestones from goals.json (past due and not done = off_track). Fake clock, seeded week."""
 import datetime as dt, json
 from harness import Clock, check

@@ -1,4 +1,4 @@
-"""F1-F10: digital nudges, breaks/extend, pace reminder, activity feed, streak + score, corrections that stick,
+"""Features: digital nudges, breaks/extend, pace reminder, activity feed, streak + score, corrections that stick,
 escalation, verdict voice, Strava claims + add habit, day recap."""
 import datetime as dt, os
 os.environ["SAMPLE_EVERY_S"] = "15"
@@ -17,7 +17,7 @@ c = TestClient(api.app)
 yt = {"app": "Google Chrome", "title": "YouTube", "url": "https://youtube.com"}
 code = {"app": "Visual Studio Code", "title": "main.cpp — learncpp", "url": ""}
 
-# F1 + F7 + F8: digital session drifts -> window nudge, live on-task score, second nudge = strike, voice says C++
+# digital session drifts -> window nudge, live on-task score, second nudge = strike, voice says C++
 laptop_logger.frontmost = lambda: code
 print(" ", cli.say(con, "learn c++ for 10 minutes"))
 for _ in range(6):
@@ -40,14 +40,14 @@ v = cli.end(con)
 check(v.startswith("C++: slacked. The screen was YouTube"), "verdict voice: " + v)
 sid_cpp = db.get_session(con, con.execute("SELECT max(id) FROM sessions").fetchone()[0])["id"]
 
-# F6b: re-label a window title -> persists for the next session
+# re-label a window title -> persists for the next session
 r = c.post(f"/api/sessions/{sid_cpp}/correct", json={"title": "Google Chrome — YouTube", "label": "on_task"}).json()
 check("from now on" in r["reply"] and r["session"]["verdict"] != "slacked", "title correction re-scores: " + r["reply"])
 check(verifier.classify_titles(con, "cpp", {"Google Chrome — YouTube"})["Google Chrome — YouTube"] == "on_task",
       "title_cache learned it")
 con.execute("UPDATE title_cache SET label='off_task' WHERE habit='cpp' AND title='Google Chrome — YouTube'"); con.commit()
 
-# F2: break / extend / change / fallback, breaks excluded from evidence
+# break / extend / change / fallback, breaks excluded from evidence
 laptop_logger.frontmost = lambda: code
 print(" ", cli.say(con, "draw for 4 minutes"))
 s = db.active_session(con)
@@ -67,14 +67,14 @@ cli.say(con, "back")
 check(cli.say(con, "change to 3").endswith("now 3 min."), "change to 3")
 cli.end(con)
 
-# F4: activity feed
+# activity feed
 f = c.get("/api/feed?limit=30&session=%d" % s["id"]).json()["items"]
 srcs = {x["source"] for x in f}
 check({"you", "alibi"} <= srcs and all({"ts", "source", "label", "text", "thumb"} <= set(x) for x in f),
       f"feed has humanised sources {sorted(srcs)}")
 check(f == sorted(f, key=lambda x: -x["ts"]), "feed newest first")
 
-# F6a: the same correction twice -> the witness applies it next time
+# the same correction twice -> the witness applies it next time
 cli.say(con, "draw for 3 minutes")
 s6 = db.active_session(con)
 for _ in range(38):
@@ -96,7 +96,7 @@ from alibi import witness
 check("corrected" in witness.prompt_for("drawing", {}), "VLM prompt carries the corrections as few-shot")
 cli.end(con)
 
-# F5: streak + alibi score
+# streak + alibi score
 r = report.build_json()
 row = next(x for x in r["rows"] if x["habit"] == "drawing")
 check(row["streak_days"] >= 1 and row["streak_today"], f"drawing streak {row['streak_days']} day(s)")
@@ -104,7 +104,7 @@ check(0 < r["alibi_score"] <= 1 and r["headline"].startswith("This week:"), f"al
 check(sum(x["severity"] == "worst" for x in r["rows"]) <= 1 and {"rank", "label", "gap_to_pace_min"} <= set(row), "rows ranked")
 check(any(x["strikes"] for x in r["rows"]), "strikes reach the report")
 
-# F3: pace reminder at 11:00, 'yes' starts it
+# pace reminder at 11:00, 'yes' starts it
 clock.t = dt.datetime.fromtimestamp(clock.t).replace(hour=11, minute=2).timestamp()
 daemon.tick(con); daemon.tick(con)
 pace = [a for a in notify.recent_alerts(50) if a["kind"] == "pace"]
@@ -114,7 +114,7 @@ check("Started" in r and pace[0]["habit"] in db.active_session(con)["habit"], f"
 cli.end(con)
 check("Today:" in report.build_json()["summary"] or "Today" in report._dry(report.build_json()), "summary says Today before 18:00")
 
-# F9: run claims + add habit
+# run claims + add habit
 r = cli.say(con, "go for a run")
 check("Strava" in r and "5 km" in r, r)
 db.add_event(con, "strava", "activity", {"id": 1, "name": "Run", "distance_km": 5.4, "start_date": clock.t}, ts=clock.t + 60)
@@ -126,7 +126,7 @@ check("Added Reading" in r and "reading" in config.habits()["habits"], r)
 check("Reading for 20" in cli.say(con, "reading for 20"), "new habit starts")
 cli.end(con)
 
-# F10: day recap builds the reel
+# day recap builds the reel
 daemon.join_reels()
 text = daemon.recap(con, dt.date.fromtimestamp(clock.t).isoformat())
 a = notify.recent_alerts()[-1]

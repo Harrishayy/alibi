@@ -1,4 +1,4 @@
-"""P0 — "I'm going to draw for 1 hour" -> {habit, minutes, modality}."""
+"""Parse a declaration: "I'm going to draw for 1 hour" -> {habit, minutes, modality}."""
 import re
 from . import config, llm
 
@@ -79,8 +79,10 @@ HEALTH_WORDS = {"steps": ["walk", "walking", "steps", "a walk"], "sleep_h": ["sl
                 "workout_min": ["workout", "work out", "gym", "exercise", "training"]}
 
 
-def match_habit(text: str, include_sources: bool = False) -> str | None:
+def match_habits(text: str, include_sources: bool = False) -> list[str]:
+    """Every habit the sentence names (key, alias or label), in habits.yaml order."""
     t = text.lower()
+    out = []
     for key, h in config.habits()["habits"].items():
         if not h.get("modality") and not include_sources:
             continue
@@ -90,12 +92,17 @@ def match_habit(text: str, include_sources: bool = False) -> str | None:
             extra = [*extra, str(h.get("display") or h.get("label")).lower()]
         if re.search(rf"\b{re.escape(key)}\b", t) or any(re.search(rf"(?<!\w){re.escape(str(a).lower())}(?!\w)", t)
                                                           for a in [*h.get("aliases", []), *extra]):
-            return key
-    return None
+            out.append(key)
+    return out
+
+
+def match_habit(text: str, include_sources: bool = False) -> str | None:
+    m = match_habits(text, include_sources)
+    return m[0] if m else None
 
 
 def _fallback(text: str) -> dict:
-    """Regex + alias matching. Good enough to demo if the LLM misbehaves."""
+    """Regex + alias matching: the path with no model, and the fallback when the LLM misbehaves."""
     key = match_habit(text)
     if not key:
         raise ValueError(f"Unknown habit in: {text!r}")

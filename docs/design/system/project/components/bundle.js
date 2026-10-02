@@ -16,7 +16,7 @@
    AlibiPinch.svg({size, mood|clip, ms, theme, camera}) -> static SVG markup (no argument: pinch.svg byte for byte)
    AlibiPinch.moods, AlibiPinch.clips, AlibiPinch.params, AlibiPinch.duration(name), AlibiPinch.reducedMotion([bool|null])
 
-   Layers per frame (research/03, clips.json policy.composition): neutral <- held pose <- mood loop (bodySquash multiplies,
+   Layers per frame (clips.json policy.composition): neutral <- held pose <- mood loop (bodySquash multiplies,
    numbers add) <- gaze + lookAt <- one-shot clip (absolute). Blink multiplies eyeOpen. Every discontinuity (clip in 120 ms,
    clip out 240 ms, mood 420 ms, wake 260 ms) crossfades from the last rendered frame. Still mode, reduced motion and the
    16/20 px glyphs never run rAF: they show key poses and crossfade a ghost copy over 200 ms. One shared rAF drives every

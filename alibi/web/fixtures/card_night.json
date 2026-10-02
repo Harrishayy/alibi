@@ -1,0 +1,1471 @@
+{
+ "now": 1790974804.0,
+ "session": null,
+ "alert": {
+  "id": 1790974801000000001,
+  "ts": 1790974802.0,
+  "image": null,
+  "image_url": null,
+  "kind": "report",
+  "text": "Move math to tomorrow 08:00, 60 min? Furthest behind this week.\nChecked your week, tomorrow's plan and free gaps · Nemotron 3 Super · 5 s\nDay closed. Missed: Math 11:00, C++ 14:00, Drawing 19:00.\nBuffer: Drawing -3 d, Building -2 d, Math -5 d, C++ -5 d, Internships -4 d, Portfolio -2 d, Running -5 d.",
+  "day": "2026-10-02",
+  "slot": "2026-10-02-night",
+  "proposal": {
+   "habit": "math",
+   "label": "Math",
+   "day": "2026-10-03",
+   "at": "08:00",
+   "minutes": 60,
+   "why": "Furthest behind this week.",
+   "via": "llm:build"
+  },
+  "via": "llm:build",
+  "habit_label": "Night review",
+  "actions": [
+   {
+    "label": "Accept",
+    "post": "/api/digests/2026-10-02-night/accept",
+    "body": {},
+    "dismiss": true
+   },
+   {
+    "label": "Not now",
+    "dismiss": true
+   }
+  ],
+  "card": {
+   "v": 1,
+   "kind": "night",
+   "title": "Move math to tomorrow 08:00, 60 min?",
+   "tone": "accent",
+   "subtitle": "Furthest behind this week.",
+   "groups": [
+    {
+     "label": "Missed today",
+     "items": [
+      {
+       "text": "Math 11:00",
+       "tone": "warn",
+       "icon": "x"
+      },
+      {
+       "text": "C++ 14:00",
+       "tone": "warn",
+       "icon": "x"
+      },
+      {
+       "text": "Drawing 19:00",
+       "tone": "warn",
+       "icon": "x"
+      }
+     ]
+    },
+    {
+     "label": "Buffer",
+     "bars": [
+      {
+       "label": "C++",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Math",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Running",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Internships",
+       "value": -4.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−4 d"
+      },
+      {
+       "label": "Drawing",
+       "value": -3.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−3 d"
+      },
+      {
+       "label": "Building",
+       "value": -2.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−2 d"
+      },
+      {
+       "label": "Portfolio",
+       "value": -2.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−2 d"
+      }
+     ]
+    }
+   ],
+   "provenance": {
+    "text": "Nemotron 3 Super · 5 s",
+    "source": "nemotron",
+    "detail": "Checked your week, tomorrow's plan and free gaps"
+   }
+  }
+ },
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "portfolio",
+   "label": "Portfolio",
+   "modality": "digital",
+   "default_min": 45
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790971202.0
+ },
+ "today": {
+  "sessions": 1,
+  "verified_min": 23,
+  "declared_min": 25,
+  "habits_done": 1,
+  "habits_total": 6,
+  "tally": "1/6",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Idle — nothing declared",
+ "pinch": {
+  "mood": "reading",
+  "event": null,
+  "seq": 0,
+  "age_s": null,
+  "line": null
+ },
+ "plan_today": {
+  "date": "2026-10-02",
+  "now": 1790975120.0,
+  "scheduled": true,
+  "total": 4,
+  "kept": 2,
+  "left_min": 0,
+  "summary": "Nothing left today. 2 of 4 kept.",
+  "next": null,
+  "left": [],
+  "done": [
+   {
+    "key": "drawing@2026-10-02T19:00",
+    "habit": "drawing",
+    "label": "Drawing",
+    "at": "19:00",
+    "end_at": "19:25",
+    "start": 1790964000.0,
+    "end": 1790965500.0,
+    "minutes": 25,
+    "check": "camera",
+    "glyph": "camera",
+    "status": "done",
+    "verdict": "done",
+    "ratio": 0.92,
+    "session_id": 41,
+    "startable": true,
+    "once": false,
+    "moved": false
+   },
+   {
+    "key": "piano@2026-10-02T21:00",
+    "habit": "piano",
+    "label": "Piano",
+    "at": "21:00",
+    "end_at": "21:20",
+    "start": 1790971200.0,
+    "end": 1790972400.0,
+    "minutes": 20,
+    "check": "camera",
+    "glyph": "camera",
+    "status": "done",
+    "verdict": "done",
+    "ratio": 0.95,
+    "session_id": 42,
+    "startable": true,
+    "once": false,
+    "moved": false
+   }
+  ],
+  "missed": [
+   {
+    "key": "math@2026-10-02T11:00",
+    "habit": "math",
+    "label": "Math",
+    "at": "11:00",
+    "end_at": "11:30",
+    "start": 1790935200.0,
+    "end": 1790937000.0,
+    "minutes": 30,
+    "check": "both",
+    "glyph": "camera",
+    "status": "missed",
+    "verdict": null,
+    "ratio": null,
+    "session_id": null,
+    "startable": true,
+    "once": false,
+    "moved": false
+   },
+   {
+    "key": "cpp@2026-10-02T14:00",
+    "habit": "cpp",
+    "label": "C++",
+    "at": "14:00",
+    "end_at": "14:30",
+    "start": 1790946000.0,
+    "end": 1790947800.0,
+    "minutes": 30,
+    "check": "screen",
+    "glyph": "laptop",
+    "status": "missed",
+    "verdict": null,
+    "ratio": null,
+    "session_id": null,
+    "startable": true,
+    "once": false,
+    "moved": false
+   }
+  ],
+  "checking": [],
+  "away": null
+ },
+ "phrase": {
+  "text": "Math, C++, Drawing blocks missed today.",
+  "source": "rules",
+  "situation": "missed"
+ },
+ "agent": {
+  "last_seen": 1790974502.0,
+  "ago_s": 300,
+  "online": true,
+  "host": "DGX Spark"
+ },
+ "clients": {
+  "island_ago_s": 0.8,
+  "dashboard_ago_s": 0.4
+ },
+ "_night": {
+  "slot": "2026-10-02-night",
+  "kind": "night",
+  "ts": 1790974801.250863,
+  "sent": true,
+  "json": {
+   "kind": "night",
+   "day": "2026-10-02",
+   "at": "22:00",
+   "generated_at": 1790974801.250863,
+   "habits": [
+    {
+     "habit": "drawing",
+     "label": "Drawing",
+     "status3": "off_track",
+     "reason": "210 min behind. Only 0 min planned.",
+     "buffer_days": -3.0,
+     "need_today_min": 210,
+     "need_per_day_min": 101,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 210,
+     "today_seen_min": 0,
+     "today_planned_min": 25,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "building",
+     "label": "Building",
+     "status3": "off_track",
+     "reason": "187 min behind. Only 150 min planned.",
+     "buffer_days": -2.0,
+     "need_today_min": 187,
+     "need_per_day_min": 202,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 420,
+     "today_seen_min": 0,
+     "today_planned_min": 0,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "math",
+     "label": "Math",
+     "status3": "off_track",
+     "reason": "240 min behind. Only 0 min planned.",
+     "buffer_days": -5.0,
+     "need_today_min": 240,
+     "need_per_day_min": 115,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 240,
+     "today_seen_min": 0,
+     "today_planned_min": 30,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "cpp",
+     "label": "C++",
+     "status3": "off_track",
+     "reason": "180 min behind. Only 0 min planned.",
+     "buffer_days": -5.0,
+     "need_today_min": 180,
+     "need_per_day_min": 86,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 180,
+     "today_seen_min": 0,
+     "today_planned_min": 30,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "internships",
+     "label": "Internships",
+     "status3": "off_track",
+     "reason": "180 min behind. Only 0 min planned.",
+     "buffer_days": -4.0,
+     "need_today_min": 180,
+     "need_per_day_min": 86,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 180,
+     "today_seen_min": 0,
+     "today_planned_min": 0,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "portfolio",
+     "label": "Portfolio",
+     "status3": "off_track",
+     "reason": "120 min behind. Only 45 min planned.",
+     "buffer_days": -2.0,
+     "need_today_min": 120,
+     "need_per_day_min": 86,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 180,
+     "today_seen_min": 0,
+     "today_planned_min": 0,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "running",
+     "label": "Running",
+     "status3": "off_track",
+     "reason": "2 runs behind. 1.4 a day until Sunday.",
+     "buffer_days": -5.0,
+     "need_today_min": 2.1,
+     "need_per_day_min": 1.4,
+     "unit": "runs",
+     "verified_min": 0,
+     "target_min": 3,
+     "today_seen_min": null,
+     "today_planned_min": null,
+     "verdicts": null
+    }
+   ],
+   "blocks": [
+    {
+     "key": "math@2026-10-02T11:00",
+     "habit": "math",
+     "label": "Math",
+     "at": "11:00",
+     "min": 30,
+     "start": 1790935200.0,
+     "end": 1790937000.0,
+     "state": "missed",
+     "once": false
+    },
+    {
+     "key": "cpp@2026-10-02T14:00",
+     "habit": "cpp",
+     "label": "C++",
+     "at": "14:00",
+     "min": 30,
+     "start": 1790946000.0,
+     "end": 1790947800.0,
+     "state": "missed",
+     "once": false
+    },
+    {
+     "key": "drawing@2026-10-02T19:00",
+     "habit": "drawing",
+     "label": "Drawing",
+     "at": "19:00",
+     "min": 25,
+     "start": 1790964000.0,
+     "end": 1790965500.0,
+     "state": "missed",
+     "once": false
+    }
+   ],
+   "snapshot": {
+    "habits": {
+     "drawing": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "building": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "math": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "cpp": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "internships": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "portfolio": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     }
+    },
+    "blocks_missed": 3,
+    "picked_min": 120
+   },
+   "signals": {
+    "picked_min": 120,
+    "pickups": 74
+   },
+   "alibi_score": null,
+   "done": [],
+   "partial": [],
+   "slacked": [],
+   "missed": [
+    {
+     "key": "math@2026-10-02T11:00",
+     "habit": "math",
+     "label": "Math",
+     "at": "11:00",
+     "min": 30,
+     "start": 1790935200.0,
+     "end": 1790937000.0,
+     "state": "missed",
+     "once": false
+    },
+    {
+     "key": "cpp@2026-10-02T14:00",
+     "habit": "cpp",
+     "label": "C++",
+     "at": "14:00",
+     "min": 30,
+     "start": 1790946000.0,
+     "end": 1790947800.0,
+     "state": "missed",
+     "once": false
+    },
+    {
+     "key": "drawing@2026-10-02T19:00",
+     "habit": "drawing",
+     "label": "Drawing",
+     "at": "19:00",
+     "min": 25,
+     "start": 1790964000.0,
+     "end": 1790965500.0,
+     "state": "missed",
+     "once": false
+    }
+   ],
+   "buffers": [
+    {
+     "habit": "drawing",
+     "label": "Drawing",
+     "buffer_days": -3.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "building",
+     "label": "Building",
+     "buffer_days": -2.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "math",
+     "label": "Math",
+     "buffer_days": -5.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "cpp",
+     "label": "C++",
+     "buffer_days": -5.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "internships",
+     "label": "Internships",
+     "buffer_days": -4.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "portfolio",
+     "label": "Portfolio",
+     "buffer_days": -2.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "running",
+     "label": "Running",
+     "buffer_days": -5.0,
+     "status3": "off_track"
+    }
+   ],
+   "proposal": {
+    "habit": "math",
+    "label": "Math",
+    "day": "2026-10-03",
+    "at": "08:00",
+    "minutes": 60,
+    "why": "Furthest behind this week.",
+    "via": "llm:build"
+   },
+   "trace": [
+    {
+     "tool": "week_status",
+     "args": {},
+     "ms": 14,
+     "result": "math −5 d behind most"
+    },
+    {
+     "tool": "plan",
+     "args": {
+      "day": "2026-10-03"
+     },
+     "ms": 18,
+     "result": "3 blocks tomorrow"
+    },
+    {
+     "tool": "free_gaps",
+     "args": {
+      "day": "2026-10-03",
+      "min_minutes": 15
+     },
+     "ms": 19,
+     "result": "07:00–07:30, 08:00–11:00, 11:45–18:00, 19:00–22:00"
+    },
+    {
+     "tool": "propose",
+     "args": {
+      "habit": "math",
+      "day": "2026-10-03",
+      "at": "08:00",
+      "minutes": 60,
+      "why": "Furthest behind this week."
+     },
+     "ms": 32,
+     "result": "valid"
+    }
+   ],
+   "via": "llm:build",
+   "turns": 4,
+   "total_ms": 4768,
+   "model": "nvidia/nemotron-3-super-120b-a12b",
+   "tomorrow": [
+    {
+     "key": "running@2026-10-03T07:30",
+     "habit": "running",
+     "label": "Running",
+     "at": "07:30",
+     "min": 30,
+     "start": 1791009000.0,
+     "end": 1791010800.0,
+     "state": "planned",
+     "once": false
+    },
+    {
+     "key": "portfolio@2026-10-03T11:00",
+     "habit": "portfolio",
+     "label": "Portfolio",
+     "at": "11:00",
+     "min": 45,
+     "start": 1791021600.0,
+     "end": 1791024300.0,
+     "state": "planned",
+     "once": false
+    },
+    {
+     "key": "building@2026-10-03T18:00",
+     "habit": "building",
+     "label": "Building",
+     "at": "18:00",
+     "min": 60,
+     "start": 1791046800.0,
+     "end": 1791050400.0,
+     "state": "planned",
+     "once": false
+    }
+   ],
+   "fix_tomorrow": {
+    "habit": "math",
+    "label": "Math",
+    "reason": "240 min behind. Only 0 min planned."
+   },
+   "pinch": "Closing the file on today.",
+   "slot": "2026-10-02-night"
+  },
+  "text": "Move math to tomorrow 08:00, 60 min? Furthest behind this week.\nChecked your week, tomorrow's plan and free gaps · Nemotron 3 Super · 5 s\nDay closed. Missed: Math 11:00, C++ 14:00, Drawing 19:00.\nBuffer: Drawing -3 d, Building -2 d, Math -5 d, C++ -5 d, Internships -4 d, Portfolio -2 d, Running -5 d.",
+  "via": "llm:build",
+  "proposal": {
+   "habit": "math",
+   "label": "Math",
+   "day": "2026-10-03",
+   "at": "08:00",
+   "minutes": 60,
+   "why": "Furthest behind this week.",
+   "via": "llm:build"
+  },
+  "trace": [
+   {
+    "tool": "week_status",
+    "args": {},
+    "ms": 14,
+    "result": "math −5 d behind most"
+   },
+   {
+    "tool": "plan",
+    "args": {
+     "day": "2026-10-03"
+    },
+    "ms": 18,
+    "result": "3 blocks tomorrow"
+   },
+   {
+    "tool": "free_gaps",
+    "args": {
+     "day": "2026-10-03",
+     "min_minutes": 15
+    },
+    "ms": 19,
+    "result": "07:00–07:30, 08:00–11:00, 11:45–18:00, 19:00–22:00"
+   },
+   {
+    "tool": "propose",
+    "args": {
+     "habit": "math",
+     "day": "2026-10-03",
+     "at": "08:00",
+     "minutes": 60,
+     "why": "Furthest behind this week."
+    },
+    "ms": 32,
+    "result": "valid"
+   }
+  ],
+  "turns": 4,
+  "total_ms": 4768,
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "accepted_at": null,
+  "card": {
+   "v": 1,
+   "kind": "night",
+   "title": "Move math to tomorrow 08:00, 60 min?",
+   "tone": "accent",
+   "subtitle": "Furthest behind this week.",
+   "groups": [
+    {
+     "label": "Missed today",
+     "items": [
+      {
+       "text": "Math 11:00",
+       "tone": "warn",
+       "icon": "x"
+      },
+      {
+       "text": "C++ 14:00",
+       "tone": "warn",
+       "icon": "x"
+      },
+      {
+       "text": "Drawing 19:00",
+       "tone": "warn",
+       "icon": "x"
+      }
+     ]
+    },
+    {
+     "label": "Buffer",
+     "bars": [
+      {
+       "label": "C++",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Math",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Running",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Internships",
+       "value": -4.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−4 d"
+      },
+      {
+       "label": "Drawing",
+       "value": -3.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−3 d"
+      },
+      {
+       "label": "Building",
+       "value": -2.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−2 d"
+      },
+      {
+       "label": "Portfolio",
+       "value": -2.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−2 d"
+      }
+     ]
+    }
+   ],
+   "provenance": {
+    "text": "Nemotron 3 Super · 5 s",
+    "source": "nemotron",
+    "detail": "Checked your week, tomorrow's plan and free gaps"
+   },
+   "actions": [
+    {
+     "label": "Accept",
+     "post": "/api/digests/2026-10-02-night/accept",
+     "body": {},
+     "dismiss": true
+    },
+    {
+     "label": "Not now",
+     "dismiss": true
+    }
+   ]
+  }
+ },
+ "_night_accepted": {
+  "slot": "2026-10-02-night",
+  "kind": "night",
+  "ts": 1790974801.250863,
+  "sent": true,
+  "json": {
+   "kind": "night",
+   "day": "2026-10-02",
+   "at": "22:00",
+   "generated_at": 1790974801.250863,
+   "habits": [
+    {
+     "habit": "drawing",
+     "label": "Drawing",
+     "status3": "off_track",
+     "reason": "210 min behind. Only 0 min planned.",
+     "buffer_days": -3.0,
+     "need_today_min": 210,
+     "need_per_day_min": 101,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 210,
+     "today_seen_min": 0,
+     "today_planned_min": 25,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "building",
+     "label": "Building",
+     "status3": "off_track",
+     "reason": "187 min behind. Only 150 min planned.",
+     "buffer_days": -2.0,
+     "need_today_min": 187,
+     "need_per_day_min": 202,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 420,
+     "today_seen_min": 0,
+     "today_planned_min": 0,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "math",
+     "label": "Math",
+     "status3": "off_track",
+     "reason": "240 min behind. Only 0 min planned.",
+     "buffer_days": -5.0,
+     "need_today_min": 240,
+     "need_per_day_min": 115,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 240,
+     "today_seen_min": 0,
+     "today_planned_min": 30,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "cpp",
+     "label": "C++",
+     "status3": "off_track",
+     "reason": "180 min behind. Only 0 min planned.",
+     "buffer_days": -5.0,
+     "need_today_min": 180,
+     "need_per_day_min": 86,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 180,
+     "today_seen_min": 0,
+     "today_planned_min": 30,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "internships",
+     "label": "Internships",
+     "status3": "off_track",
+     "reason": "180 min behind. Only 0 min planned.",
+     "buffer_days": -4.0,
+     "need_today_min": 180,
+     "need_per_day_min": 86,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 180,
+     "today_seen_min": 0,
+     "today_planned_min": 0,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "portfolio",
+     "label": "Portfolio",
+     "status3": "off_track",
+     "reason": "120 min behind. Only 45 min planned.",
+     "buffer_days": -2.0,
+     "need_today_min": 120,
+     "need_per_day_min": 86,
+     "unit": "min",
+     "verified_min": 0,
+     "target_min": 180,
+     "today_seen_min": 0,
+     "today_planned_min": 0,
+     "verdicts": {
+      "done": 0,
+      "partial": 0,
+      "slacked": 0
+     }
+    },
+    {
+     "habit": "running",
+     "label": "Running",
+     "status3": "off_track",
+     "reason": "2 runs behind. 1.4 a day until Sunday.",
+     "buffer_days": -5.0,
+     "need_today_min": 2.1,
+     "need_per_day_min": 1.4,
+     "unit": "runs",
+     "verified_min": 0,
+     "target_min": 3,
+     "today_seen_min": null,
+     "today_planned_min": null,
+     "verdicts": null
+    }
+   ],
+   "blocks": [
+    {
+     "key": "math@2026-10-02T11:00",
+     "habit": "math",
+     "label": "Math",
+     "at": "11:00",
+     "min": 30,
+     "start": 1790935200.0,
+     "end": 1790937000.0,
+     "state": "missed",
+     "once": false
+    },
+    {
+     "key": "cpp@2026-10-02T14:00",
+     "habit": "cpp",
+     "label": "C++",
+     "at": "14:00",
+     "min": 30,
+     "start": 1790946000.0,
+     "end": 1790947800.0,
+     "state": "missed",
+     "once": false
+    },
+    {
+     "key": "drawing@2026-10-02T19:00",
+     "habit": "drawing",
+     "label": "Drawing",
+     "at": "19:00",
+     "min": 25,
+     "start": 1790964000.0,
+     "end": 1790965500.0,
+     "state": "missed",
+     "once": false
+    }
+   ],
+   "snapshot": {
+    "habits": {
+     "drawing": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "building": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "math": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "cpp": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "internships": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     },
+     "portfolio": {
+      "verified_min": 0,
+      "today_seen_min": 0,
+      "verdicts": {
+       "done": 0,
+       "partial": 0,
+       "slacked": 0
+      },
+      "status3": "off_track"
+     }
+    },
+    "blocks_missed": 3,
+    "picked_min": 120
+   },
+   "signals": {
+    "picked_min": 120,
+    "pickups": 74
+   },
+   "alibi_score": null,
+   "done": [],
+   "partial": [],
+   "slacked": [],
+   "missed": [
+    {
+     "key": "math@2026-10-02T11:00",
+     "habit": "math",
+     "label": "Math",
+     "at": "11:00",
+     "min": 30,
+     "start": 1790935200.0,
+     "end": 1790937000.0,
+     "state": "missed",
+     "once": false
+    },
+    {
+     "key": "cpp@2026-10-02T14:00",
+     "habit": "cpp",
+     "label": "C++",
+     "at": "14:00",
+     "min": 30,
+     "start": 1790946000.0,
+     "end": 1790947800.0,
+     "state": "missed",
+     "once": false
+    },
+    {
+     "key": "drawing@2026-10-02T19:00",
+     "habit": "drawing",
+     "label": "Drawing",
+     "at": "19:00",
+     "min": 25,
+     "start": 1790964000.0,
+     "end": 1790965500.0,
+     "state": "missed",
+     "once": false
+    }
+   ],
+   "buffers": [
+    {
+     "habit": "drawing",
+     "label": "Drawing",
+     "buffer_days": -3.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "building",
+     "label": "Building",
+     "buffer_days": -2.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "math",
+     "label": "Math",
+     "buffer_days": -5.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "cpp",
+     "label": "C++",
+     "buffer_days": -5.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "internships",
+     "label": "Internships",
+     "buffer_days": -4.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "portfolio",
+     "label": "Portfolio",
+     "buffer_days": -2.0,
+     "status3": "off_track"
+    },
+    {
+     "habit": "running",
+     "label": "Running",
+     "buffer_days": -5.0,
+     "status3": "off_track"
+    }
+   ],
+   "proposal": {
+    "habit": "math",
+    "label": "Math",
+    "day": "2026-10-03",
+    "at": "08:00",
+    "minutes": 60,
+    "why": "Furthest behind this week.",
+    "via": "llm:build"
+   },
+   "trace": [
+    {
+     "tool": "week_status",
+     "args": {},
+     "ms": 14,
+     "result": "math −5 d behind most"
+    },
+    {
+     "tool": "plan",
+     "args": {
+      "day": "2026-10-03"
+     },
+     "ms": 18,
+     "result": "3 blocks tomorrow"
+    },
+    {
+     "tool": "free_gaps",
+     "args": {
+      "day": "2026-10-03",
+      "min_minutes": 15
+     },
+     "ms": 19,
+     "result": "07:00–07:30, 08:00–11:00, 11:45–18:00, 19:00–22:00"
+    },
+    {
+     "tool": "propose",
+     "args": {
+      "habit": "math",
+      "day": "2026-10-03",
+      "at": "08:00",
+      "minutes": 60,
+      "why": "Furthest behind this week."
+     },
+     "ms": 32,
+     "result": "valid"
+    }
+   ],
+   "via": "llm:build",
+   "turns": 4,
+   "total_ms": 4768,
+   "model": "nvidia/nemotron-3-super-120b-a12b",
+   "tomorrow": [
+    {
+     "key": "running@2026-10-03T07:30",
+     "habit": "running",
+     "label": "Running",
+     "at": "07:30",
+     "min": 30,
+     "start": 1791009000.0,
+     "end": 1791010800.0,
+     "state": "planned",
+     "once": false
+    },
+    {
+     "key": "portfolio@2026-10-03T11:00",
+     "habit": "portfolio",
+     "label": "Portfolio",
+     "at": "11:00",
+     "min": 45,
+     "start": 1791021600.0,
+     "end": 1791024300.0,
+     "state": "planned",
+     "once": false
+    },
+    {
+     "key": "building@2026-10-03T18:00",
+     "habit": "building",
+     "label": "Building",
+     "at": "18:00",
+     "min": 60,
+     "start": 1791046800.0,
+     "end": 1791050400.0,
+     "state": "planned",
+     "once": false
+    }
+   ],
+   "fix_tomorrow": {
+    "habit": "math",
+    "label": "Math",
+    "reason": "240 min behind. Only 0 min planned."
+   },
+   "pinch": "Closing the file on today.",
+   "slot": "2026-10-02-night"
+  },
+  "text": "Move math to tomorrow 08:00, 60 min? Furthest behind this week.\nChecked your week, tomorrow's plan and free gaps · Nemotron 3 Super · 5 s\nDay closed. Missed: Math 11:00, C++ 14:00, Drawing 19:00.\nBuffer: Drawing -3 d, Building -2 d, Math -5 d, C++ -5 d, Internships -4 d, Portfolio -2 d, Running -5 d.",
+  "via": "llm:build",
+  "proposal": {
+   "habit": "math",
+   "label": "Math",
+   "day": "2026-10-03",
+   "at": "08:00",
+   "minutes": 60,
+   "why": "Furthest behind this week.",
+   "via": "llm:build"
+  },
+  "trace": [
+   {
+    "tool": "week_status",
+    "args": {},
+    "ms": 14,
+    "result": "math −5 d behind most"
+   },
+   {
+    "tool": "plan",
+    "args": {
+     "day": "2026-10-03"
+    },
+    "ms": 18,
+    "result": "3 blocks tomorrow"
+   },
+   {
+    "tool": "free_gaps",
+    "args": {
+     "day": "2026-10-03",
+     "min_minutes": 15
+    },
+    "ms": 19,
+    "result": "07:00–07:30, 08:00–11:00, 11:45–18:00, 19:00–22:00"
+   },
+   {
+    "tool": "propose",
+    "args": {
+     "habit": "math",
+     "day": "2026-10-03",
+     "at": "08:00",
+     "minutes": 60,
+     "why": "Furthest behind this week."
+    },
+    "ms": 32,
+    "result": "valid"
+   }
+  ],
+  "turns": 4,
+  "total_ms": 4768,
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "accepted_at": 1790974861.250863,
+  "card": {
+   "v": 1,
+   "kind": "night",
+   "title": "On the plan: math tomorrow 08:00, 60 min.",
+   "tone": "accent",
+   "subtitle": "Furthest behind this week.",
+   "chips": [
+    {
+     "text": "Accepted",
+     "tone": "accent",
+     "icon": "check"
+    }
+   ],
+   "groups": [
+    {
+     "label": "Missed today",
+     "items": [
+      {
+       "text": "Math 11:00",
+       "tone": "warn",
+       "icon": "x"
+      },
+      {
+       "text": "C++ 14:00",
+       "tone": "warn",
+       "icon": "x"
+      },
+      {
+       "text": "Drawing 19:00",
+       "tone": "warn",
+       "icon": "x"
+      }
+     ]
+    },
+    {
+     "label": "Buffer",
+     "bars": [
+      {
+       "label": "C++",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Math",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Running",
+       "value": -5.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−5 d"
+      },
+      {
+       "label": "Internships",
+       "value": -4.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−4 d"
+      },
+      {
+       "label": "Drawing",
+       "value": -3.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−3 d"
+      },
+      {
+       "label": "Building",
+       "value": -2.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−2 d"
+      },
+      {
+       "label": "Portfolio",
+       "value": -2.0,
+       "min": -7.0,
+       "max": 7.0,
+       "tone": "warn",
+       "caption": "−2 d"
+      }
+     ]
+    }
+   ],
+   "provenance": {
+    "text": "Nemotron 3 Super · 5 s",
+    "source": "nemotron",
+    "detail": "Checked your week, tomorrow's plan and free gaps"
+   }
+  }
+ }
+}

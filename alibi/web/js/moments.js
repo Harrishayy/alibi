@@ -1,9 +1,9 @@
-/* moments.js: window.AlibiMoments, the web hook contract (docs/design/IMPLEMENTATION.md Appendix D). Signatures are frozen.
+/* moments.js: window.AlibiMoments, the web hook contract. Signatures are frozen.
    Classic script, loaded after pinch.js and before core.js, so the area scripts can call it unconditionally.
    Uses pinch-wire.js (window.AlibiPinchWire), confetti.js (window.AlibiConfetti) and css/moments.css; if the page
    doesn't link them yet, they are added at DOMContentLoaded (after every <script> tag has been parsed, so never twice).
 
-   Pinch events (LANES.md): the server pinch block is {mood, event, seq, age_s, line}. An event plays once, when seq is
+   Pinch events: the server pinch block is {mood, event, seq, age_s, line}. An event plays once, when seq is
    newer than the last one this page saw and age_s < 15. The first poll only records seq, so a reload never replays.
 
    Verdict markup the reveal looks for inside cardEl (any of the selectors; missing parts are skipped):
@@ -24,7 +24,7 @@
   const VERDICT_CLIP = {done: "celebrate", partial: "partial", slacked: "supportive"};
   const VERDICT_EVENTS = new Set(Object.values(VERDICT_CLIP));
 
-  /* ---------- dependencies: link the lane's files if the shell hasn't yet ---------- */
+  /* ---------- dependencies: link moments.css, pinch-wire.js and confetti.js if the shell hasn't yet ---------- */
   function linkDeps() {
     const has = (sel) => !!document.querySelector(sel);
     if (!has('link[href*="/css/moments.css"]')) {
@@ -369,6 +369,15 @@
     }).observe(pop, {attributes: true, attributeFilter: ["class"]});
   }
 
+  /* ---------- the day's last block (plan_done): claw confetti once the verdict has landed ---------- */
+  function planDone() {
+    if (RM() || !W() || W().quiet() || !window.AlibiConfetti) return;
+    setTimeout(() => {
+      const c = W() && W().claws();
+      if (c && !W().quiet()) window.AlibiConfetti.burst(c.x, c.y, {count: 40, cone: 80, spread: 1.3});
+    }, 1600);                                                     // after the reveal (its own burst lands at 1000 ms)
+  }
+
   /* ---------- every poll ---------- */
   function state(s) {
     if (!s) return;
@@ -381,6 +390,7 @@
     else if (seq > lastSeq) {
       lastSeq = seq;
       if (p.event && (p.age_s == null || p.age_s < 15)) playEvent(p, s);
+      if (p.moment === "plan_done" && (p.age_s == null || p.age_s < 15)) planDone();
     }
     tidyNudges(s);
     runFlip();

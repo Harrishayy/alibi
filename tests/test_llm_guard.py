@@ -1,4 +1,4 @@
-"""F0: a slow or misconfigured LLM can't stall Alibi, request paths never call it, a keyless Spark counts as ready,
+"""A slow or misconfigured LLM can't stall Alibi, request paths never call it, a keyless Spark counts as ready,
 and vision stays on the Mac unless asked. config/llm are module-level, so each case is its own subprocess."""
 import os, subprocess, sys, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -56,11 +56,11 @@ check("nightly model prose 1" in out, "build_json(prose=True) -> 1 LLM call (nig
 
 # 3. Keyless Spark: TEXT_READY from a non-NVIDIA base URL + model. NVIDIA Build still needs a real key.
 probe = "from alibi import config; print(config.TEXT_READY)"
-rc, out, _ = run(probe, LLM_BASE_URL="http://100.76.35.21:8000/v1", LLM_MODEL="x")
+rc, out, _ = run(probe, LLM_BASE_URL="http://100.100.100.100:8000/v1", LLM_MODEL="x")
 check(rc == 0 and out.endswith("True"), f"Spark URL + LLM_MODEL, no key -> TEXT_READY ({out[-60:]})")
 rc, out, _ = run(probe, LLM_BASE_URL="https://integrate.api.nvidia.com/v1", LLM_MODEL="x")
 check(rc == 0 and out.endswith("False"), "Build URL, no key -> not ready")
-rc, out, _ = run(probe, LLM_BASE_URL="http://100.76.35.21:8000/v1", LLM_MODEL="<text model id>")
+rc, out, _ = run(probe, LLM_BASE_URL="http://100.100.100.100:8000/v1", LLM_MODEL="<text model id>")
 check(rc == 0 and out.endswith("False"), "placeholder LLM_MODEL -> not ready")
 
 # 4. Vision stays local unless VISION_BACKEND is set explicitly.
@@ -75,13 +75,24 @@ rc, out, _ = run(probe)
 check(rc == 0 and "Photos stay on this Mac." in out, f"apple witness -> 'Photos stay on this Mac.' ({out[-60:]})")
 rc, out, _ = run(probe, VISION_BACKEND="nvidia", VLM_MODEL="v", VLM_BASE_URL="https://integrate.api.nvidia.com/v1")
 check(rc == 0 and "NVIDIA's model" in out and "stay on this Mac" not in out, f"Build witness -> no 'stay on this Mac' ({out[-60:]})")
-rc, out, _ = run(probe, VISION_BACKEND="nvidia", VLM_MODEL="v", VLM_BASE_URL="http://100.76.35.21:8000/v1")
+rc, out, _ = run(probe, VISION_BACKEND="nvidia", VLM_MODEL="v", VLM_BASE_URL="http://100.100.100.100:8000/v1")
 check(rc == 0 and "own model server" in out, "Spark witness -> 'your own model server'")
 
-# 5. Thinking switch only off NVIDIA Build (Build 400s on unknown chat_template_kwargs).
+# 5. One-shot calls: thinking switch only off NVIDIA Build (Build calls keep each model's default).
 rc, out, _ = run("from alibi import llm; print(llm._extra('https://integrate.api.nvidia.com/v1'), "
-                 "bool(llm._extra('http://100.76.35.21:8000/v1')))")
+                 "bool(llm._extra('http://100.100.100.100:8000/v1')))")
 check(rc == 0 and out.endswith("{} True"), f"enable_thinking=False only for non-NVIDIA hosts ({out[-60:]})")
+
+# 6. The tool loop: Nemotron on Build gets thinking off (else a turn ends finish_reason=length with no tool call);
+#    any other model on Build, or any non-NVIDIA host, gets exactly what _extra gives.
+rc, out, _ = run("""
+from alibi import llm
+B, S, off = 'https://integrate.api.nvidia.com/v1', 'http://100.100.100.100:8000/v1', {'enable_thinking': False}
+print(llm._tools_extra(B, 'nvidia/nemotron-3-super-120b-a12b') == {'extra_body': {'chat_template_kwargs': off}},
+      llm._tools_extra(B, 'meta/llama-3.3-70b-instruct') == {}, llm._tools_extra(S, 'nemotron-3-nano') == llm._extra(S))
+""")
+check(rc == 0 and out.endswith("True True True"),
+      f"_tools_extra: Nemotron on Build -> enable_thinking False; other model or host -> nothing added ({out[-60:]})")
 
 srv.shutdown()
 print("PASS test_llm_guard")

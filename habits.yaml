@@ -1,4 +1,4 @@
-# Edited from the Alibi dashboard. Keys are what the agent maps your sentence to.
+# An example week. Edit it from the Alibi dashboard, or here. Keys are what the agent maps your sentence to.
 habits:
   drawing:
     modality: physical
@@ -7,7 +7,7 @@ habits:
     - sketch
     - sketching
     - art
-    weekly_target_min: 210
+    weekly_target_min: 150
     default_min: 25
     on_task_looks_like: hands holding a pen or pencil working on paper or a drawing
       tablet
@@ -19,31 +19,41 @@ habits:
       at: '19:00'
       min: 25
     calendar: true
-  building:
+  piano:
     modality: physical
     aliases:
-    - build
-    - building
-    - iggy
-    - robot
-    - solder
-    - hardware
-    - quadruped
-    weekly_target_min: 420
-    default_min: 45
-    on_task_looks_like: hands working on hardware, robot, wiring, tools, or laptop
-      code next to hardware
+    - piano
+    - keys
+    - scales
+    weekly_target_min: 180
+    default_min: 30
+    on_task_looks_like: hands on a piano or keyboard, sheet music on the stand
     schedule:
     - days:
+      - mon
       - tue
       - thu
       - sat
       at: '18:00'
-      min: 60
+      min: 30
+    calendar: true
+  cooking:
+    modality: physical
+    aliases:
+    - cook
+    - cooking
+    - bake
+    - baking
+    - meal prep
+    weekly_target_min: 120
+    default_min: 45
+    on_task_looks_like: hands chopping, stirring or plating food at a kitchen counter
+    schedule:
     - days:
+      - wed
       - sun
-      at: '14:00'
-      min: 90
+      at: '18:30'
+      min: 45
     calendar: true
   math:
     modality: hybrid
@@ -86,51 +96,7 @@ habits:
       min: 30
     calendar: true
     repos:
-    - /Users/harrishayyanar/Documents/c++
-  internships:
-    modality: digital
-    aliases:
-    - internship
-    - applications
-    - apply
-    - job
-    weekly_target_min: 180
-    default_min: 30
-    on_task_looks_like: Workday, Greenhouse, Lever, LinkedIn Jobs, careers pages,
-      CV or cover letter docs
-    schedule:
-    - days:
-      - mon
-      - tue
-      - wed
-      - thu
-      at: '16:00'
-      min: 45
-    calendar: true
-  portfolio:
-    modality: digital
-    aliases:
-    - portfolio
-    - website
-    - smintweb
-    - personal site
-    weekly_target_min: 180
-    default_min: 45
-    on_task_looks_like: code editor in the smintweb project, localhost preview of
-      the portfolio site, design tools
-    schedule:
-    - days:
-      - tue
-      - thu
-      at: '20:00'
-      min: 45
-    - days:
-      - sat
-      at: '11:00'
-      min: 45
-    calendar: true
-    repos:
-    - /Users/harrishayyanar/Documents/smintweb
+    - ~/code/cpp
   running:
     source: strava
     weekly_sessions: 3
@@ -140,7 +106,7 @@ habits:
       - tue
       - thu
       - sat
-      at: 07:30
+      at: '07:30'
       min: 30
     calendar: true
 verdict:

@@ -58,7 +58,7 @@ function sessionHtml(s) {
   </li>`;
 }
 
-// /api/state rows the list may not have yet: the live session leads (canvas "Now · Live") until its verdict lands,
+// /api/state rows the list may not have yet: the live session leads ("Now · Live") until its verdict lands,
 // and the just-finished verdict joins at once instead of waiting for the next 15 s refresh.
 let lastSessList = [], stateRowsKey = "", sessAll = false;
 const SESS_FIRST = 8;

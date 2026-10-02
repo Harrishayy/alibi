@@ -1,4 +1,4 @@
-"""P6 DoD: phone Focus + Health samples POST /ingest with a shared secret -> events."""
+"""Phone ingest DoD: phone Focus + Health samples POST /ingest with a shared secret -> events."""
 import os
 os.environ["INGEST_SECRET"] = "s3cret"
 from harness import check
@@ -13,4 +13,4 @@ check(c.post("/ingest", headers=h, json={"source": "health", "kind": "samples", 
 check(c.post("/ingest", headers=h, json={"source": "camera", "kind": "label"}).status_code == 400, "can't forge camera evidence")
 n = db.connect().execute("SELECT count(*) FROM events WHERE source IN ('phone','health')").fetchone()[0]
 check(n == 2, "2 events in the store")
-print("P6 DoD passed.")
+print("Phone ingest DoD passed.")

@@ -3,7 +3,7 @@
    Classic script; load order core, now, week, sessions, setup, onboarding, boot. */
 
 /* ---------- shared marks (week + sessions) ---------- */
-// Icon set: 1.5px stroke on a 24 grid (system/project components). window.AlibiIcons (lane W1) wins when it is loaded.
+// Icon set: 1.5px stroke on a 24 grid (system/project components). window.AlibiIcons (icons.js) wins when it is loaded.
 const WK_ICONS = {
   play: '<path d="M8 5.6v12.8a1 1 0 0 0 1.53.85l10.2-6.4a1 1 0 0 0 0-1.7L9.53 4.75A1 1 0 0 0 8 5.6z"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
@@ -128,6 +128,8 @@ function renderHero() {
 let wkFullOpen = false;
 // Report sentences in Pinch's voice: totals as "1h 37m", pace as a fact, not a nag.
 const wkVoice = t => plain(String(t || "").replace(/, you're (.+?) behind pace/g, " is $1 behind an even pace")).replace(/(\d+) h (\d+) min\b/g, "$1h $2m").replace(/(\d+) h\b/g, "$1h");
+// One sentence per row: split after . ? or ! followed by a space, so "5.2 km" and "08:00" stay whole.
+const wkSentences = t => String(t || "").replace(/([.!?])\s+(?=\S)/g, "$1\u0000").split("\u0000").map(x => x.trim()).filter(Boolean);
 function reportLine(r) {
   const sents = (r.summary || "").match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [];
   const pull = sents.filter(x => /^\s*(Today|Tomorrow):/.test(x)).join(" ").trim() || sents.slice(-1).join("").trim();
@@ -142,7 +144,7 @@ function renderReport(r) {
     const f = d => `${d.getDate()} ${"Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ")[d.getMonth()]}`;
     $("#weekRange").textContent = `${f(ws)} to ${f(we)}`;
   }
-  // The report line now lives inside the week card (canvas); the legacy quote block stays empty.
+  // The report line now lives inside the week card; the legacy quote block stays empty.
   const q = $("#quote"); if (q) { q.textContent = ""; q.hidden = true; }
   const rm = document.querySelector("#weekBlock .readmore"); if (rm) rm.hidden = true;
   const fr = $("#fullRep"); if (fr) fr.hidden = true;
@@ -221,8 +223,9 @@ function renderTodayMeta() {
   const head = document.querySelector("#todayBlock .todayhead"); if (!head) return;
   let m = $("#todayMeta");
   if (!m) { m = document.createElement("span"); m.id = "todayMeta"; m.className = "wk-meta"; const acts = head.querySelector(".sacts"); acts ? acts.prepend(m) : head.append(m); }
-  const t = lastToday, now = clockT(wkNow());
-  const txt = t && t.habits_total ? `${t.habits_done || 0} of ${t.habits_total} done · ${now}` : now;
+  const t = lastToday, now = clockT(wkNow()), pt = typeof lastPlanToday !== "undefined" ? lastPlanToday : null;
+  // Same metric as the island footer: blocks kept of blocks planned today, once there's a plan.
+  const txt = pt && pt.total > 0 ? `${pt.kept || 0} of ${pt.total} kept · ${now}` : t && t.habits_total ? `${t.habits_done || 0} of ${t.habits_total} done · ${now}` : now;
   if (m.textContent !== txt) m.textContent = txt;
 }
 function renderPlan() {
@@ -235,7 +238,7 @@ function renderPlan() {
   const pk = plannedKey && blocks.find(b => b.key === plannedKey);
   if (pk && !["planned", "now"].includes(pk.state) && $("#toast")?.classList.contains("planned")) hideToast();
   // The composer's next line (now.js) already says what's next; the timeline shows it in place.
-  if (nx) nx.innerHTML = "";
+  if (nx) { nx.dataset.html = ""; nx.innerHTML = ""; if (typeof renderPlanSummary === "function") renderPlanSummary(lastPlanToday); }
   // Items: plan blocks, plus today's sessions that weren't planned, plus the live session.
   const today = localDate(), nowS = wkNow(), items = [];
   const planned = new Set(blocks.map(b => b.session_id).filter(Boolean));
@@ -293,7 +296,8 @@ function renderHealthLines() {
   wkPaint(el, hs.map(x => `<span class="hline${x.today_met ? " met" : ""}" title="${esc(x.text || "")}">${wkIcon(habitIcon(x.habit, "health"), 16)}<b>${esc(x.label || x.habit)}</b><span>${esc(x.today_text || (x.status === "no_data" ? "Waiting for your iPhone" : "No data yet"))}</span>${x.today_met ? `<span class="tl-v tl-v--done" role="img" aria-label="Met">${wkGlyph("done", 12)}</span>` : ""}</span>`).join(""));
 }
 $("#todayBlock")?.addEventListener("click", async e => {
-  if (e.target.closest("[data-plan]") || e.target.closest("#planWeek")) return openSetup("Habits");
+  if (e.target.closest("[data-plan]") || e.target.closest("#planWeek")) return typeof openHabits === "function" ? openHabits() : openSetup("Habits");
+  if (e.target.closest("[data-brief-more]")) { const c = $("#agent"); c?.classList.toggle("is-full"); e.target.closest("[data-brief-more]").textContent = c?.classList.contains("is-full") ? "Show less" : "Read all of it"; return; }
   const b = e.target.closest("[data-pa]"); if (!b) return;
   const key = b.dataset.key, act = b.dataset.pa;
   if (act === "see") return gotoSession(+b.dataset.sid);
@@ -402,7 +406,7 @@ function renderGrid() {
     <div class="wk-report">
       <div class="wk-line"><span class="wk-avatar" aria-hidden="true"></span><p class="t-voice">${esc(line)}</p></div>
       ${!fresh && more ? `<button type="button" class="al-btn al-btn--quiet al-btn--sm wk-more" aria-expanded="${wkFullOpen}" aria-controls="wkFull">${wkFullOpen ? "Hide the full report" : "Read the full report"}</button>
-      <p class="wk-full" id="wkFull"${wkFullOpen ? "" : " hidden"}>${esc(wkVoice(r.summary))}</p>` : ""}
+      <ul class="wk-full" id="wkFull"${wkFullOpen ? "" : " hidden"}>${wkSentences(wkVoice(r.summary)).map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
     </div>
   </div>`;
   if (wkPaint(box, html)) {
@@ -427,3 +431,157 @@ $("#readRep")?.addEventListener("click", e => {
   const f = $("#fullRep"); if (!f) return; const open = f.hidden; f.hidden = !open;
   e.target.setAttribute("aria-expanded", open); e.target.textContent = open ? "Hide the full report" : "Read the full report";
 });
+
+/* ---------- Pinch's line on Today, what's left, and the agent's brief ---------- */
+// One source per fact: the line is pinch.line, else phrase.text; what's left is plan_today; the brief is
+// GET /api/briefs. Each part hides itself when an older daemon doesn't send its field.
+let lastPlanToday = null, planSig = null, briefsOK = null, lastBrief = null, briefsReq = 0, wkUpSince = null;
+const wkPretty = m => /nemotron-3-super/i.test(m || "") ? "Nemotron 3 Super" : /nemotron-3-nano/i.test(m || "") ? "Nemotron 3 Nano" : /nemotron/i.test(m || "") ? "Nemotron" : "";
+function todaySlots() {
+  const blk = $("#todayBlock"), head = blk && blk.querySelector(".sechead"); if (!head) return {};
+  let line = $("#todayLine"), card = $("#agent");
+  if (!line) { line = document.createElement("div"); line.id = "todayLine"; line.className = "today-line"; line.hidden = true; head.after(line); }
+  if (!card) { card = document.createElement("article"); card.id = "agent"; card.className = "al-card agentcard"; card.hidden = true; card.setAttribute("aria-labelledby", "agentH"); line.after(card); }
+  let night = $("#night");
+  if (!night) { night = document.createElement("article"); night.id = "night"; night.className = "al-card nightcard"; night.hidden = true; night.setAttribute("aria-labelledby", "nightH"); card.before(night); }
+  return {line, card, night};
+}
+function renderTodayExtras(s) {
+  const {line} = todaySlots(); if (!line) return;
+  // Pinch's line: hidden on an old daemon (no phrase), so the island and the web never disagree about who said what.
+  const ph = s && s.phrase, p = (s && s.pinch) || {};
+  const text = dispText(p.line || (ph && ph.text) || "");
+  const agent = !p.line && ph && ph.source === "agent";
+  const mood = agent ? "reading" : (p.mood || "idle");
+  const sig = ph ? `${text}|${agent ? ph.ts : ""}|${mood}` : "";
+  if (line.dataset.sig !== sig) {
+    const first = !line.dataset.sig;
+    line.dataset.sig = sig;
+    line.hidden = !ph || !text;
+    if (ph && text) {
+      line.innerHTML = `<div class="al-pinchline is-compact"><span class="al-pinchline__avatar">${window.AlibiPinchWire ? AlibiPinchWire.avatar(mood, 20) : ""}</span>
+        <p class="al-pinchline__text">${esc(text)}${agent ? ` <span class="today-src">Your agent · ${esc(clockT(ph.ts))}</span>` : ""}</p></div>`;
+      if (!first && !wkReduced()) line.firstElementChild.animate([{opacity: 0, transform: "translateY(4px)"}, {opacity: 1, transform: "none"}], {duration: 260, easing: getComputedStyle(document.documentElement).getPropertyValue("--ease-out").trim() || "ease-out"});
+    }
+  }
+  // What's left today (plan_today), and a re-render of the timeline whenever the plan's shape changes.
+  if (s && "plan_today" in s) {
+    const pt = s.plan_today;
+    lastPlanToday = pt || null;
+    const ps = pt ? JSON.stringify([(pt.left || []).map(i => i.key + ":" + i.status), (pt.done || []).map(i => i.key)]) : "";
+    if (planSig !== null && ps !== planSig) loadPlan();
+    planSig = ps;
+    renderPlanSummary(pt);
+  }
+  renderTodayMeta();
+  // The agent card: only once the daemon is new enough to have /api/briefs (it sends `agent` with every state).
+  // A restarted daemon (new daemon.up_since) asks again at once, so a tab left open across a restart keeps up.
+  const up = s && s.daemon && s.daemon.up_since;
+  if (up && wkUpSince && up !== wkUpSince) { briefsOK = null; if (!("agent" in s)) renderBrief(null); }
+  if (up) wkUpSince = up;
+  if (typeof STAGE !== "undefined" && STAGE) renderNight(nightAccepted && s._night_accepted ? s._night_accepted : s._night || null);
+  else if (nightRow) renderNight(nightRow);
+  if (s && s._briefs) { briefsOK = true; renderBrief((s._briefs || [])[0] || null); }
+  else if (s && "agent" in s && briefsOK === null) { briefsOK = true; loadBriefs(); }
+}
+function renderPlanSummary(pt) {
+  const nx = $("#nextUp"); if (!nx) return;
+  // "N of M kept" is already the Today meta, so the line keeps only what's left.
+  const t = pt && pt.scheduled && pt.total > 0 ? (pt.summary || "").replace(/\s*\d+ of \d+ kept\.$/, "") : "";
+  const html = t ? esc(t).replace(/^(\d+ left)/, "<b>$1</b>").replace(/^(Nothing left today\.)/, "<b>$1</b>") : "";
+  if (nx.dataset.html !== html) { nx.dataset.html = html; nx.innerHTML = html; }
+}
+window.AlibiToday = {plan(pt) { if (!pt) return; lastPlanToday = pt; renderPlanSummary(pt); renderTodayMeta(); loadPlan(); }};
+async function loadBriefs() {
+  if (!briefsOK) return;
+  if (typeof STAGE !== "undefined" && STAGE) { renderBrief((lastState && lastState._briefs || [])[0] || null); return; }
+  const my = ++briefsReq;
+  let j;
+  try { j = await api("/api/briefs?limit=1"); }
+  catch (e) {
+    // Only a 404 means this daemon has no briefs (an old one): hide the card until it restarts. A dropped connection or
+    // a 5xx (a daemon restart) keeps the card as it is, and the next refreshSlow asks again.
+    if (my === briefsReq && String(e && e.message) === "404") { briefsOK = false; renderBrief(null); }
+    return;
+  }
+  if (my === briefsReq) renderBrief((j.briefs || [])[0] || null);   // an older, slower answer never wins
+}
+function renderBrief(b) {
+  const {card} = todaySlots(); if (!card) return;
+  const now = wkNow(), fresh = b && b.text && (b.age_s != null ? b.age_s : now - (b.ts || 0)) < 12 * 3600;
+  const cardOK = fresh && window.AlibiCard && AlibiCard.ok(b.card);
+  const sig = fresh ? `${b.ts}|${b.text}|${cardOK ? JSON.stringify(b.card) : ""}` : "";
+  if (card.dataset.sig === sig) return;
+  const first = !card.dataset.sig;
+  card.dataset.sig = sig; lastBrief = fresh ? b : null;
+  card.hidden = !fresh;
+  if (!fresh) { card.innerHTML = ""; return; }
+  const host = (lastState && lastState.agent && lastState.agent.host) || "";
+  // With a card, its provenance says who and where ("Your agent · DGX Spark · Nemotron 3 Super"), so the meta is the time.
+  const meta = cardOK ? clockT(b.ts) : [clockT(b.ts), host, wkPretty(b.model)].filter(Boolean).join(" · ");
+  const text = dispText(b.text || "");
+  const shown = cardOK ? (b.card.title || "").length + (typeof b.card.subtitle === "string" ? b.card.subtitle.length : 0) + 2 : 0;
+  const long = cardOK ? text.length > shown : text.length > 280;
+  const head = `<div class="ag-head"><span class="ag-av" aria-hidden="true">${window.AlibiPinchWire ? AlibiPinchWire.avatar("reading", 20) : ""}</span>
+      <h3 class="ag-title" id="agentH">From your agent</h3><span class="ag-meta">${esc(meta)}</span></div>`;
+  const more = long ? `<button type="button" class="al-btn al-btn--quiet al-btn--sm ag-more" data-brief-more="1">Read all of it</button>` : "";
+  card.classList.remove("is-full");
+  card.innerHTML = cardOK ? `${head}${AlibiCard.html(b.card, {actions: false})}${long ? `<div class="ag-full"><p class="ag-text">${esc(text)}</p></div>` : ""}${more}`
+    : `${head}<p class="ag-text">${esc(text)}</p>${more}`;
+  card.classList.toggle("is-long", long && !cardOK);
+  if (cardOK && !first) AlibiCard.enter(card);
+  if (!first && !wkReduced()) card.animate([{opacity: 0, transform: "translateY(6px)"}, {opacity: 1, transform: "none"}], {duration: 260, easing: "ease-out"});
+}
+
+/* ---------- the Night review on Today, from GET /api/digests/latest?kind=night (row.card) ---------- */
+// Shown for 14 h from the row's ts (a 22:00 review stays until noon). Accept posts card.actions[0].post and re-reads the
+// row, whose card then reads "On the plan: ..."; Not now hides this slot (remembered per slot). Stage: lastState._night.
+// Stage keeps Accept and Not now in memory and never posts: the fixtures carry a real night's slot and share the live
+// dashboard's origin, so a rehearsal click must not hide the live card or accept the real proposal. A reload resets it.
+let nightRow = null, nightReq = 0, nightAccepted = false, nightHiddenStage = "";
+const nightStage = () => typeof STAGE !== "undefined" && !!STAGE;
+const nightHidden = () => { if (nightStage()) return nightHiddenStage; try { return localStorage.getItem("alibi.nightHidden") || ""; } catch { return ""; } };
+function stageNightAccept() { nightAccepted = true; renderNight(lastState && (lastState._night_accepted || lastState._night) || null); }
+async function loadNight() {
+  if (typeof STAGE !== "undefined" && STAGE) return renderNight(lastState && lastState._night || null);
+  const my = ++nightReq;
+  let row;
+  try { row = await api("/api/digests/latest?kind=night"); } catch { return; }   // an old daemon or a restart: keep what's shown
+  if (my !== nightReq) return;
+  nightRow = row || null;
+  renderNight(nightRow);
+}
+function renderNight(row) {
+  const {night} = todaySlots(); if (!night) return;
+  const show = !!(row && row.card && window.AlibiCard && AlibiCard.ok(row.card) && row.slot !== nightHidden()
+    && wkNow() - (row.ts || 0) < 14 * 3600 && wkNow() - (row.ts || 0) > -600);
+  const sig = show ? JSON.stringify([row.slot, row.ts, row.card]) : "";
+  if (night.dataset.sig === sig) return;
+  const first = !night.dataset.sig;
+  night.dataset.sig = sig; night.dataset.slot = show ? row.slot || "" : "";
+  night.hidden = !show;
+  if (!show) { night.innerHTML = ""; return; }
+  night.innerHTML = `<div class="ag-head"><span class="nc-ic" aria-hidden="true">${wkIcon("moon", 12)}</span>
+      <h3 class="ag-title" id="nightH">Night review</h3><span class="ag-meta">${esc(clockT(row.ts))}</span></div>${AlibiCard.html(row.card)}`;
+  AlibiCard.bind(night, nightAction);
+  if (first || !wkReduced()) AlibiCard.enter(night);
+}
+async function nightAction(x, btn) {
+  const slot = $("#night")?.dataset.slot || "";
+  if (x.post) {
+    if (nightStage()) return stageNightAccept();
+    btn.disabled = true;
+    try { const j = await postJSON(x.post, x.body || {}); if (j && j.reply) showToast("note", j.reply); }
+    catch { btn.disabled = false; return showToast("note", "That didn't save. Check Alibi is running, then try again."); }
+    if ($("#toast")?.classList.contains("has-card") && /report|digest/.test($("#toast").className)) hideToast();   // the toast asked the same question
+    await loadNight(); loadPlan(); return;
+  }
+  if (x.say && typeof say === "function") return say(x.say);
+  if (x.url) { if (/^\/?#/.test(x.url)) { location.hash = x.url.replace(/^\//, ""); return route(); } return window.open(x.url, "_blank", "noopener"); }
+  if (x.dismiss) {
+    if (nightStage()) nightHiddenStage = slot;
+    else try { localStorage.setItem("alibi.nightHidden", slot); } catch {}
+    renderNight(null);
+  }
+}
+document.addEventListener("alibi:report", () => { if (!(typeof STAGE !== "undefined" && STAGE)) loadNight(); });

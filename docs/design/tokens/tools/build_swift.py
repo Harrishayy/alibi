@@ -4,7 +4,7 @@ import os, re, runpy
 HERE = os.path.dirname(os.path.abspath(__file__))
 ns = runpy.run_path(f"{HERE}/build_tokens.py", run_name="tokens")  # rebuilds json/css too
 C, resolve, parse = ns["C"], ns["resolve"], ns["parse"]
-OUT = "/Users/harrishayyanar/Documents/nvidia_habits/docs/design/tokens/Theme.swift"
+OUT = os.path.normpath(os.path.join(HERE, "..", "Theme.swift"))
 
 def camel(n): p = n.split("-"); return p[0] + "".join(x.capitalize() for x in p[1:])
 def sw(v, theme):
@@ -113,7 +113,7 @@ enum Alibi {{
         static let lg: CGFloat = 22, xl: CGFloat = 28, pill: CGFloat = 9999
     }}
 
-    // MARK: Motion: the six shared springs (research/04).
+    // MARK: Motion: the six shared springs (Motion.md).
     enum Motion {{
         static let micro = Animation.spring(duration: 0.25, bounce: 0)        // toggles, dot recolour
         static let snappy = Animation.spring(duration: 0.35, bounce: 0.15)    // wings, inner content, tickers

@@ -1,9 +1,11 @@
-"""Phone writes (F7): start a session by saying it, and end one, from the iPhone over the tailnet.
+"""Phone writes: start a session by saying it, and end one, from the iPhone over the tailnet.
 
 Mounted inside integrations.phone_app() (the :8766 listener), never on the loopback dashboard app.
 
 POST /api/phone/say          {op_id, client_ts, text}                    -> {ok, reply, session}
 POST /api/phone/session/end  {op_id, client_ts, session_id, artefact?}   -> {ok, reply, session}
+GET  /api/phone/plan?days=3   the Plan page view (routes_calendar.days_view); GET /plan serves the page itself
+POST /api/phone/plan/edit    {op_id, client_ts, op, ...}                -> routes_calendar.edit, and the notch says it
 
 Security: the X-Alibi-Secret header (?key= is refused for writes), loopback or tailnet (100.64/10, fd7a:115c:a1e0::/48)
 source only, because the LAN endpoint is cleartext and the header can be sniffed there; tailscale serve arrives as
@@ -161,3 +163,32 @@ async def phone_end(request: Request):
         reply = cli.end(con, art or None, ended_at=ended_at)
         return 200, {"ok": True, "reply": reply, "session": _session(con)}
     return await run_in_threadpool(_once, "end", body["op_id"], run)
+
+
+# --- the Plan page on the phone: the same view and edits as the dashboard's (routes_calendar), behind the key ---------
+
+@router.get("/api/phone/plan")
+def phone_plan(request: Request, days: int = 3):
+    if not _client_ok(request.client.host if request.client else None):
+        return _err(403, "lan_refused", "The plan only opens over Tailscale. Turn Tailscale on and try again.")
+    if not integrations._secret_ok(request.headers.get("x-alibi-secret", "")):
+        return _err(401, "bad_secret", "Wrong or missing key.")
+    from . import routes_calendar
+    return routes_calendar.days_view(days)
+
+
+@router.post("/api/phone/plan/edit")
+async def phone_plan_edit(request: Request):
+    body = await _guard(request)
+    if isinstance(body, JSONResponse):
+        return body
+    from fastapi import HTTPException
+    from . import routes_calendar
+
+    def run():                                   # every op is idempotent (same key, same state), so no op_id ledger
+        try:
+            return 200, routes_calendar.edit(body, source="phone")
+        except HTTPException as e:
+            return e.status_code, {"ok": False, "error": "refused", "reply": str(e.detail)}
+    code, out = await run_in_threadpool(run)
+    return JSONResponse(out, status_code=code)

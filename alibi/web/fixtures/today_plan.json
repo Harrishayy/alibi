@@ -1,0 +1,209 @@
+{
+ "now": 1790970450.0,
+ "session": null,
+ "alert": null,
+ "habits": [
+  {
+   "key": "drawing",
+   "label": "Drawing",
+   "modality": "physical",
+   "default_min": 25
+  },
+  {
+   "key": "building",
+   "label": "Building",
+   "modality": "physical",
+   "default_min": 45
+  },
+  {
+   "key": "math",
+   "label": "Math",
+   "modality": "hybrid",
+   "default_min": 30
+  },
+  {
+   "key": "cpp",
+   "label": "C++",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "internships",
+   "label": "Internships",
+   "modality": "digital",
+   "default_min": 30
+  },
+  {
+   "key": "portfolio",
+   "label": "Portfolio",
+   "modality": "digital",
+   "default_min": 45
+  },
+  {
+   "key": "running",
+   "label": "Running",
+   "modality": "strava",
+   "default_min": 25
+  }
+ ],
+ "witness": "apple",
+ "witness_label": "Apple Vision",
+ "text_model": "rules",
+ "daemon": {
+  "up_since": 1790875370.028407
+ },
+ "today": {
+  "sessions": 1,
+  "verified_min": 23,
+  "declared_min": 25,
+  "habits_done": 1,
+  "habits_total": 6,
+  "tally": "1/6",
+  "verdicts": {
+   "done": 1,
+   "partial": 0,
+   "slacked": 0
+  }
+ },
+ "recent_verdict": null,
+ "status_text": "Idle \u2014 nothing declared",
+ "pinch": {
+  "mood": "idle",
+  "event": null,
+  "seq": 0,
+  "age_s": null,
+  "line": null,
+  "moment": null
+ },
+ "plan_today": {
+  "date": "2026-10-02",
+  "now": 1790970450.0,
+  "scheduled": true,
+  "total": 4,
+  "kept": 1,
+  "left_min": 20,
+  "summary": "1 left: piano at 21:00.",
+  "next": {
+   "key": "piano@2026-10-02T21:00",
+   "habit": "piano",
+   "label": "Piano",
+   "at": "21:00",
+   "end_at": "21:20",
+   "start": 1790971200.0,
+   "end": 1790972400.0,
+   "minutes": 20,
+   "check": "camera",
+   "glyph": "camera",
+   "status": "next",
+   "verdict": null,
+   "ratio": null,
+   "session_id": null,
+   "startable": true,
+   "once": false,
+   "moved": false
+  },
+  "left": [
+   {
+    "key": "piano@2026-10-02T21:00",
+    "habit": "piano",
+    "label": "Piano",
+    "at": "21:00",
+    "end_at": "21:20",
+    "start": 1790971200.0,
+    "end": 1790972400.0,
+    "minutes": 20,
+    "check": "camera",
+    "glyph": "camera",
+    "status": "next",
+    "verdict": null,
+    "ratio": null,
+    "session_id": null,
+    "startable": true,
+    "once": false,
+    "moved": false
+   }
+  ],
+  "done": [
+   {
+    "key": "drawing@2026-10-02T19:00",
+    "habit": "drawing",
+    "label": "Drawing",
+    "at": "19:00",
+    "end_at": "19:25",
+    "start": 1790964000.0,
+    "end": 1790965500.0,
+    "minutes": 25,
+    "check": "camera",
+    "glyph": "camera",
+    "status": "done",
+    "verdict": "done",
+    "ratio": 0.92,
+    "session_id": 41,
+    "startable": true,
+    "once": false,
+    "moved": false
+   }
+  ],
+  "missed": [
+   {
+    "key": "math@2026-10-02T11:00",
+    "habit": "math",
+    "label": "Math",
+    "at": "11:00",
+    "end_at": "11:30",
+    "start": 1790935200.0,
+    "end": 1790937000.0,
+    "minutes": 30,
+    "check": "both",
+    "glyph": "camera",
+    "status": "missed",
+    "verdict": null,
+    "ratio": null,
+    "session_id": null,
+    "startable": true,
+    "once": false,
+    "moved": false
+   },
+   {
+    "key": "cpp@2026-10-02T14:00",
+    "habit": "cpp",
+    "label": "C++",
+    "at": "14:00",
+    "end_at": "14:30",
+    "start": 1790946000.0,
+    "end": 1790947800.0,
+    "minutes": 30,
+    "check": "screen",
+    "glyph": "laptop",
+    "status": "missed",
+    "verdict": null,
+    "ratio": null,
+    "session_id": null,
+    "startable": true,
+    "once": false,
+    "moved": false
+   }
+  ],
+  "checking": [],
+  "away": null
+ },
+ "phrase": {
+  "text": "Piano at 21:00. Keep the promise; I'll keep the receipt.",
+  "source": "rules",
+  "situation": "next",
+  "ts": 1790967600.0,
+  "slot": null,
+  "kind": null,
+  "model": null
+ },
+ "agent": {
+  "last_seen": 1790970438.0,
+  "ago_s": 12,
+  "online": true,
+  "host": "DGX Spark"
+ },
+ "clients": {
+  "island_ago_s": 0.8,
+  "dashboard_ago_s": 0.4
+ }
+}

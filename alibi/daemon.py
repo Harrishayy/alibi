@@ -42,7 +42,7 @@ def tick(con) -> None:
 
 
 def _bell(con, s, now: float) -> None:
-    """Time's up. One last look at the desk — unless the laptop slept through the bell (R4): then no camera, the
+    """Time's up. One last look at the desk — unless the laptop slept through the bell: then no camera, the
     session ends at ends_at (not wake time), and the verdict says so."""
     from . import cli
     late = now - s["ends_at"] > 2 * max(config.SAMPLE_EVERY_S, TICK_S)
@@ -67,7 +67,7 @@ def _bell(con, s, now: float) -> None:
     hooks.on_verdict(con, db.get_session(con, done["id"]))
 
 
-# --- F3: behind-pace reminders ------------------------------------------------------------------------------------
+# --- behind-pace reminders ----------------------------------------------------------------------------------------
 
 def _pace_nudge(con, now: float) -> str | None:
     d = dt.datetime.fromtimestamp(now)
@@ -92,15 +92,19 @@ def _pace_nudge(con, now: float) -> str | None:
     return text
 
 
-# --- F9: Strava claims ------------------------------------------------------------------------------------------
+# --- Strava claims ----------------------------------------------------------------------------------------------
 
 def _strava(con) -> None:
+    """The old hourly sync for a STRAVA_REFRESH_TOKEN in .env. Once Strava is connected, integrations owns syncing (off
+    the tick thread) and the "logged" line; a sync here only blocked the tick and raced it to settle claims."""
     global _strava_synced
     if not os.getenv("STRAVA_REFRESH_TOKEN") or time.time() - _strava_synced < 3600:
         return
     _strava_synced = time.time()
     from . import strava
     try:
+        if strava.connected():
+            return
         new = strava.sync()
     except Exception as e:
         print(f"[alibi] strava sync failed: {e!r}", flush=True)
@@ -110,31 +114,49 @@ def _strava(con) -> None:
     check_claims(con)
 
 
+_claims_lock = threading.Lock()
+
+
 def check_claims(con) -> list[str]:
-    """A 'go for a run' claim is verified by a qualifying Strava run between the claim and its deadline."""
-    out = []
-    claims = con.execute("SELECT id, ts, payload FROM events WHERE source='user' AND kind='claim'").fetchall()
-    settled = {json.loads(r["payload"]).get("claim_id") for r in
-               con.execute("SELECT payload FROM events WHERE source='alibi' AND kind='claim_settled'")}
-    for c in claims:
-        if c["id"] in settled:
-            continue
-        p = json.loads(c["payload"])
-        runs = [e["payload"] for e in db.events_between(con, c["ts"] - 600, p["until"], "strava")
-                if e["payload"].get("distance_km", 0) >= p.get("min_km", 0)]
-        if runs:
-            text = f"Run verified: {runs[0]['distance_km']} km."
-        elif time.time() > p["until"]:
-            text = f"You said you'd run. Strava has nothing ≥{p.get('min_km', 0):g} km. Logged as claimed, not seen."
-        else:
-            continue
-        db.add_event(con, "alibi", "claim_settled", {"claim_id": c["id"], "verified": bool(runs)})
-        notify(text, kind="verdict", habit=p["habit"], verdict="done" if runs else "slacked")
-        out.append(text)
+    """A 'go for a run' claim is verified by a qualifying Strava run between the claim and its deadline. The tick and
+    the Strava sync thread both call this; the lock makes each claim settle (and alert) exactly once."""
+    with _claims_lock:
+        out = []
+        claims = con.execute("SELECT id, ts, payload FROM events WHERE source='user' AND kind='claim'").fetchall()
+        settled = {json.loads(r["payload"]).get("claim_id") for r in
+                   con.execute("SELECT payload FROM events WHERE source='alibi' AND kind='claim_settled'")}
+        for c in claims:
+            if c["id"] in settled:
+                continue
+            p = json.loads(c["payload"])
+            runs = [e["payload"] for e in db.events_between(con, c["ts"] - 600, p["until"], "strava")
+                    if e["payload"].get("distance_km", 0) >= p.get("min_km", 0)]
+            if runs:
+                text = f"Run verified: {runs[0]['distance_km']} km."
+            elif time.time() > p["until"]:
+                text = f"You said you'd run. Strava has nothing ≥{p.get('min_km', 0):g} km. Logged as claimed, not seen."
+            else:
+                continue
+            db.add_event(con, "alibi", "claim_settled", {"claim_id": c["id"], "verified": bool(runs)})
+            notify(text, kind="verdict", habit=p["habit"], verdict="done" if runs else "slacked",
+                   **_claim_extra(p, runs[0] if runs else None))
+            out.append(text)
+        return out
+
+
+def _claim_extra(p: dict, run: dict | None) -> dict:
+    """The settled claim's numbers for its card: min_km, and for a verified run distance_km and moving_min.
+    Floats and an int, as the island decodes them; a value that isn't a number is left out, so the alert always goes out."""
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+    out = {"min_km": float(p["min_km"]) if num(p.get("min_km")) else 0.0}
+    if run and num(run.get("distance_km")):
+        out["distance_km"] = float(run["distance_km"])
+    if run and num(run.get("moving_min")) and run["moving_min"] > 0:
+        out["moving_min"] = int(round(run["moving_min"]))
     return out
 
 
-# --- R5: the daemon owns reels -----------------------------------------------------------------------------------
+# --- the daemon owns reels --------------------------------------------------------------------------------------
 
 def _reel_later(session_id: int) -> threading.Thread:
     """Build the session's memories reel off the tick thread (ffmpeg takes a few seconds)."""
@@ -167,15 +189,17 @@ def _reel_sweep(con) -> None:
             _reel_later(r["id"])
 
 
-# --- nightly report + day recap (R8: once per day even across restarts; F10) --------------------------------------
+# --- nightly report + day recap (once per day even across restarts) -----------------------------------------------
 
 _night_busy: set = set()
 
 
 def _nightly(con, now: float, late: bool = False) -> None:
-    """At REPORT_HOUR (or, `late`, on waking after it the same day): the night digest IS the nightly report. One
-    notification (kind="report", same once-a-day dedupe as before), its text from digest.text, with the replan
-    proposal attached. With a model ready the replan loop can take up to 45 s, so it runs off the tick thread."""
+    """At REPORT_HOUR (or, `late`, on waking after it the same day): the day's recap, then the night digest, which IS
+    the nightly report. One report notification (kind="report", same once-a-day dedupe as before), its text from
+    digest.text, with the replan proposal attached. The recap goes first because each alert replaces the last on the
+    island: the report, with its Accept, must be the one left showing. With a model ready the replan loop can take up
+    to digest.BUDGET_S, so it runs off the tick thread."""
     d = dt.datetime.fromtimestamp(now)
     if d.hour != config.REPORT_HOUR and not (late and d.hour > config.REPORT_HOUR):
         return
@@ -189,17 +213,22 @@ def _nightly(con, now: float, late: bool = False) -> None:
     def go():
         from . import digest
         try:
-            slot = f"{today}-night"
-            row = digest.get(slot) or digest.run("night", now, send=False, slot=slot)
-            notify(row["text"], kind="report", day=today, slot=row["slot"], proposal=row.get("proposal"),
-                   via=row.get("via"), actions=digest.actions(row))
-        except Exception as e:                       # the report must still go out: fall back to the old summary
-            print(f"[alibi] night digest failed: {e!r}", flush=True)
-            from . import report
-            notify(report.build_json(now)["summary"], kind="report", day=today)
+            try:                                     # once a day, even if the report below fails and is retried
+                if not any(a.get("kind") == "recap" and a.get("day") == today for a in recent_alerts(300)):
+                    recap(db.connect(), today, now)
+            except Exception as e:
+                print(f"[alibi] recap failed: {e!r}", flush=True)
+            try:
+                slot = f"{today}-night"
+                row = digest.get(slot) or digest.run("night", now, send=False, slot=slot)
+                notify(row["text"], kind="report", day=today, slot=row["slot"], proposal=row.get("proposal"),
+                       via=row.get("via"), actions=digest.actions(row), habit_label=digest.TITLES["night"])
+            except Exception as e:                   # the report must still go out: fall back to the old summary
+                print(f"[alibi] night digest failed: {e!r}", flush=True)
+                from . import report
+                notify(report.build_json(now)["summary"], kind="report", day=today)
         finally:
             _night_busy.discard(today)
-        _recap_later(today, now)
     if config.TEXT_READY:
         t = threading.Thread(target=go, daemon=True, name="night-digest")
         t.start()
@@ -209,7 +238,7 @@ def _nightly(con, now: float, late: bool = False) -> None:
 
 
 def _digest(con, now: float) -> None:
-    """Morning brief and checkpoints (NEXT_PHASE F5). Each slot runs once (slot_id in digests.jsonl); after a sleep
+    """Morning brief and checkpoints. Each slot runs once (slot_id in digests.jsonl); after a sleep
     only the most recent missed slot of today runs. The night slot belongs to _nightly (one notification)."""
     if not config.DIGESTS:
         return
@@ -236,21 +265,9 @@ def recap(con, day: str, now: float | None = None) -> str | None:
     path = reel.day_reel(con, day)
     first = next((s["evidence_path"] for s in ss if s["evidence_path"]), None)
     text = f"Today: {len(ss)} session{'s' * (len(ss) != 1)}, {seen} min seen." + (" Your reel is ready." if path else "")
-    notify(text, image_path=first, kind="recap", day=day, reel=path,
+    notify(text, image_path=first, kind="recap", day=day, reel=path, sessions=len(ss), seen_min=seen,
            actions=[{"label": "Play", "url": f"/api/reel?date={day}"}] if path else [])
     return text
-
-
-def _recap_later(day: str, now: float) -> threading.Thread:
-    def run():
-        try:
-            recap(db.connect(), day, now)
-        except Exception as e:
-            print(f"[alibi] recap failed: {e!r}", flush=True)
-    t = threading.Thread(target=run, daemon=True, name="recap")
-    t.start()
-    _reel_threads.append(t)
-    return t
 
 
 def main():

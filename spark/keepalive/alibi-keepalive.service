@@ -1,0 +1,8 @@
+[Unit]
+Description=Alibi agent keep-alive check (sandbox, OpenClaw gateway, relay)
+After=nemoclaw-openshell-gateway.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/alibi-keepalive
+TimeoutStartSec=300

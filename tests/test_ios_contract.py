@@ -132,7 +132,7 @@ if hasattr(integrations, "ingest_body"):
     stored = integrations.health_days(db.connect()).get(today) or {}
     check(stored.get("sleep", {}).get("bed") == "23:40" and stored.get("workouts"), f"health extras not kept: {stored}")
 
-# 7. Review fixes (round 3): regressions are cheap to reintroduce, so pin them.
+# 7. Review fixes: regressions are cheap to reintroduce, so pin them.
 HEALTH = (IOS / "AlibiPhone" / "Sensors" / "Health.swift").read_text()
 SYNC = (IOS / "AlibiPhone" / "Sync" / "SyncEngine.swift").read_text()
 PERMS = (IOS / "AlibiPhone" / "Views" / "Permissions.swift").read_text()

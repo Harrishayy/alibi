@@ -1,4 +1,4 @@
-/* moments.css: web moments (verdict reveal, nudge card, PinchLine, confetti, big celebration). Lane M.
+/* moments.css: web moments (verdict reveal, nudge card, PinchLine, confetti, big celebration).
    Motion runs on transform and opacity with the token springs (Motion.md); the reveal itself is WAAPI in moments.js. */
 
 /* ---------- Pinch hosts: one Pinch per view ---------- */

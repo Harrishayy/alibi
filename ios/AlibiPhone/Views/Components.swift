@@ -1,10 +1,10 @@
 // The iPhone's building blocks on the shared Alibi tokens (Views/Shared/Theme.swift): cards, labels, buttons, status
-// marks, the verdict pill, the streak badge, the ring timer and the meter. The phone is dark this round, so every view
+// marks, the verdict pill, the streak badge, the ring timer and the meter. The phone is dark, so every view
 // reads `Alibi.ui` (the dark palette). Status is always colour plus shape plus word.
 import SwiftUI
 
 extension Alibi {
-    /// The phone's palette. Dark is the reference design this round (IMPLEMENTATION §1, decision 2).
+    /// The phone's palette. Dark is the reference design.
     static let ui = Palette.dark
 }
 

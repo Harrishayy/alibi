@@ -3,7 +3,8 @@
    #pinch-now, shown while live or on a verdict). The shell may rebuild those mounts with innerHTML at any time, so each
    instance lives in a persistent host that is re-attached to whichever mount exists (call ensure() after a render).
    Server mood comes from /api/state pinch; client-only moods (listening, reading) layer on top and fall back to it.
-   Classic script; needs pinch.js (window.AlibiPinch). Safe to load twice. */
+   Both are ambient: fidgets while idle and visible, a hello ~1.2 s after the first poll, and
+   the eyes follow a fine pointer within 320 px. Classic script; needs pinch.js (window.AlibiPinch). Safe to load twice. */
 (function () {
   "use strict";
   if (window.AlibiPinchWire) return;
@@ -12,7 +13,8 @@
   const quiet = () => { try { return localStorage.getItem("alibi.quiet") === "1"; } catch { return false; } };
   const SIZES = {hero: 64, now: 96};
   const slots = {};          // name -> {host, inst, size}
-  let serverMood = "idle", clientMood = null, cameraOn = false, sessId = null, lastMode = "";
+  let serverMood = "idle", clientMood = null, cameraOn = false, sessId = null, lastMode = "", helloDone = false;
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 
   function makeSlot(name) {
     if (slots[name] || !P()) return slots[name];
@@ -20,7 +22,7 @@
     host.className = "al-pinch m-pinch m-pinch--" + name;
     host.dataset.pinchSlot = name;
     host.setAttribute("role", "img");
-    const inst = P().mount(host, {size: SIZES[name], mood: serverMood, theme: "auto"});
+    const inst = P().mount(host, {size: SIZES[name], mood: serverMood, theme: "auto", ambient: true});
     slots[name] = {host, inst, size: SIZES[name]};
     label(name);
     return slots[name];
@@ -100,13 +102,19 @@
       if (id !== sessId) {                     // a fresh session gets a fresh 3-side-eye budget
         sessId = id;
         for (const name in slots) if (slots[name].inst.state().sideeyes >= 3) {
-          const s2 = slots[name]; s2.inst.destroy(); s2.inst = P().mount(s2.host, {size: s2.size, mood: serverMood, theme: "auto"});
+          const s2 = slots[name]; s2.inst.destroy(); s2.inst = P().mount(s2.host, {size: s2.size, mood: serverMood, theme: "auto", ambient: true});
         }
       }
       // the lens tells the truth: it glows only while the camera samples
       cameraOn = !!(sess && sess.modality !== "digital" && !sess.on_break && !sess.ended);
       for (const name in slots) slots[name].inst.camera(cameraOn);
       applyMood();
+      // Hello on load: once, ~1.2 s after the first good poll, unless a real moment is pending or a session runs.
+      if (!helloDone) {
+        helloDone = true;
+        const pending = p.event && (p.age_s == null || p.age_s < 15);
+        if (!pending && !sess) setTimeout(() => { if (!quiet() && !document.hidden) W.play("hello"); }, 1200);
+      }
     },
     client(mood) { clientMood = mood || null; applyMood(); },
     clientMood: () => clientMood,
@@ -150,6 +158,35 @@
       }, {threshold: [0, 0.5, 1]}).observe(rep);
     }
   }
-  const start = () => { ensure(); wireClient(); };
+  // Pointer gaze: a fine pointer within 320 px of the visible Pinch draws its eyes; it lets go when the pointer
+  // leaves that circle or rests for 2.5 s. Off under reduced motion and while a sheet covers the page.
+  function wireGaze() {
+    if (wireGaze.done || !window.matchMedia) return;
+    wireGaze.done = true;
+    const fine = matchMedia("(pointer: fine)");
+    let raf = 0, last = null, idle = 0, looking = null;
+    const letGo = () => { clearTimeout(idle); if (looking) { try { looking.inst.lookAt(null); } catch {} looking = null; } };
+    const visible = () => { for (const n in slots) if (!slots[n].host.classList.contains("is-away") && slots[n].host.isConnected) return slots[n]; return null; };
+    addEventListener("pointermove", e => {
+      if ((e.pointerType && e.pointerType === "touch") || !fine.matches || RM()) return;
+      last = e;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const ev = last, s = visible();
+        if (!ev || !s || document.body.classList.contains("hs-open")) return letGo();
+        const r = s.host.getBoundingClientRect(); if (!r.width) return letGo();
+        const dx = ev.clientX - (r.left + r.width / 2), dy = ev.clientY - (r.top + r.height / 2);
+        if (Math.hypot(dx, dy) > 320) return letGo();
+        if (looking && looking !== s) letGo();
+        looking = s;
+        s.inst.lookAt(clamp(dx / 320, -1, 1), clamp(0.6 * dy / 320, -1, 1));
+        clearTimeout(idle); idle = setTimeout(letGo, 2500);
+      });
+    }, {passive: true});
+    document.documentElement.addEventListener("pointerleave", letGo);
+    addEventListener("blur", letGo);
+  }
+  const start = () => { ensure(); wireClient(); wireGaze(); };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

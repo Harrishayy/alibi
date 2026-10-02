@@ -2,7 +2,7 @@
 /* Alibi components: bundle.css. Token block copied from docs/design/tokens/tokens.css, then the component styles. */
 
 
-/* Alibi tokens · docs/design (Alibi redesign, 2026-10-01)
+/* Alibi tokens · docs/design
    Same names as docs/design/system/project/tokens.json. Dark is the primary theme.
    Theme switch: <html data-theme="dark|light">; with no attribute, dark unless the OS prefers light.
    Type: all sans. SF Pro on Apple, Onest for everyone else; Rounded for big numerals; mono for keycaps/IDs only.
@@ -278,7 +278,7 @@
   --spring-celebrate-dur: 1003ms; /* SwiftUI .spring(duration: 0.6, bounce: 0.4) */
 }
 
-/* Springs: research/04, simulated from the same physics as the SwiftUI springs. */
+/* Springs (Motion.md), simulated from the same physics as the SwiftUI springs. */
 @supports (animation-timing-function: linear(0, 1)) {
   :root {
     --spring-micro: linear(0,.086,.252,.419,.569,.688,.777,.844,.891,.925,.949,.965,.977,.984,.989,.993,.995,.997,.998,.999,1);
@@ -396,7 +396,7 @@ p, li, blockquote, figcaption { text-wrap: pretty; }
   color: var(--ink);
 }
 
-/* Reduced motion: fewer and gentler, not zero (research/04).
+/* Reduced motion: fewer and gentler, not zero (Motion.md).
    Opacity and colour feedback stay (150ms); transforms, bounces and decorative loops go. */
 @media (prefers-reduced-motion: reduce) {
   :root {

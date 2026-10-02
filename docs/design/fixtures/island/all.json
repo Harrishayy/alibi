@@ -1050,5 +1050,5 @@
    }
   }
  ],
- "_comment": "Island extras for --snapshot: the live_drifting state plus every alert the island draws (IMPLEMENTATION L3). Built from docs/design/fixtures/state/*.json."
+ "_comment": "Island extras for --snapshot: the live_drifting state plus every alert the island draws. Built from docs/design/fixtures/state/*.json."
 }

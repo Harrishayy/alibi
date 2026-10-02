@@ -1,4 +1,4 @@
-"""REPORT_HOUR=-1 (nightly report off, as the demo stage uses) must drop the night slot, not crash every tick."""
+"""REPORT_HOUR=-1 (nightly report off) must drop the night slot, not crash every tick."""
 import os
 os.environ["REPORT_HOUR"] = "-1"
 from harness import check

@@ -1,4 +1,4 @@
-"""P10 — memories reel: a session's (or a whole day's) frames as an H.264 timelapse.
+"""Memories reel: a session's (or a whole day's) frames as an H.264 timelapse.
 
   python -m alibi.reel session 12
   python -m alibi.reel day 2026-10-01
@@ -10,13 +10,13 @@ from . import config, db, evidence
 
 W, H, FPS = 1280, 720, 6
 REELS_DIR = config.DATA_DIR / "reels"
-PINCH_DIR = Path(__file__).resolve().parents[1] / "docs" / "design" / "demo" / "cards"
+PINCH_DIR = Path(__file__).resolve().parents[1] / "docs" / "design" / "pinch"
 PINCH_FOR = {"done": "celebrate", "partial": "partial", "slacked": "supportive"}   # anything else: hello
 BLACK = "#000000"                                     # the reel plays on the dark stage, like the island
 
 
 def _pinch(clip: str, size: int) -> Image.Image | None:
-    """A Pinch still (rendered from the rig by lane S, 512px RGBA). The title card is the one raster Pinch."""
+    """A Pinch still (rendered from the rig, 512px RGBA). The title card is the one raster Pinch."""
     try:
         im = Image.open(PINCH_DIR / f"pinch-{clip}-512.png").convert("RGBA")
     except OSError:
@@ -110,7 +110,7 @@ def building(name: str) -> bool:
 
 
 def _encode(frames: list[Image.Image], out_path) -> str:
-    """One build per reel at a time (R3); write to .tmp then os.replace so nobody ever serves half a file."""
+    """One build per reel at a time; write to .tmp then os.replace so nobody ever serves half a file."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with _lock_for(out_path.stem):
         tmp = tempfile.mkdtemp(prefix="alibi-reel-")

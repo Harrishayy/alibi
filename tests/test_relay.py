@@ -1,4 +1,4 @@
-"""Agent API (NEMOCLAW.md §5) + Spark relay: the Spark reads context and posts briefs over :8766 with its own token,
+"""Agent API (docs/AGENT.md) + Spark relay: the Spark reads context and posts briefs over :8766 with its own token,
 can't touch sessions, and the relay mirrors the Mac and degrades to the mirror when the Mac sleeps."""
 import datetime as dt, json, os, socket, threading, time
 from harness import check, Clock
@@ -15,7 +15,7 @@ from alibi import relay
 relay.MAC_TOKEN = TOKEN
 H = {"X-Alibi-Agent-Token": TOKEN}
 phone = integrations.phone_app()
-tail = TestClient(phone, client=("100.76.35.21", 5000))          # the Spark, on the tailnet
+tail = TestClient(phone, client=("100.100.100.100", 5000))       # the Spark, on the tailnet
 lan = TestClient(phone, client=("192.168.1.20", 5000))
 
 # --- the Mac's agent API --------------------------------------------------------------------------------------------
@@ -46,6 +46,68 @@ check(any(h["key"] == "drawing" and "status3" in h and "buffer_days" in h for h 
 blob = json.dumps(ctx).lower()
 check("camera frames" in ctx["never_included"] and ".jpg" not in blob and "frame" not in json.dumps(ctx["habits"]),
       "context: no frames or file paths, and says what it never includes")
+
+# --- today's sessions, the run claim and days off (on a day of their own, two days on) --------------------------------
+from alibi import calendar_sync, config, signals
+t_back = clock.t
+day = dt.date.fromtimestamp(t_back) + dt.timedelta(days=2)
+at = lambda h, m=0: dt.datetime.combine(day, dt.time(h, m)).timestamp()
+clock.t = at(8)
+db.add_event(con, "user", "claim", {"habit": "running", "min_km": 5.0, "until": at(10)}, ts=at(8))
+claim_id = con.execute("SELECT max(id) FROM events WHERE source='user' AND kind='claim'").fetchone()[0]
+db.add_event(con, "strava", "activity", {"name": "Evening Run", "distance_km": 5.2}, ts=at(8, 5))
+db.add_event(con, "alibi", "claim_settled", {"claim_id": claim_id, "verified": True}, ts=at(8, 41))
+clock.t = at(9)
+cli.start(con, "draw for 8 minutes")
+s1 = db.active_session(con)
+signals.store(con, "phone", "shield", {"on": True, "apps": 2}, ts=at(9, 1))
+signals.store(con, "phone", "app", {"opened": True, "reason": "YouTube"}, ts=at(9, 2))
+db.add_event(con, "alibi", "nudge", {"label": "phone"}, session_id=s1["id"], ts=at(9, 2))
+clock.t = at(9, 8)
+cli.end(con)
+clock.t = at(10)
+db.add_event(con, "user", "claim", {"habit": "running", "min_km": 5.0, "until": at(12)}, ts=at(10))   # still open
+cli.start(con, "math for 30 minutes")
+signals.store(con, "phone", "shield", {"on": False, "apps": 0}, ts=at(10, 1))
+clock.t = at(10, 12)
+ctx = tail.get("/api/agent/context", headers=H).json()
+S, C = ctx["sessions_today"], ctx["claims_today"]
+check([set(x) for x in S] == [{"habit", "label", "at", "min", "verdict", "nudges", "phone_blocked"}] * 2 and
+      [set(x) for x in C] == [{"habit", "label", "at", "km", "verified", "settled_at"}] * 2,
+      "context: sessions_today and claims_today rows carry exactly the documented keys")
+v1 = db.get_session(con, s1["id"])["verdict"]
+check(v1 and S[0] == {"habit": "drawing", "label": "Drawing", "at": "09:00", "min": 8, "verdict": v1, "nudges": 1,
+                      "phone_blocked": True}, f"context: a finished session: start, minutes, verdict, nudges, iPhone block {S[0]}")
+check(S[1] == {"habit": "math", "label": "Math", "at": "10:00", "min": 12, "verdict": None, "nudges": 0,
+               "phone_blocked": False}, f"context: a live session has no verdict yet; a shield-off row isn't a block {S[1]}")
+check(C == [{"habit": "running", "label": "Running", "at": "08:00", "km": 5.2, "verified": True, "settled_at": "08:41"},
+            {"habit": "running", "label": "Running", "at": "10:00", "km": None, "verified": None, "settled_at": None}],
+      f"context: a settled claim shows its run and when; an open one is nulls {C}")
+check(ctx["away"] == [] and not (config.DATA_DIR / "away.json").exists(), "context: away is [] with no away.json")
+check("YouTube" not in json.dumps(ctx) and ctx["never_included"] == routes_agent.NEVER_INCLUDED,
+      "context: aggregates only (no app names), never_included unchanged")
+had_away, real_away, asked = hasattr(calendar_sync, "away_days"), getattr(calendar_sync, "away_days", None), []
+calendar_sync.away_days = lambda d0, n: asked.append((d0, n)) or [{"date": dt.date(2026, 10, 5), "label": "Holiday", "x": 1}]
+check(routes_agent.context(clock.t)["away"] == [{"date": "2026-10-05", "label": "Holiday"}] and asked == [(day, 14)],
+      "context: away is calendar_sync.away_days(today, 14), date and label only")
+
+
+def boom(*a):
+    raise RuntimeError("away.json is corrupt")
+
+
+calendar_sync.away_days, real_sessions, routes_agent._sessions_today = boom, routes_agent._sessions_today, boom
+r = tail.get("/api/agent/context", headers=H)
+check(r.status_code == 200 and r.json()["away"] == [] and r.json()["sessions_today"] == [] and
+      len(r.json()["claims_today"]) == 2, "context: a helper that raises costs only its own key; still a 200")
+routes_agent._sessions_today = real_sessions
+if had_away:
+    calendar_sync.away_days = real_away
+else:
+    del calendar_sync.away_days
+cli.end(con)
+clock.t = t_back
+
 dg = tail.get("/api/agent/digests?limit=5", headers=H).json()
 check(dg["items"] and dg["items"][0]["via"] == "rules", "digests: Alibi's own rules digests readable")
 

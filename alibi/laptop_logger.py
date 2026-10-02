@@ -1,4 +1,4 @@
-"""P3 — log frontmost app + window title (+ browser URL) every 30 s. Runs always; free.
+"""Log frontmost app + window title (+ browser URL) every 30 s. Runs always; free.
 
 Run in tmux:  python -m alibi.laptop_logger
 Contract: events(source='laptop', kind='window', payload={app, title, url}).
@@ -19,19 +19,25 @@ return appName & "||" & winTitle
 '''
 
 
+def _osa(script: str) -> str:
+    """osascript's stdout, "" when it fails. It runs on the daemon tick, and a busy app or a pending Automation
+    prompt can hang it, so a read past 3 s counts as failed too (empty, same as a non-zero exit)."""
+    try:
+        return subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=3).stdout.strip()
+    except subprocess.TimeoutExpired:
+        return ""
+
+
 def frontmost() -> dict:
     if platform.system() == "Darwin":
-        out = subprocess.run(["osascript", "-e", MAC_APP_TITLE], capture_output=True, text=True).stdout.strip()
-        app, _, title = out.partition("||")
+        app, _, title = _osa(MAC_APP_TITLE).partition("||")
         url = ""
         if app in ("Google Chrome", "Arc", "Brave Browser"):
-            url = subprocess.run(["osascript", "-e", f'tell application "{app}" to get URL of active tab of front window'],
-                                 capture_output=True, text=True).stdout.strip()
+            url = _osa(f'tell application "{app}" to get URL of active tab of front window')
         elif app == "Safari":
-            url = subprocess.run(["osascript", "-e", 'tell application "Safari" to get URL of front document'],
-                                 capture_output=True, text=True).stdout.strip()
+            url = _osa('tell application "Safari" to get URL of front document')
         return {"app": app, "title": title, "url": url}
-    # TODO (P3, Linux): pick ONE for your desktop and move on:
+    # Linux isn't supported yet; the active window would come from one of:
     #   X11:      xdotool getactivewindow getwindowname
     #   Hyprland: hyprctl activewindow -j
     #   KDE/Wayland: kdotool getactivewindow getwindowname

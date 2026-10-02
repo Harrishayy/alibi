@@ -1,4 +1,4 @@
-"""P4 DoD: `cli report` prints the table + summary from real sessions; daemon fires it at REPORT_HOUR once."""
+"""Report DoD: `cli report` prints the table + summary from real sessions; daemon fires it at REPORT_HOUR once."""
 import datetime as dt, os
 os.environ["SAMPLE_EVERY_S"] = "60"
 from harness import Clock, check
@@ -20,4 +20,4 @@ check("declared" in out.lower() and "evidence supports" in out, "dry summary con
 clock.t = dt.datetime.fromtimestamp(noon).replace(hour=config.REPORT_HOUR, minute=0).timestamp()
 daemon.tick(con); clock.advance(5); daemon.tick(con)
 check(sum(a["kind"] == "report" for a in notify.recent_alerts()) == 1, "nightly report fired exactly once at REPORT_HOUR")
-print("P4 DoD passed.")
+print("Report DoD passed.")

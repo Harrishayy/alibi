@@ -1,4 +1,4 @@
-"""P1 — sample the desk cam once a minute during physical/hybrid sessions.
+"""Sample the desk cam once a minute during physical/hybrid sessions.
 
 Contract: writes events(source='camera', kind='label', payload={label, note, frame, reused, backend, motion}).
 CAMERA_SOURCE=path/to/video.mp4 plays the video in session time (second N of the session = second N of the video).

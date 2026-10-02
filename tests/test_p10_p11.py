@@ -1,4 +1,5 @@
-"""P10 DoD: reel from the P1 fixture session -> H.264 mp4 with duration.  P11 DoD: correct samples -> verdict moves."""
+"""Reel DoD: reel from the 4-minute fixture session -> H.264 mp4 with duration. Corrections DoD: correct samples ->
+verdict moves."""
 import os, subprocess
 os.environ["SAMPLE_EVERY_S"] = "15"
 from harness import Clock, check
@@ -34,4 +35,4 @@ check(before["verdict"] == "partial" and after["verdict"] == "done", "verdict mo
 check(sum(bool(l["corrected_from"]) for l in after["labels"]) == 6, "corrections visible on the labels")
 check(after["ended_at"] == before["ended_at"], "re-score kept the original end time")
 check(c.post(f"/api/sessions/{sid}/correct", json={"ts": 1, "label": "nap"}).status_code == 400, "bad label rejected")
-print("P10 + P11 DoD passed.")
+print("Reel + corrections DoD passed.")

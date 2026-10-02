@@ -128,7 +128,7 @@ def main():
         sig(con, "phone", "pickup", {"ts": p}, p)
         sig(con, "phone", "motion", {"start": p - 40 * MIN, "end": p, "state": "stationary", "confidence": "high"},
             p - 40 * MIN)
-    sig(con, "mac", "git", {"repo": "alibi", "path": "~/Documents/nvidia_habits", "commits": 1, "files": 2,
+    sig(con, "mac", "git", {"repo": "alibi", "path": "~/code/alibi", "commits": 1, "files": 2,
                             "insertions": 18, "deletions": 4, "uncommitted_files": 3}, at(0.03))
 
     # cumulative Screen Time per app (DeviceActivity thresholds every 5 min of picked apps)
@@ -216,7 +216,7 @@ def main():
     sig(con, "mac", "switches", {"per_min": 1.2, "apps": ["Google Chrome", "Pages"], "window_s": 600, "switches": 12}, i0 + 35 * MIN)
     sig(con, "phone", "pickup", {"ts": i0 + 27 * MIN}, i0 + 27 * MIN)
     heart(con, i0, i0 + 40 * MIN, 69)
-    sig(con, "mac", "git", {"repo": "alibi", "path": "~/Documents/nvidia_habits", "commits": 0, "files": 0,
+    sig(con, "mac", "git", {"repo": "alibi", "path": "~/code/alibi", "commits": 0, "files": 0,
                             "insertions": 0, "deletions": 0, "uncommitted_files": 5}, i0 + 39 * MIN)
     sig(con, "mac", "focus", {"on": False}, i0 + 40 * MIN + 5)
     close(con, sid)
@@ -229,7 +229,7 @@ def main():
     sig(con, "mac", "presence", {"idle_s": 3, "locked": False, "display_asleep": False, "displays": 1,
                                  "on_battery": True, "battery_pct": 72}, NOW - 20)
     sig(con, "phone", "app", {"opened": False, "reason": "background sync"}, NOW - 90)
-    ev(con, "laptop", "window", {"app": "Visual Studio Code", "title": "signals.html — nvidia_habits", "url": ""}, NOW - 15)
+    ev(con, "laptop", "window", {"app": "Visual Studio Code", "title": "signals.html — alibi", "url": ""}, NOW - 15)
     flush(con)
 
     # --- Health: 14 days of totals, today's with full sleep stages ----------------------------------------------

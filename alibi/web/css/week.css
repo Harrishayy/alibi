@@ -201,3 +201,20 @@ details.more>summary:focus-visible{outline:2px solid var(--focus-ring);outline-o
   .pr-bar i,details.more>summary::before{transition:none}
   button.tl-blk:active{transform:none}
 }
+
+/* ---------- Pinch's line on Today, what's left, the agent's brief ---------- */
+.today-line{margin:calc(-1 * var(--space-1)) 0 0}
+.today-line[hidden]{display:none}
+.today-line .al-pinchline__text{color:var(--ink)}
+.today-src{margin-left:var(--space-2);font-size:12px;line-height:1.3;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.nextup b{color:var(--ink);font-weight:600}
+.agentcard{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4) var(--space-6) var(--space-4)}
+.agentcard[hidden]{display:none}
+.ag-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-1) var(--space-3)}
+.ag-av{display:inline-flex;align-items:center;height:20px}
+.ag-title{margin:0;font-size:13px;line-height:1.3;font-weight:600;color:var(--ink)}
+.ag-meta{font-size:12px;line-height:1.3;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.ag-text{margin:0;max-width:62ch;font-size:16px;line-height:var(--body-lh);color:var(--ink);text-wrap:pretty;white-space:pre-line}
+.agentcard.is-long:not(.is-full) .ag-text{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.ag-more{align-self:flex-start;margin-left:calc(-1 * var(--space-3))}
+.toast .tsrc{display:block;margin-top:var(--space-1);font-size:13px;line-height:1.45;color:var(--ink-3)}

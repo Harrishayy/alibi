@@ -10,13 +10,13 @@ os.environ["ALIBI_CALENDAR_BIN"] = str(FAKE)
 os.environ["FAKE_CALENDAR_STATE"] = FAKE_STATE
 os.environ["FAKE_CALENDAR_AUTH"] = "full"
 for k in ("STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET", "STRAVA_REFRESH_TOKEN"):
-    os.environ.pop(k, None)
+    os.environ[k] = ""                                       # blank, not popped: config's load_dotenv refills a missing key
 from harness import Clock, check
 import yaml
 from fastapi.testclient import TestClient
 from alibi import api, calendar_sync as cal, config, db, integrations, secrets as store, strava
 
-# --- INT-13: units -------------------------------------------------------------------------------------------------
+# --- units ---------------------------------------------------------------------------------------------------------
 n = integrations.normalise_health
 check(n({"date": "2026-10-01", "mindful_min": 60})["mindful_min"] == 60, "mindful_min 60 stays 60 minutes (no guessing)")
 check(n({"date": "2026-10-01", "mindful_min": 600})["mindful_min"] == 600, "mindful_min 600 stays 600 minutes")
@@ -28,7 +28,7 @@ from alibi import routes_integrations as ri
 check("all fine" not in ri.SHORTCUT_STEPS and "Convert Measurement" in ri.SHORTCUT_STEPS and "mindful_s" in ri.SHORTCUT_STEPS,
       "Shortcut steps convert units explicitly and offer *_s keys")
 
-# --- INT-12: no data is not a miss ---------------------------------------------------------------------------------
+# --- no data is not a miss -----------------------------------------------------------------------------------------
 cfg = config.habits()
 for h in cfg["habits"].values():
     h.pop("schedule", None)

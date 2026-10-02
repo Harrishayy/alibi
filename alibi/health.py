@@ -1,10 +1,10 @@
-"""P9 — setup checklist and habit editing, so nobody has to touch YAML or guess why the camera is dark."""
+"""Setup checklist and habit editing, so nobody has to touch YAML or guess why the camera is dark."""
 import json, os, re, shutil, subprocess, time
 import yaml
 from . import config, db, witness
 
 
-CLIENT_SEEN: dict[str, float] = {}     # R9: clients send X-Alibi-Client (island | dashboard) when they poll
+CLIENT_SEEN: dict[str, float] = {}     # clients send X-Alibi-Client (island | dashboard) when they poll
 
 
 def _check(key, label, ok, detail, fix=""):
@@ -120,7 +120,7 @@ def _ago(s: float) -> str:
 
 
 def signal_checks(con) -> list[dict]:
-    """Round-3 rows: Full Disk Access (notifications + Focus), the Alibi Focus shortcuts, the iPhone stream."""
+    """Signal rows: Full Disk Access (notifications + Focus), the Alibi Focus shortcuts, the iPhone stream."""
     from . import mac_signals
     rows = []
     st = mac_signals.status()
@@ -194,7 +194,7 @@ def _days(v, key: str) -> list[str]:
 
 
 def clean_schedule(v, key: str, default_min: int = 25) -> list[dict]:
-    """[{days: [mon..sun], at: "HH:MM", min: 1..MAX_SESSION_MIN}] — the round-3 contract. Raises plain ValueErrors."""
+    """[{days: [mon..sun], at: "HH:MM", min: 1..MAX_SESSION_MIN}] — the schedule shape. Raises plain ValueErrors."""
     if v in (None, "", []):
         return []
     if isinstance(v, dict):

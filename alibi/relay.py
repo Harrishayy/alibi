@@ -1,4 +1,4 @@
-"""Spark relay: the one door between the NemoClaw sandbox and the Mac's agent API (docs/NEMOCLAW.md §5), over Tailscale.
+"""Spark relay: the one door between the NemoClaw sandbox and the Mac's agent API (docs/AGENT.md), over Tailscale.
 
 Runs on the DGX Spark host (not in the sandbox), so the Mac's agent token never enters the sandbox. It mirrors the
 Mac's /api/agent/context and digests every RELAY_POLL_S into data/relay/ (the Spark keeps its own record, and the agent

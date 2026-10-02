@@ -740,7 +740,7 @@ EASINGS = {
     "sine": "cubic-bezier(0.37,0,0.63,1)",         # loops
     "anticip": "cubic-bezier(0.5,0,0.75,0)",       # wind-ups and falls (accelerating)
     "overshoot": "cubic-bezier(0.2,0.9,0.3,1.25)", # the action beat, ~7% past the key
-    "settle": "spring(350,0.4)",                   # research/03 settle: response 0.35, damping 0.6
+    "settle": "spring(350,0.4)",                   # settle: response 0.35, damping 0.6
     "snappy": "spring(350,0.15)",                  # --spring-snappy
     "smooth": "spring(500,0)",                     # --spring-smooth
     "celebrate": "spring(600,0.4)",                # --spring-celebrate (mascot only)

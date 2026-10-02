@@ -14,15 +14,17 @@ GET  /api/habits/view                {habits: [{key, label, check, check_text, h
 GET  /api/habits/checks              {checks: [{value, text, how}]}  — 'How should Alibi check it?'
 GET  /api/habits/suggest?text=...    {known, draft: {name, key, minutes, check, check_text, how, schedule, calendar,
                                        start_after_add}, card_label, reply}; no text -> the last unknown reply (60 s)
-POST /api/habits/add                 {name, minutes?, check?, schedule?, calendar?, template?, target?, key?, start?}
-                                      -> {key, label, habit, reply, habits}
+POST /api/habits/add                 {name, minutes?, check?, schedule?, calendar?, template?, target?, key?, start?,
+                                      weekly_target_min?, phone_shield?}
+                                      -> {key, label, habit, reply, habits, saved}  (saved: see api.put_habits; no
+                                      island alert when start is true: the session start says it)
 POST /api/session/cancel             {undo?: bool, remove_habit?: key} -> {cancelled, reply, habits?}  (first 90 s, before
                                        only: no verdict, no honesty hit, no calendar outcome; undo also removes a
                                        habit that was added a moment ago and has no history)
 GET  /api/health/summary             {rows: health.health_summary(), status: health.health_status()}
 """
 import time
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from . import config, db, onboarding, templates
 
@@ -113,18 +115,28 @@ class AddHabit(BaseModel):
     target: float | None = None
     key: str | None = None
     start: bool = False
+    weekly_target_min: int | None = None
+    phone_shield: bool | None = None
 
 
 @router.post("/api/habits/add")
-def habit_add(body: AddHabit):
+def habit_add(body: AddHabit, request: Request):
+    from . import today
+    try:
+        before = config.habits()
+    except Exception:
+        before = {}
     try:
         out = onboarding.add(body.model_dump())
     except ValueError as e:
         raise HTTPException(400, str(e))
+    con = db.connect()
     if body.start and out["habit"].get("modality"):
         from . import cli
-        out["reply"] = cli.start_habit(db.connect(), out["key"], int(body.minutes or out["habit"]["default_min"]))
+        out["reply"] = cli.start_habit(con, out["key"], int(body.minutes or out["habit"]["default_min"]))
     out["habits"] = onboarding.view_habits()
+    out["saved"] = today.record_save(before, config.habits(), today.via_of(request.headers.get("x-alibi-client")),
+                                     start=body.start, con=con)
     return out
 
 

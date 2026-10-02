@@ -313,6 +313,11 @@ def nudge_reason(con, session, since: float, now: float | None = None) -> tuple[
     s = dict(session)
     now = now or time.time()
     t0 = max(since, s["started_at"])
+    for e in _rows(con, t0, now, sources=("phone",)):     # an iPhone Shortcut: "When Instagram is opened" -> /ingest
+        p = e["payload"]
+        what = re.sub(r"[{}]", "", str(p.get("reason") or ""))[:40].strip()
+        if e["kind"] == "app" and p.get("opened") is True and what and what not in ("foreground", "background"):
+            return "phone", f"You said {{habit}}. Your phone just opened {what}."
     apps = {}
     for d in screentime_deltas(con, t0, now):
         if d["ts"] > t0:
@@ -491,7 +496,7 @@ STATUS = [  # (key, label, fix when missing)
     ("mac.media", "What's playing", "Start Alibi's Mac sensor (bin/alibi-sense)."),
     ("mac.focus", "Mac Focus", "Start Alibi's Mac sensor (bin/alibi-sense)."),
     ("mac.switches", "App-switch rate", "Comes from the window log; it fills in once a session runs."),
-    ("mac.git", "Git commits", "Add a repos: list to a coding habit in habits.yaml (e.g. repos: [~/Documents/c++]) so commits count as work."),
+    ("mac.git", "Git commits", "Add a repos: list to a coding habit in habits.yaml (e.g. repos: [~/code/cpp]) so commits count as work."),
 ]
 
 
@@ -720,14 +725,34 @@ def egress(now: float | None = None) -> dict:
                      "host": "www.strava.com",
                      "why": "Alibi sends your Strava token to strava.com and reads your runs back."})
 
-    rows.append({"what": "Window titles, app names, coordinates, notification text", "where": "mac", "active": True,
-                 "host": None, "why": "Never sent. They are read on this Mac and stay here."})
+    if config.NTFY_TOPIC:               # a push is the alert text; nudges and verdicts name the screen (short_title)
+        rows.append({"what": "Alerts on your phone", "where": "ntfy", "active": True,
+                     "host": _host(config.NTFY_URL) or None,
+                     "why": "Nudges, verdicts, runs and briefs go to your phone through ntfy, the same text the island "
+                            "shows. A nudge or verdict can name the app, site or short window title you drifted to."})
+
+    if config.TEXT_READY:               # verifier.classify_titles sends "App — title"; intent.parse sends what you type
+        w = _where(config.LLM_BASE_URL)
+        up = remote(config.LLM_BASE_URL)
+        why = {"mac": "Window titles, app names and what you type go to a model server on this Mac.",
+               "tailnet:spark": "Window titles, app names and what you type go to your Spark over Tailscale.",
+               "nvidia_build": "Window titles, app names and what you type go to NVIDIA Build."}[w]
+        if not up:
+            why += " It isn't answering, so the rules on this Mac read them instead."
+        rows.append({"what": "Window titles, app names and what you type", "where": w, "active": up,
+                     "host": _host(config.LLM_BASE_URL) or None, "why": why})
+    if config.TEXT_READY or config.NTFY_TOPIC:      # titles and app names leave: a model reads them, a push names them
+        rows.append({"what": "Coordinates, notification text", "where": "mac", "active": True, "host": None,
+                     "why": "Never sent. Location reaches this Mac only as home or away, and notifications only as counts."})
+    else:
+        rows.append({"what": "Window titles, app names, coordinates, notification text", "where": "mac", "active": True,
+                     "host": None, "why": "Never sent. They are read on this Mac and stay here."})
 
     summ = next(r for r in rows if r["what"] == "Habit names and minutes")
     where = summ["where"] if summ["active"] else "mac"
     text = {"mac": "Summaries stay on this Mac.", "tailnet:spark": "Summaries go to your Spark over Tailscale.",
             "nvidia_build": "Summaries go to NVIDIA Build."}[where]
-    leaves = any(r["active"] and r["where"] in ("nvidia_build", "search_provider", "strava") for r in rows)
+    leaves = any(r["active"] and r["where"] in ("nvidia_build", "search_provider", "strava", "ntfy") for r in rows)
     return {"now": now, "rows": rows,
             "summary": {"where": where, "active": summ["active"] and where != "mac", "text": text,
                         "leaves_tailnet": leaves}}

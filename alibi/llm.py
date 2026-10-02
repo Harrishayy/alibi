@@ -24,8 +24,20 @@ def _is_nvidia(base_url: str) -> bool:
 
 
 def _extra(base_url: str) -> dict:
-    """Thinking off for self-hosted Qwen3-style chat templates (vLLM/SGLang). NVIDIA Build rejects unknown kwargs."""
+    """Thinking off for self-hosted Qwen3-style chat templates (vLLM/SGLang). NVIDIA Build accepts chat_template_kwargs
+    too, but these one-shot calls keep each Build model's default; only the tool loop needs it off (_tools_extra)."""
     return {} if _is_nvidia(base_url) else {"extra_body": {"chat_template_kwargs": {"enable_thinking": False}}}
+
+
+def _tools_extra(base_url: str, model: str | None) -> dict:
+    """chat_tools only. Nemotron on Build reasons by default and spent a whole tool turn thinking (finish_reason=length,
+    no tool call), so the night replan always fell back to rules. With thinking off it calls the tools directly."""
+    kw = _extra(base_url)
+    if _is_nvidia(base_url) and "nemotron" in (model or "").lower():
+        eb = dict(kw.get("extra_body") or {})
+        eb["chat_template_kwargs"] = {**(eb.get("chat_template_kwargs") or {}), "enable_thinking": False}
+        kw = {**kw, "extra_body": eb}
+    return kw
 
 
 def _strip_think(text: str) -> str:
@@ -80,17 +92,23 @@ def vision_json(system: str, prompt: str, jpeg: bytes, max_tokens: int = 200) ->
 
 
 def chat_tools(messages: list, tools: list, timeout: float, base_url: str | None = None, model: str | None = None):
-    """One tool-calling turn (OpenAI `tools=`), for the night replan loop. Returns the assistant message. The caller
-    owns the budget: `timeout` is what is left of it. Raises on anything; the caller falls back to rules."""
-    base = base_url or config.LLM_BASE_URL
+    """One tool-calling turn (OpenAI `tools=`), for the night replan loop. Returns the assistant message, with the
+    choice's finish_reason stamped on it (the loop logs why a turn made no tool call). The caller owns the budget:
+    `timeout` is what is left of it. Raises on anything; the caller falls back to rules."""
+    base, model = base_url or config.LLM_BASE_URL, model or config.LLM_MODEL
     r = _client(base, max(0.5, timeout)).chat.completions.create(
-        model=model or config.LLM_MODEL, temperature=0, max_tokens=400, messages=messages, tools=tools,
-        tool_choice="auto", **_extra(base))
-    return r.choices[0].message
+        model=model, temperature=0, max_tokens=1024, messages=messages, tools=tools,
+        tool_choice="auto", **_tools_extra(base, model))
+    m = r.choices[0].message
+    try:
+        m.finish_reason = r.choices[0].finish_reason
+    except Exception:                       # diagnostics only: an SDK that refuses extra attributes still gets its turn
+        pass
+    return m
 
 
 def via_for(base_url: str | None = None) -> str:
-    """Exact provenance (NEXT_PHASE §6): a self-hosted server (the Spark) is llm:spark, NVIDIA Build is llm:build."""
+    """Exact provenance: a self-hosted server (the Spark) is llm:spark, NVIDIA Build is llm:build."""
     return "llm:build" if _is_nvidia(base_url or config.LLM_BASE_URL) else "llm:spark"
 
 

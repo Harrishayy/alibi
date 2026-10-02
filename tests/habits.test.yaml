@@ -24,7 +24,7 @@ habits:
     aliases: ["c++", cpp, learncpp]
     weekly_target_min: 180
     on_task_looks_like: "code editor with .cpp/.h files, cppreference, learncpp, compiler or terminal output"
-    repos: [/Users/harrishayyanar/Documents/c++]
+    repos: [~/code/cpp]
   internships:
     modality: digital
     default_min: 30
@@ -34,10 +34,10 @@ habits:
   portfolio:
     modality: digital
     default_min: 45
-    aliases: [portfolio, website, smintweb, "personal site"]
+    aliases: [portfolio, website, "personal site"]
     weekly_target_min: 180
-    on_task_looks_like: "code editor in the smintweb project, localhost preview of the portfolio site, design tools"
-    repos: [/Users/harrishayyanar/Documents/smintweb]
+    on_task_looks_like: "code editor in the portfolio project, localhost preview of the portfolio site, design tools"
+    repos: [~/code/portfolio]
   running:
     source: strava
     weekly_sessions: 3

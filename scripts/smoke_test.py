@@ -1,4 +1,4 @@
-"""Pre-flight: both model calls must return JSON before you start P0."""
+"""Pre-flight: the text and vision model calls must both return JSON before a live run."""
 import io, sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from alibi import config, llm
@@ -31,4 +31,4 @@ print("Vision model:", config.VLM_MODEL)
 print(llm.vision_json("Reply with JSON only.",
                       'Describe the scene. Return {"label": "on_task|phone|idle|absent", "note": "<12 words>"}',
                       jpeg))
-print("If both lines above are non-empty JSON, you're clear for P0.")
+print("If both lines above are non-empty JSON, the models are ready.")

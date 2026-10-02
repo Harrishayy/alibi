@@ -13,6 +13,15 @@ os.environ["NVIDIA_API_KEY"] = ""
 os.environ["LLM_MODEL"] = ""
 os.environ["LLM_BASE_URL"] = "http://127.0.0.1:9/v1"
 os.environ["VLM_MODEL"] = ""
+os.environ["NTFY_TOPIC"] = ""                       # never push to the real phone from a test
+os.environ["FOCUS_GUARD"] = "0"                    # never redirect a real browser tab; guard tests switch it on
+for _k in ("STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET", "STRAVA_REFRESH_TOKEN", "STRAVA_ACCESS_TOKEN"):
+    os.environ[_k] = ""                            # never the real Strava account; blank, so load_dotenv can't refill it
+# .env may carry a faster live cadence (20 s samples, Desk View camera); tests expect the defaults unless they ask
+os.environ.setdefault("SAMPLE_EVERY_S", "60")
+os.environ.setdefault("LAPTOP_EVERY_S", "30")
+os.environ.setdefault("CAMERA_INDEX", "0")
+os.environ.setdefault("STRAVA_CLAIM_EVERY_S", "30")
 os.environ.setdefault("VISION_BACKEND", "mock")
 os.environ.setdefault("ALIBI_FOCUS_SHORTCUTS", "0")  # never run the user's real Shortcuts from a test
 os.environ.setdefault("MAC_SIGNALS", "0")          # the real Mac (idle, notifications, git) only where a test asks

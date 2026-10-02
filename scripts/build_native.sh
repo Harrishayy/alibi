@@ -50,7 +50,7 @@ cp bin/alibi-sense $APP/Contents/MacOS/alibi-sense         # mac_signals prefers
 echo "$PWD" > $APP/Contents/Resources/root.txt
 # Sign with a stable Apple Development identity when there is one: macOS keys privacy permissions (Documents, Camera,
 # Calendar, Full Disk Access) to the signature, so ad-hoc signing re-prompts after every rebuild.
-TEAM="${ALIBI_TEAM:-87P4DWU22Q}"            # same team as the iPhone companion
+TEAM="${ALIBI_TEAM:-}"                      # your Apple Developer team ID (the iPhone companion's team)
 IDENTITY="${ALIBI_SIGN_ID:-}"
 if [ -z "$IDENTITY" ]; then
   while IFS= read -r id; do

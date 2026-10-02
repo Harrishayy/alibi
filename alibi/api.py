@@ -1,17 +1,21 @@
 """Local HTTP API on 127.0.0.1:8765 — what the notch island and the web dashboard talk to. Started by the daemon.
 
-GET  /api/state            live session, recent labels, latest alert, witness info, today's tally, last verdict
+GET  /api/state            live session, recent labels, latest alert (+ its `card`, alibi/cards.py), witness info,
+                           today's tally, last verdict,
+                           plan_today (what's left), phrase (Pinch's ambient line), agent + clients presence
+GET  /api/briefs?limit=5   the agent's briefs from the Spark, newest first (each with its `card`)
 GET  /api/feed?limit=20    agent activity: witness samples, screen titles, your actions, Alibi's alerts (newest first)
 POST /api/say {text}       free text, routed like a chat message (start / status / end / report)
 POST /api/end {artefact?}  end the active session now
 GET  /api/sessions         finished sessions, newest first
 GET  /api/report           weekly alignment table + summary
 GET  /files/...            frames and contact sheets (from the data dir)
-POST /ingest               P6: phone / Health events (X-Alibi-Secret header)
-GET  /api/health           P9: setup checklist (camera, window titles, witness, model, Strava, island)
-GET  /api/habits           P9: habits.yaml as JSON;  PUT /api/habits {habits: {...}} writes it back
-GET  /api/reel?session=ID | ?date=YYYY-MM-DD    P10: build (or reuse) an H.264 timelapse -> {url}
-POST /api/sessions/{id}/correct {ts, label}     P11: relabel a sample; re-scores the session
+POST /ingest               phone / Health events (X-Alibi-Secret header)
+GET  /api/health           setup checklist (camera, window titles, witness, model, Strava, island)
+GET  /api/habits           habits.yaml as JSON;  PUT /api/habits {habits: {...}} writes it back -> {...cfg, saved}
+                           (headers X-Alibi-Client: dashboard|island, X-Alibi-Intent: undo)
+GET  /api/reel?session=ID | ?date=YYYY-MM-DD    build (or reuse) an H.264 timelapse -> {url}
+POST /api/sessions/{id}/correct {ts, label}     relabel a sample; re-scores the session
 """
 import datetime as dt, pathlib, time
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -19,14 +23,14 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel
-from . import cli, config, db, pinch
+from . import cards, cli, config, db, pinch
 from .notify import recent_alerts
 
 app = FastAPI(title="Alibi")
 WEB = config.ROOT / "alibi" / "web"
 STARTED = time.time()
 config.DATA_DIR.mkdir(parents=True, exist_ok=True)
-# R10: only evidence media is public — never alibi.db or alerts.jsonl. Host check stops DNS rebinding.
+# Only evidence media is public — never alibi.db or alerts.jsonl. Host check stops DNS rebinding.
 for _sub in ("frames", "evidence", "reels"):
     (config.DATA_DIR / _sub).mkdir(parents=True, exist_ok=True)
     app.mount(f"/files/{_sub}", StaticFiles(directory=str(config.DATA_DIR / _sub)), name=f"files-{_sub}")
@@ -37,7 +41,7 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=_hosts)
 
 @app.exception_handler(Exception)
 async def _json_errors(request: Request, exc: Exception):
-    """R6: never a bare 'Internal Server Error' in the island or dashboard."""
+    """Never a bare 'Internal Server Error' in the island or dashboard."""
     return JSONResponse({"detail": f"Alibi tripped: {type(exc).__name__}: {str(exc)[:160]}"}, status_code=500)
 
 
@@ -50,7 +54,7 @@ def file_url(path: str | None, bust: bool = False) -> str | None:
     except ValueError:
         return None
     if bust and p.exists():
-        url += f"?v={int(p.stat().st_mtime)}"           # R5: a rebuilt reel is never served from browser cache
+        url += f"?v={int(p.stat().st_mtime)}"           # a rebuilt reel is never served from browser cache
     return url
 
 
@@ -143,17 +147,20 @@ def _windows(con, s) -> list[dict]:
 
 @app.get("/api/state")
 def state(request: Request, client: str | None = None):
+    from . import today
     _seen(request, client)
     con = _con()
     s = db.active_session(con)
     alerts = recent_alerts(1)
-    a = _alert_json(alerts[-1]) if alerts else None
     cfg = config.habits()
+    a = _alert_json(alerts[-1], cfg) if alerts else None
     habits = cfg["habits"]
     sj = _session_json(con, s, live=True) if s else None
     rv = None if s else _recent_verdict(con)
+    now = time.time()
+    pt = today.plan_today(con, now, sj, cfg)           # built once: Pinch, the phrase and both clients read it
     return {
-        "now": time.time(),
+        "now": now,
         "session": sj,
         "alert": a,
         "habits": [{"key": k, "label": config.display_name(k, cfg),
@@ -167,21 +174,35 @@ def state(request: Request, client: str | None = None):
         "today": _today(con, habits),
         "recent_verdict": rv,
         "status_text": _status_text(sj),
-        "pinch": pinch.pinch_state({"now": time.time(), "session": sj, "alert": a, "recent_verdict": rv}),
+        "pinch": pinch.pinch_state({"now": now, "session": sj, "alert": a, "recent_verdict": rv, "plan_today": pt}),
+        "plan_today": pt,
+        "phrase": today.phrase_for(con, now, pt, live=sj is not None, cfg=cfg),
+        "agent": today.agent_info(now),
+        "clients": today.clients(now),
     }
 
 
-def _alert_json(a: dict) -> dict:
+def _alert_json(a: dict, cfg: dict | None = None) -> dict:
     out = {**a, "image_url": file_url(a.get("image"))}
     if a.get("reel"):
         out["reel_url"] = file_url(a["reel"], bust=True)
     if a.get("habit"):
-        out["habit_label"] = config.display_name(a["habit"])
+        cfg = cfg or config.habits()
+        gone = a["habit"] not in (cfg.get("habits") or {}) and a.get("habit_label")
+        out["habit_label"] = a["habit_label"] if gone else config.display_name(a["habit"], cfg)   # a removed habit keeps its name
+    out.pop("card", None)                 # only a card that passed cards.clean() reaches a client, never card: null
+    try:                                  # built at read time; a bad card must never take /api/state down
+        c = cards.for_alert(a)
+    except Exception as e:
+        print(f"[alibi] card failed: {e!r}", flush=True)
+        c = None
+    if c:
+        out["card"] = c
     return out
 
 
 def _status_text(sj: dict | None) -> str:
-    """D11: one plain-language state for the header pill."""
+    """One plain-language state for the header pill."""
     if not sj:
         return "Idle — nothing declared"
     left = int(sj["left_s"])
@@ -205,7 +226,7 @@ def _today(con, habits: dict) -> dict:
 
 
 def _recent_verdict(con, within_s: float = 600) -> dict | None:
-    """D3: the last finished session for ~10 min after it ends, so the Now panel can hold the verdict."""
+    """The last finished session for ~10 min after it ends, so the Now panel can hold the verdict."""
     r = con.execute("SELECT * FROM sessions WHERE status='done' AND ended_at IS NOT NULL ORDER BY ended_at DESC LIMIT 1"
                     ).fetchone()
     if not r or time.time() - r["ended_at"] > within_s:
@@ -217,7 +238,7 @@ def _recent_verdict(con, within_s: float = 600) -> dict | None:
 
 @app.get("/api/feed")
 def feed(limit: int = 20, session: int | None = None):
-    """F4: what the agent is doing right now. [{ts, source, who, label, text, thumb}] newest first.
+    """What the agent is doing right now. [{ts, source, who, label, text, thumb}] newest first.
 
     source: witness | screen | you | alibi. Scope: the given session, else the live one, else the last one if it ended
     in the past 10 minutes; Alibi's own alerts are always included."""
@@ -331,12 +352,45 @@ class HabitsBody(BaseModel):
 
 
 @app.put("/api/habits")
-def put_habits(body: HabitsBody):
-    from . import health as h
+def put_habits(body: HabitsBody, request: Request):
+    """Whole-map write. 200: the new config plus `saved` (what changed, Pinch's line, the island alert id, today's
+    plan after the write). The island hears about it through a habits_saved alert."""
+    from . import health as h, today
     try:
-        return h.save_habits(body.habits)
+        before = config.habits()
+    except Exception:
+        before = {}
+    try:
+        cfg = h.save_habits(body.habits)
     except ValueError as e:
         raise HTTPException(400, str(e))
+    saved = today.record_save(before, cfg, today.via_of(request.headers.get("x-alibi-client")),
+                              request.headers.get("x-alibi-intent"))
+    return {**cfg, "saved": saved}
+
+
+@app.get("/api/briefs")
+def briefs(limit: int = 5):
+    """The agent's briefs (DATA_DIR/agent_briefs.jsonl), newest first. Never the idempotency key or links. `text` is
+    shown as words (cards.display: no raw enums); each row also gets its `card`. The stored row is untouched."""
+    from . import routes_agent, today
+    now = time.time()
+    rows = routes_agent.briefs(max(1, min(int(limit), 20)))
+    out = []
+    for r in reversed([r for r in rows if isinstance(r, dict)]):
+        ts = r.get("ts") if isinstance(r.get("ts"), (int, float)) else None
+        text = r.get("text")
+        row = {"ts": ts, "slot": r.get("slot"), "kind": r.get("kind"),
+               "text": cards.display(text) if isinstance(text, str) else text,
+               "via": r.get("via"), "model": r.get("model") or None, "tools_used": r.get("tools_used") or [],
+               "shown_as": (r.get("response") or {}).get("shown_as"),
+               "age_s": round(max(0.0, now - ts)) if ts is not None else None,
+               "source_line": today.source_line(r.get("model"))}
+        c = cards.for_brief(r)
+        if c:
+            row["card"] = c
+        out.append(row)
+    return {"briefs": out}
 
 
 @app.get("/api/reel")

@@ -1,4 +1,4 @@
-"""F2 DoD: pace v2 — on_track / at_risk / off_track / done / stale with buffer days, on the fake clock (NEXT_PHASE §4)."""
+"""Pace v2 DoD: on_track / at_risk / off_track / done / stale with buffer days, on the fake clock."""
 import datetime as dt
 from harness import Clock, check
 import yaml

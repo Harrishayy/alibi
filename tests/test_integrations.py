@@ -5,7 +5,7 @@ from harness import check, ROOT
 os.environ["PHONE_HOST"] = "127.0.0.1"                       # never LAN in tests
 s = socket.socket(); s.bind(("127.0.0.1", 0)); os.environ["PHONE_PORT"] = str(s.getsockname()[1]); s.close()
 for k in ("STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET", "STRAVA_REFRESH_TOKEN"):
-    os.environ.pop(k, None)
+    os.environ[k] = ""                                       # blank, not popped: config's load_dotenv refills a missing key
 
 import requests, yaml
 from fastapi.testclient import TestClient

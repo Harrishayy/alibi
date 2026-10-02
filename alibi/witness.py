@@ -5,11 +5,11 @@ from . import config, db, llm
 SYSTEM = ("You verify whether a person at a desk is doing what they said. "
           "Reply with JSON only: {\"label\": \"on_task|phone|idle|absent|off_task\", \"note\": \"<12 words\"}.")
 WITNESS_BIN = config.ROOT / "bin" / "alibi-witness"
-PHONE_WORDS = ("phone", "cellphone", "smartphone", "telephone", "mobile")
+PHONE_MIN = 0.25         # Vision's "phone" class confidence that counts as a phone in frame
 
 
 def lessons(habit_key: str, limit: int = 5) -> list[dict]:
-    """The user's last corrections for this habit: [{was, label, note}] (F6). Newest first."""
+    """The user's last corrections for this habit: [{was, label, note}]. Newest first."""
     try:
         con = db.connect()
         rows = con.execute("SELECT e.payload FROM events e JOIN sessions s ON s.id=e.session_id WHERE e.source='user' "
@@ -96,12 +96,18 @@ def _nvidia(jpeg, path, habit_key, habit_cfg):
 
 
 def _apple(jpeg, path, habit_key, habit_cfg):
-    r = json.loads(subprocess.run([str(WITNESS_BIN), path], capture_output=True, text=True, timeout=20).stdout or "{}")
-    classes = r.get("classes", {})
-    phone = max((v for k, v in classes.items() if any(w in k for w in PHONE_WORDS)), default=0)
+    return _apple_label(json.loads(
+        subprocess.run([str(WITNESS_BIN), path], capture_output=True, text=True, timeout=20).stdout or "{}"))
+
+
+def _apple_label(r: dict) -> dict:
+    """alibi-witness JSON -> {label, note}. Pure. Vision's taxonomy has exactly one phone class, "phone"; matching
+    substrings also read headphones, microphone, megaphone (and automobile, via "mobile") as a phone."""
+    classes = r.get("classes") or {}
+    phone = classes.get("phone", 0.0)
     people = max(r.get("humans", 0), r.get("faces", 0))
     hands = r.get("hands", 0)
-    if phone > 0.25:
+    if phone > PHONE_MIN:
         return {"label": "phone", "note": f"phone in frame ({phone:.0%})"}
     if not people and not hands:
         return {"label": "absent", "note": "nobody at the desk"}

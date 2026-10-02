@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare two PNGs pixel by pixel (used by the Wave 0 "no visual change" gate).
+"""Compare two PNGs pixel by pixel (for "no visual change" checks).
 
 Usage: imgdiff.py BEFORE.png AFTER.png [--max-ratio 0.002] [--out DIFF.png]
 Prints `identical`, or `diff ratio=R bbox=(x0, y0, x1, y1)` where R is the share of pixels that differ by more

@@ -14,11 +14,13 @@
 <link rel="stylesheet" href="/web/css/base.css?v=p17">
 <link rel="stylesheet" href="/web/css/shell.css?v=p17">
 <link rel="stylesheet" href="/web/css/now.css?v=p17">
-<link rel="stylesheet" href="/web/css/week.css?v=p17">
+<link rel="stylesheet" href="/web/css/week.css?v=w1">
 <link rel="stylesheet" href="/web/css/sessions.css?v=p17">
 <link rel="stylesheet" href="/web/css/setup.css?v=p22">
 <link rel="stylesheet" href="/web/css/onboarding.css?v=p22">
 <link rel="stylesheet" href="/web/css/moments.css?v=p17">
+<link rel="stylesheet" href="/web/css/habits.css?v=w1">
+<link rel="stylesheet" href="/web/css/card.css?v=w3">
 </head>
 <body class="idle">
 <a class="skip" href="#main">Skip to Now</a>
@@ -81,6 +83,8 @@
   <div class="onbfoot"><div class="in"><button class="ghostbtn" id="onbBack" type="button">Back</button><span class="msg" id="onbMsg"></span><button class="linkbtn" id="onbSkip" type="button"></button><button class="primary" id="onbNext" type="button">Next</button></div></div>
 </div>
 
+<div class="hs" id="habitsSheet" role="dialog" aria-modal="true" aria-labelledby="hsTitle" aria-hidden="true" tabindex="-1" hidden></div>
+
 <div class="wrap">
   <header class="hdr">
     <div class="hdr-l">
@@ -89,6 +93,7 @@
     </div>
     <div class="hdr-r">
       <span class="hdr-hint"><kbd class="al-kbd">⌥⌘A</kbd><span>Island</span></span>
+      <button class="al-btn al-btn--secondary al-btn--sm habitsbtn" id="habitsBtn" type="button" aria-haspopup="dialog" aria-label="Habits"><svg class="al-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg><span class="lbl">Habits</span></button>
       <button class="al-btn al-btn--secondary al-btn--sm setupbtn" id="setupBtn" type="button" aria-haspopup="dialog" aria-label="Setup"><svg class="al-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.07 5.27L10.72 2.89L13.28 2.89L13.93 5.27A7 7 0 0 1 15.39 5.88L17.54 4.65L19.35 6.46L18.12 8.61A7 7 0 0 1 18.73 10.07L21.11 10.72L21.11 13.28L18.73 13.93A7 7 0 0 1 18.12 15.39L19.35 17.54L17.54 19.35L15.39 18.12A7 7 0 0 1 13.93 18.73L13.28 21.11L10.72 21.11L10.07 18.73A7 7 0 0 1 8.61 18.12L6.46 19.35L4.65 17.54L5.88 15.39A7 7 0 0 1 5.27 13.93L2.89 13.28L2.89 10.72L5.27 10.07A7 7 0 0 1 5.88 8.61L4.65 6.46L6.46 4.65L8.61 5.88A7 7 0 0 1 10.07 5.27Z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Setup</span><span class="sdot" id="sdot"></span><span class="n" id="setupN"></span></button>
     </div>
   </header>
@@ -164,16 +169,18 @@
 <div class="parking" aria-hidden="true"><div class="pinch-now" id="pinch-now"></div></div>
 
 <script src="/web/js/icons.js?v=p17"></script>
-<script src="/web/js/pinch.js?v=p17"></script>
-<script src="/web/js/moments.js?v=p17"></script>
-<script src="/web/js/pinch-wire.js?v=p17"></script>
+<script src="/web/js/pinch.js?v=w1"></script>
+<script src="/web/js/moments.js?v=w1"></script>
+<script src="/web/js/pinch-wire.js?v=w1"></script>
 <script src="/web/js/confetti.js?v=p17"></script>
-<script src="/web/js/core.js?v=p17"></script>
-<script src="/web/js/now.js?v=p17"></script>
-<script src="/web/js/week.js?v=p17"></script>
+<script src="/web/js/card.js?v=w3"></script>
+<script src="/web/js/core.js?v=w3"></script>
+<script src="/web/js/now.js?v=w1"></script>
+<script src="/web/js/week.js?v=w3"></script>
 <script src="/web/js/sessions.js?v=p17"></script>
-<script src="/web/js/setup.js?v=p17"></script>
+<script src="/web/js/setup.js?v=w1"></script>
 <script src="/web/js/onboarding.js?v=p22"></script>
+<script src="/web/js/habits.js?v=w1"></script>
 <script src="/web/js/boot.js?v=p17"></script>
 </body>
 </html>

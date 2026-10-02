@@ -1,4 +1,4 @@
-"""P1/P3 — turn a session's events into on_task_ratio + verdict + evidence.
+"""Turn a session's events into on_task_ratio + verdict + evidence.
 
 physical -> camera labels; digital -> laptop window titles (classified once, cached); hybrid -> per-minute OR of both.
 """
@@ -8,7 +8,7 @@ from . import config, db, evidence, llm
 
 DISTRACTIONS = ("youtube", "netflix", "twitter", "x.com", "reddit", "instagram", "tiktok", "twitch", "messages",
                 "whatsapp", "discord", "facebook", "prime video", "disney+", "spotify")
-# B3: proper names for a title, the way Screen Time / Opal show "YouTube", never half a tab title.
+# Proper names for a title, the way Screen Time / Opal show "YouTube", never half a tab title.
 SITE_NAMES = {"youtube": "YouTube", "netflix": "Netflix", "twitter": "Twitter", "x.com": "X", "reddit": "Reddit",
               "instagram": "Instagram", "tiktok": "TikTok", "twitch": "Twitch", "whatsapp": "WhatsApp",
               "discord": "Discord", "facebook": "Facebook", "prime video": "Prime Video", "disney+": "Disney+",
@@ -19,7 +19,7 @@ SITE_NAMES = {"youtube": "YouTube", "netflix": "Netflix", "twitter": "Twitter", 
               "messages": "Messages"}
 BROWSERS = ("google chrome", "chrome", "safari", "arc", "firefox", "microsoft edge", "brave browser", "opera",
             "vivaldi", "orion", "zen", "dia")
-# B2: editors, IDEs and terminals are where code happens, even when the title is empty (Rize's default IDE category).
+# Editors, IDEs and terminals are where code happens, even when the title is empty (Rize's default IDE category).
 CODE_APPS = {"cursor", "code", "visual studio code", "vscodium", "xcode", "clion", "iterm2", "iterm", "terminal",
              "warp", "zed", "sublime text", "intellij idea", "pycharm", "ghostty", "kitty", "alacritty", "wezterm",
              "nova", "android studio", "goland", "rider", "webstorm", "neovim", "vim", "emacs", "windsurf"}
@@ -43,7 +43,7 @@ def _outside_breaks(con, session, events):
 
 
 def camera_labels(con, session) -> list[dict]:
-    """Camera label events with the user's corrections applied (P11), minus samples taken during a declared break."""
+    """Camera label events with the user's corrections applied, minus samples taken during a declared break."""
     cam = db.session_events(con, session["id"], source="camera")
     fixes = {round(e["payload"]["target_ts"], 3): e["payload"]["label"]
              for e in db.session_events(con, session["id"], source="user") if e["kind"] == "correction"
@@ -59,7 +59,7 @@ def correct(con, session_id: int, target_ts: float | None, label: str, title: st
     """Record a correction and re-score the (finished or live) session.
 
     Camera sample: target_ts must be within 1 s of a sample. Digital: pass `title` (or a ts that hits a window
-    event) and the title is re-labelled in title_cache, so every future session learns it (F6)."""
+    event) and the title is re-labelled in title_cache, so every future session learns it."""
     if label not in db.LABELS:
         raise ValueError(f"label must be one of {db.LABELS}")
     s = db.get_session(con, session_id)
@@ -79,7 +79,7 @@ def correct(con, session_id: int, target_ts: float | None, label: str, title: st
             reply = f"{at} already says {new} — nothing to change."
         else:
             reply = f"Changed that moment ({at}) to {new}."
-            # J8: one camera fix is one moment. Only the same fix twice becomes a rule (witness._apply_lessons).
+            # One camera fix is one moment. Only the same fix twice becomes a rule (witness._apply_lessons).
             same = sum(1 for e in con.execute(
                 "SELECT e.payload FROM events e JOIN sessions s ON s.id=e.session_id WHERE e.source='user' "
                 "AND e.kind='correction' AND s.habit=?", (s["habit"],))
@@ -107,14 +107,14 @@ def correct(con, session_id: int, target_ts: float | None, label: str, title: st
     old_v = s["verdict"]
     finalise(con, s, artefact=s["artefact"], keep_end=True)
     reel = config.DATA_DIR / "reels" / f"session-{session_id}.mp4"
-    reel.unlink(missing_ok=True)                 # R5: the daemon rebuilds it with the corrected labels
+    reel.unlink(missing_ok=True)                 # the daemon rebuilds it with the corrected labels
     s2 = db.get_session(con, session_id)
     word = {"done": "done ✓", "partial": "partial", "slacked": "slacked"}[s2["verdict"]]
     return f"{reply} New score: {s2['on_task_ratio']:.0%} — {'still ' if s2['verdict'] == old_v else 'now '}{word}."
 
 
 def close(con, session, artefact: str | None = None, ended_at: float | None = None) -> dict | None:
-    """The only way a live session ends. Atomic: returns None if someone else already closed it (R3)."""
+    """The only way a live session ends. Atomic: returns None if someone else already closed it."""
     import time
     if not db.claim_session(con, session["id"], ended_at or time.time()):
         return None
@@ -232,7 +232,7 @@ def _cap_reason(con, session) -> str | None:
 
 
 def _covered(con, session) -> float:
-    """Share of the declared time that both happened AND was watched: min(time coverage, evidence coverage) (B1)."""
+    """Share of the declared time that both happened AND was watched: min(time coverage, evidence coverage)."""
     t, e, _ = coverage_parts(con, session)
     return min(t, e)
 
@@ -275,7 +275,7 @@ def _plural(n: int, word: str) -> str:
 
 
 def stats(con, session, cam=None, windows=None) -> dict:
-    """Numbers behind a verdict, for the dashboard's 'why this verdict' line (D1)."""
+    """Numbers behind a verdict, for the dashboard's 'why this verdict' line."""
     cam = camera_labels(con, session) if cam is None else cam
     tcov, cov, dark = coverage_parts(con, session)
     cam_ratio = (sum(e["payload"]["label"] == "on_task" for e in cam) / len(cam)) if cam else None
@@ -319,7 +319,7 @@ def stats(con, session, cam=None, windows=None) -> dict:
 
 
 def voice(con, s) -> str:
-    """The dry witness's verdict line for notify() (F8), plus why phone/Mac signals lowered it, if they did."""
+    """The dry witness's verdict line for notify(), plus why phone/Mac signals lowered it, if they did."""
     line = _voice(con, s)
     reason = _cap_reason(con, s)
     return f"{line} {reason}." if reason and reason.lower() not in line.lower() else line
@@ -434,7 +434,7 @@ def _rule_label(habit: str, title: str) -> str:
 
 
 def short_title(key: str, url: str = "") -> str:
-    """'Google Chrome — But how do AI images… - YouTube - Google Chrome – Harrish' -> 'YouTube'; 'Cursor' -> 'Cursor'.
+    """'Google Chrome — But how do AI images… - YouTube - Google Chrome – Work' -> 'YouTube'; 'Cursor' -> 'Cursor'.
 
     Known site/app keyword first; else for a browser, the site from the URL host or the tab's last short segment;
     else the app name."""
