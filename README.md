@@ -9,6 +9,11 @@ The habit tracker that checks your alibi.
 For students with more passions than hours, Alibi checks every habit against real evidence, steps in the moment they
 drift, and plans the catch-up when they slip.
 
+<p align="center">
+  <a href="docs/media/alibi-demo.mp4"><img src="docs/media/demo-teaser.gif" width="760" alt="Alibi putting a YouTube tab away mid-session while a drawing session runs. Opens the demo video."></a>
+  <br><sub><a href="docs/media/alibi-demo.mp4">Watch the demo video</a></sub>
+</p>
+
 ## The problem
 
 Habit trackers trust you. You tick "drew for an hour" whether you drew or scrolled.
@@ -33,6 +38,35 @@ work and only ticks the habit if the evidence agrees. Three machines, three jobs
 
 Runs come from **Strava**: say "going for a run" and the claim settles when the run shows up there.
 
+## See it work
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/guard.gif" width="100%" alt="Drift, and it steps in. Mid-session, a YouTube tab becomes Alibi's focus page and the notch nudges you back."><br><b>Drift, and it steps in.</b> Mid-session, a YouTube tab becomes Alibi's focus page and the notch nudges you back.</td>
+<td width="50%" valign="top"><img src="docs/media/notch.gif" width="100%" alt="Say it to the notch. Hover the notch for what's left today, then say what you're about to do."><br><b>Say it to the notch.</b> Hover the notch for what's left today, then say what you're about to do.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/dashboard.gif" width="100%" alt="The live session. Time left, what the witnesses see, and Pinch watching."><br><b>The live session.</b> Time left, what the witnesses see, and Pinch watching.</td>
+<td width="50%" valign="top"><img src="docs/media/notch-nudge.gif" width="100%" alt="A nudge, not a lecture. 'You said drawing. YouTube can wait.' with one tap back."><br><b>A nudge, not a lecture.</b> "You said drawing. YouTube can wait." with one tap back.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/desk.gif" width="100%" alt="Work happens off-screen too. Drawing on paper while the session runs; the desk camera is judged on the Mac."><br><b>Work happens off-screen too.</b> Drawing on paper while the session runs; the desk camera is judged on the Mac.</td>
+<td width="50%" valign="top"><img src="docs/media/phone.gif" width="100%" alt="The iPhone companion. Today's session and the week, in your pocket."><br><b>The iPhone companion.</b> Today's session and the week, in your pocket.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/plan.gif" width="100%" alt="Plan the next three days. Move a block, add a one-off, take a day off. Shown on demo data."><br><b>Plan the next three days.</b> Move a block, add a one-off, take a day off. Shown on demo data.</td>
+<td width="50%" valign="top"><img src="docs/media/habits.gif" width="100%" alt="Edit habits in place. Schedules and weekly targets; the week re-plans. Shown on demo data."><br><b>Edit habits in place.</b> Schedules and weekly targets; the week re-plans. Shown on demo data.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/island.gif" width="100%" alt="The notch through a session. Idle, live, nudge, verdict, run verified. Rendered from test fixtures."><br><b>The notch through a session.</b> Idle, live, nudge, verdict, run verified. Rendered from test fixtures.</td>
+<td width="50%" valign="top"><img src="docs/media/pinch.gif" width="100%" alt="Pinch reads the room. His mood follows your day. Rendered from stage fixtures."><br><b>Pinch reads the room.</b> His mood follows your day. Rendered from stage fixtures.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/media/island-run.png" width="100%" alt="Runs are settled by Strava. Not by your word. A UI preview rendered from a test fixture."><br><b>Runs are settled by Strava.</b> Not by your word. A UI preview rendered from a test fixture.</td>
+<td width="50%" valign="top"><img src="docs/media/island-brief.png" width="100%" alt="Briefs from the agent. The always-on agent on the DGX Spark writes to the notch."><br><b>Briefs from the agent.</b> The always-on agent on the DGX Spark writes to the notch.</td>
+</tr>
+</table>
+
 ## Features
 
 - **Sessions with evidence.** Each session keeps its proof: a contact sheet of timestamped frames, or a breakdown of
@@ -44,6 +78,8 @@ Runs come from **Strava**: say "going for a run" and the claim settles when the 
 - **Nightly review.** At 22:00 Nemotron runs a tool-calling loop over your week (week status, plan, free gaps,
   history) and proposes one recovery block. Nothing changes until you press Accept. With no model, a rules picker
   makes the same kind of proposal.
+- **Cards, not paragraphs.** The night review, the agent's briefs and run results arrive as structured
+  cards on the notch and the dashboard: the question, where the answer came from, what slipped, and Accept.
 - **Briefs.** A morning brief that remembers last night's promise, checkpoints at 12:00, 16:00 and 20:00 that only
   speak when something changed, and a night report of claimed vs seen.
 - **Plan the next three days** from the dashboard's plan page or the iPhone: move, skip or add a block. An accepted
@@ -126,3 +162,12 @@ data/         runtime data: personal, git-ignored
 `./alibi.sh test` runs every test in `tests/run_all.sh`, each in a fresh temporary data directory with a fake clock,
 the mock witness, and Mac signals and Shortcuts turned off. No keys, no camera, no network, about 15 seconds. Run
 one with `.venv/bin/python tests/test_p1.py`.
+
+## Built with
+
+- An **OpenClaw** agent in a **NemoClaw** (OpenShell) sandbox on an **NVIDIA DGX Spark**, kept alive by a
+  systemd timer (`spark/keepalive`).
+- **Nemotron 3 Super** on **NVIDIA Build**: the agent's briefs and the nightly tool-calling review.
+- **Apple Vision** on the Mac for the desk camera; **Tailscale** between the Mac, the iPhone and the Spark.
+
+Made for the NVIDIA London Claw Agent Challenge, October 2026.

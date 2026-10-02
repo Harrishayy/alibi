@@ -3,6 +3,7 @@ worth a buzz; the claw's brief is pushed under its own title; the claw sees when
 run claim polls Strava every 30 s instead of every 30 min; a phone Shortcut naming an app nudges at once. Loopback only:
 the fake ntfy runs on 127.0.0.1."""
 import contextlib, io, json, http.server, threading, time, types
+import datetime as dt
 from harness import check, Clock
 from alibi import config, db, integrations, notify, nudges, routes_agent, signals, strava
 
@@ -95,6 +96,7 @@ check("phone push failed: ConnectionError" in buf.getvalue() and "alibi-test-top
       f"push failure: one line, no topic ({buf.getvalue().strip()})")
 config.NTFY_URL = f"http://127.0.0.1:{srv.server_port}"
 clock = Clock()
+clock.t = dt.datetime.combine(dt.date.fromtimestamp(clock.t), dt.time(10, 0)).timestamp()  # "10 min ago" stays today
 
 # --- the claw sees when the phone really last synced ------------------------------------------------------------------
 integrations.set_state(phone_last_polled=clock.t - 86400, phone_last_received=clock.t - 600)
