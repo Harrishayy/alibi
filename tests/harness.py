@@ -21,6 +21,10 @@ for _k in ("STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET", "STRAVA_REFRESH_TOKEN", "
 os.environ.setdefault("SAMPLE_EVERY_S", "60")
 os.environ.setdefault("LAPTOP_EVERY_S", "30")
 os.environ.setdefault("CAMERA_INDEX", "0")
+# Never the real webcam: a desk session in a test without its own fixture video reads a file that isn't there and
+# grabs no frame, like a closed camera. Tests that need frames set CAMERA_SOURCE to a fixture after importing this.
+if not os.environ.get("CAMERA_SOURCE"):
+    os.environ["CAMERA_SOURCE"] = str(ROOT / "tests" / "fixtures" / "no-camera")
 os.environ.setdefault("STRAVA_CLAIM_EVERY_S", "30")
 os.environ.setdefault("VISION_BACKEND", "mock")
 os.environ.setdefault("ALIBI_FOCUS_SHORTCUTS", "0")  # never run the user's real Shortcuts from a test
