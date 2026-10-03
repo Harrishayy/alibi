@@ -127,7 +127,7 @@ No Strava data yet doesn't count against you. A block that never started does.
 </tr>
 <tr>
 <td width="50%" valign="top"><img src="docs/media/plan.gif" width="100%" alt="Plan the next three days. Move a block, add a one-off, take a day off. Shown on demo data."><br><b>Plan the next three days.</b> Move a block, add a one-off, take a day off. Shown on demo data.</td>
-<td width="50%" valign="top"><img src="docs/media/island.gif" width="100%" alt="The notch through a session. Idle, live, nudge, verdict, and a run settled by Strava. Rendered from test fixtures."><br><b>The notch through a session.</b> Idle, live, nudge, verdict, and a run settled by Strava. Rendered from test fixtures.</td>
+<td width="50%" valign="top"><img src="docs/media/island.gif" width="100%" alt="The notch through a session. A nudge, the verdict with its proof, a run settled by Strava, and the live timer. Rendered from test fixtures."><br><b>The notch through a session.</b> A nudge, the verdict with its proof, a run settled by Strava, and the live timer. Rendered from test fixtures.</td>
 </tr>
 </table>
 
