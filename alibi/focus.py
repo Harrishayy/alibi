@@ -91,6 +91,13 @@ def _has_phone(con, a: float, b: float) -> bool:
     return row is not None
 
 
+def _phone_since(con) -> float | None:
+    """When the phone first reported. Before that nothing was measured: a block on the morning of the day the phone
+    sync began has no pickup count, not 0, so it can't water down a habit's pickups an hour."""
+    row = con.execute("SELECT min(ts) FROM events WHERE source='phone'").fetchone()
+    return signals._f(row[0], None) if row else None
+
+
 def _full_day(con, a: float, b: float) -> bool:
     """The phone reported across [a, b): its rows there span FULL_DAY_S or more."""
     lo, hi = con.execute("SELECT min(ts), max(ts) FROM events WHERE source='phone' AND ts>=? AND ts<?", (a, b)).fetchone()
@@ -404,7 +411,7 @@ def _rules(c: dict) -> list[dict]:
             f"{m} min of {_kinds(top, cap=False)} inside planned blocks.",
             agent=f"{_kinds(top)} took {m} min during your plans. {act}")
     vs = c["vs"]
-    if vs is not None and vs >= LINE["above_week"]:
+    if vs is not None and vs >= LINE["above_week"] and not none:     # a lost day already asks for one 20-minute block
         add("above_week", vs / LINE["above_week"], None,
             f"{n} pickups, {vs}% above your week. Start tomorrow with one 20-minute block, phone in another room.",
             f"The {c['avg_days']} days before averaged {c['avg']:g}" +
@@ -446,14 +453,17 @@ def day(con, date=None, now: float | None = None) -> dict:
     biv = signals._union(started)
     in_blocks = {"pickups": _count(today, biv) if phone else None, "blocks": len(started),
                  "minutes": round(signals._len(biv) / 60)}
+    since = _phone_since(con)
+    cov = [(max(t0, since), hi)] if phone and since is not None and since < hi else []
     groups: dict[str, list] = {}
     for b in blocks:
         groups.setdefault(b["habit"], []).append(b)
     by_habit, habit_s = [], {}
     for k, bs in groups.items():
         iv = signals._union([w for b in bs if (w := _elapsed(b, t0, t1, now))])
-        secs = signals._len(iv)
-        m = _count(today, iv) if phone else None
+        civ = _intersect(iv, cov)                       # pickups only where the phone was reporting; the Mac all of it
+        secs = signals._len(civ)
+        m = _count(today, civ) if phone and (civ or not iv) else None
         habit_s[k] = secs
         by_habit.append({"habit": k, "label": bs[0]["label"], "planned_min": sum(int(b["min"]) for b in bs),
                          "state": _state([b["state"] for b in bs]), "pickups": m,
@@ -583,7 +593,8 @@ def week(con, now: float | None = None) -> dict:
     hi = max(w0, min(w1, now + SKEW_S))
     cfg = _cfg()
     phone_days = [k for k, (a, b) in bounds.items() if _has_phone(con, a, min(b, hi))]
-    ph_iv = [(bounds[k][0], min(bounds[k][1], hi)) for k in phone_days]
+    since = _phone_since(con) or w0
+    ph_iv = [(max(bounds[k][0], since), min(bounds[k][1], hi)) for k in phone_days]
     blocks = _blocks(con, first, 7, now, cfg)
     sess = _sessions(con, w0, w1, now)
     far = max([hi] + [end for _, end, _ in sess])

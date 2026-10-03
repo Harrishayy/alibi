@@ -328,4 +328,26 @@ clock.t = at(3, 22)
 wk = focus.week(con)
 check([x["pickups"] for x in wk["days"]][-2:] == [10, 39] and wk["avg_day"] == 65.8,
       f"the week's 'a day' skips that evening and today so far: (60+60+74+90+45)/5 ({wk['avg_day']})")
+
+# --- 13. before the phone's first row nothing was measured: a block that morning has no count, not 0 -----------------
+from alibi import calendar_sync
+calendar_sync.add_once("cpp", (D - dt.timedelta(days=6)).isoformat(), "06:00", 30)   # before the first pickup, 07:05
+t = focus.day(con, D - dt.timedelta(days=6), at(0, 22))
+cpp = next(h for h in t["by_habit"] if h["habit"] == "cpp")
+check(cpp["pickups"] == 2 and cpp["per_hour"] == 4.0 and cpp["planned_min"] == 60,
+      f"the day the phone began: C++ counts its 09:00 block only, 2 pickups in 30 min, not 2 in 60 ({cpp})")
+clock.t = at(0, 22)
+wk = focus.week(con)
+check(next(h for h in wk["by_habit"] if h["habit"] == "cpp")["pickups_per_hour"] == 5.0,
+      "the week's C++ rate leaves out the block before the phone's first row: still 5 in 60 min")
+
+# --- 14. a lost day well above the week asks for one 20-minute block once, not twice ---------------------------------
+for h in range(8, 22):                                           # D+4: 98 pickups, 7 an hour, no block happens
+    for m in range(0, 56, 8):
+        pickup(at(4, h, m, 15))
+lost = focus.day(con, D + dt.timedelta(days=4), at(5, 7, 30))
+check(lost["pickups"] == 98 and lost["vs_avg_pct"] >= 30
+      and [r["rule"] for r in lost["recommendations"]] == ["none_happened"],
+      f"{lost['pickups']} pickups, {lost['vs_avg_pct']}% above the week, no block: one rule, not the week's echo "
+      f"({[r['rule'] for r in lost['recommendations']]})")
 print("Focus DoD passed.")
