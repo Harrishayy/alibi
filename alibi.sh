@@ -5,7 +5,7 @@
 #   ./alibi.sh status    what's running + current session
 #   ./alibi.sh open      open the dashboard
 #   ./alibi.sh logs      follow the daemon log
-#   ./alibi.sh test      run every feature's Definition of Done (~15 s, no keys, no camera)
+#   ./alibi.sh test      run every feature's Definition of Done (about 3 min, no keys, no camera)
 #   ./alibi.sh demo      fast scripted live session (10 s samples, 2 minutes)
 #   ./alibi.sh seed      pre-filled demo week in data/demo
 #   ./alibi.sh say "draw for 25 minutes"   talk to it from the terminal

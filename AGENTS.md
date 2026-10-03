@@ -12,7 +12,7 @@ An always-on agent on a DGX Spark writes the briefs (docs/AGENT.md).
 |---|---|
 | First-time setup (venv, deps, native build) | `bash scripts/setup.sh` |
 | Start / stop / status | `./alibi.sh up` · `./alibi.sh down` · `./alibi.sh status` |
-| **All tests** (~15 s, no keys, no camera) | `./alibi.sh test` |
+| **All tests** (about 3 min, no keys, no camera) | `./alibi.sh test` |
 | One test | `.venv/bin/python tests/test_p1.py` |
 | Rebuild Swift (island, witness, sense, calendar, Alibi.app) | `bash scripts/build_native.sh` |
 | Island visual check, no screen recording | `bin/alibi-island --snapshot DIR [--state FILE.json]` |

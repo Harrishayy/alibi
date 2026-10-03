@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every feature's Definition of Done, in order, each in a fresh temp data dir. ~15 s total.
+# Every feature's Definition of Done, in order, each in a fresh temp data dir. About 3 min total.
 set -euo pipefail
 cd "$(dirname "$0")"
 source ../.venv/bin/activate
