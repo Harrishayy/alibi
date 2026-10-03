@@ -46,8 +46,8 @@ hardest, minutes lost to distracting sites and apps on the Mac, and up to three 
 counted on the Mac by code (`alibi/focus.py`). No model guesses a number.
 
 <p align="center">
-  <img src="docs/media/focus-day.png" width="880" alt="The dashboard's Focus section for Friday 2 October: 92 phone pickups, a bar per hour with the 17:00 peak in red and the planned blocks outlined, and What to change: Phone away for C++, 6 pickups an hour during it.">
-  <br><sub>My real Friday, read back by the dashboard.</sub>
+  <img src="docs/media/focus-day.gif" width="880" alt="The dashboard's Focus section for Friday 2 October: 92 phone pickups, a bar per hour with the 17:00 peak in red and the planned blocks outlined, then What to change, By habit and On your Mac.">
+  <br><sub>Friday, as Alibi counted it: my real phone and Mac, read-only.</sub>
 </p>
 
 Two real days this week:
@@ -60,6 +60,17 @@ Two real days this week:
 | Distracting sites and apps on the Mac | 18 min | 34 min |
 | What to change | "None of your 5 blocks happened; your phone was picked up 81 times. One 20-minute block tomorrow, phone away." | "Phone away for C++: 6 pickups an hour during it." |
 
+### The advice follows the pickups
+
+<p align="center">
+  <img src="docs/media/focus-advice.gif" width="880" alt="Four made-up days through Alibi's focus rules: a calm day, the phone in the C++ block, a phone peak on the Drawing block, and a day where no block happened, each with its own change for tomorrow.">
+  <br><sub>Four made-up days, counted and advised by the same code.</sub>
+</p>
+
+34 pickups and every block done: nothing to change. Five of 73 inside the 30-minute C++ block: phone away for C++.
+The phone's 19:00 peak on top of the Drawing block: don't plan Drawing at 19:00. 92 pickups and no block at all: one
+20-minute block tomorrow, phone away. The agent gets the same numbers and rules, never a site or an app name.
+
 ### The agent turns it into tomorrow
 
 The always-on agent on the DGX Spark gets the same numbers, never a site, a window title or a URL. At 22:00
@@ -69,8 +80,13 @@ pickups, the habit that suffered most and one change for tomorrow, which it writ
 morning brief reminds you. Nothing changes until you press Accept.
 
 <p align="center">
-  <img src="docs/media/night-review.png" width="600" alt="Friday's night review on the notch: Move math to tomorrow 08:00, 60 min? Focus chips for 82 pickups, the 17:00 peak and 4 pickups in plans, the missed blocks, and Accept or Not now.">
-  <br><sub>Friday's real night review, rendered by the island. The Focus chips are that day's numbers at 22:00.</sub>
+  <img src="docs/media/night-review.gif" width="880" alt="The notch opens on Friday's night review: Move math to tomorrow 08:00, 60 min? Nemotron 3 Super, 5 s. Focus: 74 pickups, peak 17:00 with 11, 6 in plans. Missed today: Math 11:00, C++ 14:00, Drawing 19:00. Accept is pressed and the notch folds back with a check.">
+  <br><sub>Friday's real night review on the notch, replayed by today's code: 74 pickups synced by 22:00, three missed blocks, and Accept, pressed on a copy.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/media/night-card-web.gif" width="880" alt="The same night review on the dashboard: the proposal, where it came from (checked your week, tomorrow's plan and free gaps), the Focus chips, the missed blocks and the buffer per habit. Accept turns it into On the plan: math tomorrow 08:00, 60 min.">
+  <br><sub>The same review on the dashboard, with what the planner checked and each habit's buffer. Accept puts math on tomorrow's plan.</sub>
 </p>
 
 ### Your calendar, as it happened
