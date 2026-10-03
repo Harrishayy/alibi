@@ -1,0 +1,194 @@
+/* focus.css: the Focus section (js/focus.js): phone pickups by hour over the day's plan, the week, each habit, the Mac,
+   and what to change. Tokens only (tokens.css). Phone is warn, never the accent: the peak hour and pickups during plans
+   are phone red; green marks only done blocks and the now-line. Motion: bars grow on scaleY, cards rise 6px, the big
+   number counts up (js); reduced motion keeps a 150 ms fade. Loaded after card.css. */
+
+#focusBlock[hidden]{display:none}
+#focusBlock .sechead{align-items:center}
+
+/* ---------- tabs: a soft segmented control (setup.css .seg), 28px targets ---------- */
+.fx-seg{flex:none;display:inline-flex;padding:2px;gap:2px;border-radius:var(--radius-sm);background:var(--surface-1);border:1px solid var(--hairline)}
+.fx-seg button{height:28px;padding:0 var(--space-3);border:0;border-radius:8px;background:transparent;font:500 13px/1 var(--font-sans);color:var(--ink-2);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background-color var(--dur-micro) ease,color var(--dur-micro) ease,transform var(--spring-micro-dur) var(--spring-micro)}
+@media (hover:hover) and (pointer:fine){.fx-seg button:hover{color:var(--ink)}}
+.fx-seg button:active{transform:scale(.97);transition-duration:var(--dur-micro)}
+.fx-seg button[aria-selected="true"]{background:var(--surface-3);color:var(--ink)}
+.fx-seg button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+
+/* ---------- panel and cards ---------- */
+.fx-panel{display:flex;flex-direction:column;gap:var(--space-4);min-width:0;transition:opacity var(--dur-small) ease}
+.fx-panel.is-busy{opacity:.5}
+.fx-panel:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px;border-radius:var(--radius-md)}
+.fx-card{padding:var(--space-6);min-width:0}
+.fx-two{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:var(--space-4);align-items:start}
+.fx-h{margin:0 0 var(--space-4);font-size:17px;line-height:1.35;font-weight:600;letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
+.fx-h small{margin-left:var(--space-2);font-size:13px;font-weight:400;letter-spacing:0;color:var(--ink-3)}
+.fx-empty{margin:0;font-size:15px;line-height:1.5;color:var(--ink-2);text-wrap:pretty}
+
+/* ---------- the headline: one number, one comparison ---------- */
+.fx-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-3) var(--space-4)}
+.fx-hero{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-1) var(--space-3);min-width:0}
+.fx-num{font-family:var(--font-rounded);font-size:48px;line-height:1;font-weight:600;letter-spacing:-.025em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.fx-unit{font-size:17px;line-height:1.35;font-weight:500;color:var(--ink-2)}
+.fx-none{margin:0;font-size:22px;line-height:1.25;font-weight:600;letter-spacing:-.015em;color:var(--ink)}
+.fx-sub{margin:var(--space-2) 0 0;font-size:13px;line-height:1.45;color:var(--ink-2);font-variant-numeric:tabular-nums;text-wrap:pretty}
+.fx-delta{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 var(--space-3);border-radius:var(--radius-pill);background:var(--surface-2);color:var(--ink-2);
+  font-size:13px;line-height:1;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fx-delta--warn{background:var(--warn-wash);color:var(--warn-ink)}
+.fx-delta--good{background:var(--accent-wash);color:var(--accent-ink)}
+
+/* ---------- charts (inline SVG sized to the card, redrawn on resize) ---------- */
+.fx-fig{position:relative;margin:var(--space-6) 0 0}
+.fx-chart{position:relative;width:100%;min-width:0;border-radius:var(--radius-xs);outline:none;touch-action:pan-y}
+.fx-chart:focus-visible{outline:2px solid var(--focus-ring);outline-offset:4px}
+.fx-chart svg{display:block;overflow:visible;font-family:var(--font-sans)}
+.fx-grid{stroke:var(--hairline);stroke-width:1;shape-rendering:crispEdges}
+.fx-base{stroke:var(--hairline-strong);stroke-width:1;shape-rendering:crispEdges}
+.fx-tick{fill:var(--ink-3);font-size:12px;font-weight:500;font-variant-numeric:tabular-nums}
+.fx-tick.is-today{fill:var(--ink);font-weight:600}
+/* Planned hours by how the block went: a 10% wash when you showed up (never a slab), an empty frame when it didn't
+   happen, a dashed frame while it's still ahead. A grey fill would read as one more bar. */
+.fx-band{fill:var(--hairline)}
+.fx-band--done,.fx-band--live{fill:var(--accent-wash)}
+.fx-band--partial{fill:var(--partial-wash)}
+.fx-band--slacked{fill:var(--warn-wash)}
+.fx-band--missed,.fx-band--skipped{fill:none;stroke:var(--hairline-strong);stroke-width:1}
+.fx-band--planned,.fx-band--now,.fx-band--waiting,.fx-band--nodata{fill:none;stroke:var(--hairline-strong);stroke-width:1;stroke-dasharray:4 3}
+.fx-bar{fill:var(--hairline-strong);transform-box:fill-box;transform-origin:50% 100%;transition:opacity var(--dur-micro) ease,fill var(--dur-micro) ease}
+/* Bars are opaque where color-mix() exists, so a tinted hour behind never tints the bar: ink mixed into the card
+   (40% dark, 52% light: both above 3:1 on surface-1). Older engines keep the translucent hairline-strong. */
+@supports (color:color-mix(in srgb,red 50%,blue)){
+  :root,[data-theme="dark"]{--fx-bar:color-mix(in srgb,var(--ink) 40%,var(--surface-1))}
+  [data-theme="light"]{--fx-bar:color-mix(in srgb,var(--ink) 52%,var(--surface-1))}
+  @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--fx-bar:color-mix(in srgb,var(--ink) 52%,var(--surface-1))}}
+  .fx-bar,.fx-k{fill:var(--fx-bar)}
+  .fx-k{background:var(--fx-bar)}
+}
+.fx-bar--peak,.fx-bar--plan{fill:var(--phone)}
+.fx-cap{fill:var(--ink-2);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.fx-cap--peak{fill:var(--ink)}
+.fx-nil{fill:var(--ink-3);font-size:12px}
+.fx-now{stroke:var(--accent);stroke-width:2}
+.fx-nowdot{fill:var(--accent)}
+.fx-chart.is-hover .fx-bar{opacity:.45}
+.fx-chart.is-hover .fx-bar.is-hot{opacity:1}
+.fx-chart.is-hover .fx-col.is-hot .fx-bar{opacity:1}
+/* the day's plan under the hours: glyph and name; the word is in the key, the tooltip and By habit */
+.fx-lanel{fill:var(--ink-2);font-size:12px;font-weight:500}
+.fx-g{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fx-g--done{color:var(--on-task-ink)}
+.fx-g--partial{color:var(--partial-ink)}
+.fx-g--slacked{color:var(--warn-ink)}
+.fx-g--live{color:var(--accent-ink)}
+.fx-g--missed,.fx-g--skipped,.fx-g--planned,.fx-g--now,.fx-g--waiting,.fx-g--nodata{color:var(--ink-3)}
+.fx-g .fx-fill{fill:currentColor;stroke:none}
+
+/* legend, tooltip */
+.fx-key{display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-4);margin-top:var(--space-3);font-size:12px;line-height:1.3;color:var(--ink-3)}
+.fx-key span{display:inline-flex;align-items:center;gap:var(--space-2)}
+.fx-k{display:inline-block;flex:none;width:10px;height:10px;border-radius:2px;background:var(--hairline-strong)}
+.fx-k--peak,.fx-k--plan{background:var(--phone)}
+.fx-ks{display:block;flex:none}
+.fx-tip{position:absolute;left:0;top:0;z-index:2;min-width:132px;max-width:240px;padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);background:var(--surface-2);
+  box-shadow:var(--shadow-float);color:var(--ink-2);font-size:13px;line-height:1.4;font-variant-numeric:tabular-nums;pointer-events:none;
+  opacity:0;transform:translateY(2px);transition:opacity var(--dur-micro) ease,transform var(--dur-micro) var(--ease-out)}
+.fx-tip.show{opacity:1;transform:none}
+.fx-tip b{display:block;font-size:15px;font-weight:600;color:var(--ink)}
+.fx-tip span{display:block}
+
+/* ---------- stats under the chart ---------- */
+.fx-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-4) var(--space-6);margin-top:var(--space-6);padding-top:var(--space-4);border-top:1px solid var(--hairline)}
+.fx-stat{display:flex;flex-direction:column;gap:var(--space-1);min-width:0}
+.fx-stat__l{font-size:12px;line-height:1.3;font-weight:600;letter-spacing:.01em;color:var(--ink-2)}
+.fx-stat__v{font-family:var(--font-rounded);font-size:22px;line-height:1.15;font-weight:600;letter-spacing:-.015em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
+.fx-stat__v small{margin-left:var(--space-1);font-family:var(--font-sans);font-size:13px;font-weight:400;letter-spacing:0;color:var(--ink-2)}
+
+/* ---------- what to change ---------- */
+.fx-recs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--space-4)}
+.fx-rec{display:grid;grid-template-columns:24px minmax(0,1fr);gap:var(--space-3);align-items:start}
+.fx-rec__n{display:inline-grid;place-items:center;width:24px;height:24px;margin-top:1px;border-radius:50%;background:var(--surface-2);color:var(--ink);font-size:13px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
+.fx-rec__t{margin:0;max-width:62ch;font-size:16px;line-height:1.5;color:var(--ink);text-wrap:pretty;font-variant-numeric:tabular-nums}
+.fx-rec__w{margin:2px 0 0;max-width:62ch;font-size:13px;line-height:1.45;color:var(--ink-3);text-wrap:pretty;font-variant-numeric:tabular-nums}
+
+/* ---------- by habit ---------- */
+.fx-rows{display:flex;flex-direction:column}
+.fx-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--space-1) var(--space-4);padding:var(--space-3) 0;border-top:1px solid var(--hairline)}
+.fx-row:first-child{border-top:0;padding-top:0}
+.fx-row:last-child{padding-bottom:0}
+.fx-name{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0}
+.fx-ic{display:inline-flex;flex:none;padding-top:2px;color:var(--ink-3)}
+.fx-name b{display:block;font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.01em;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx-name small{display:flex;flex-wrap:wrap;align-items:center;gap:2px var(--space-2);font-size:13px;line-height:1.45;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.fx-nums{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:13px;line-height:1.45;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.fx-nums b{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:600;color:var(--ink)}
+.fx-nums small{font-size:13px;color:var(--ink-3)}
+.fx-state{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.fx-state svg{flex:none}
+.fx-state--done{color:var(--accent-ink)}
+.fx-state--partial{color:var(--partial-ink)}
+.fx-state--slacked{color:var(--warn-ink)}
+.fx-state--live{color:var(--accent-ink)}
+.fx-src{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.fx-src .al-icon{color:var(--ink-3)}
+
+/* ---------- the Mac ---------- */
+.fx-macn{display:flex;align-items:baseline;gap:var(--space-2);margin:0 0 var(--space-4)}
+.fx-macn b{font-family:var(--font-rounded);font-size:32px;line-height:1;font-weight:600;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.fx-macn span{font-size:13px;line-height:1.45;color:var(--ink-2)}
+.fx-tops{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--space-2)}
+.fx-topr{display:grid;grid-template-columns:minmax(0,7em) minmax(24px,1fr) 4em;align-items:center;gap:var(--space-3);font-size:13px;line-height:1.3}
+.fx-topr__n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:var(--ink)}
+.fx-topr__t{position:relative;display:block;height:6px;border-radius:var(--radius-pill);background:var(--hairline);overflow:hidden}
+.fx-topr__t i{position:absolute;inset:0;border-radius:inherit;background:var(--ink-3);transform-origin:left center;transform:scaleX(var(--f,0))}
+.fx-topr__m{text-align:right;white-space:nowrap;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.fx-macmeta{margin:var(--space-4) 0 0;padding-top:var(--space-3);border-top:1px solid var(--hairline);font-size:13px;line-height:1.45;color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+/* ---------- the week's hardest habit: a 10% wash, the noun in warn ink ---------- */
+.fx-struggle{display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--warn-wash);color:var(--ink)}
+.fx-struggle .al-dot{padding-top:6px}
+.fx-struggle p{margin:0;font-size:16px;line-height:1.5;text-wrap:pretty;font-variant-numeric:tabular-nums}
+.fx-struggle b{font-weight:600;color:var(--warn-ink)}
+.fx-struggle small{display:block;font-size:13px;line-height:1.45;color:var(--ink-2)}
+
+/* ---------- provenance ---------- */
+.fx-prov{display:flex;align-items:flex-start;gap:var(--space-2);margin:0;max-width:72ch;font-size:13px;line-height:1.45;color:var(--ink-3);text-wrap:pretty}
+.fx-prov .al-icon{flex:none;margin-top:1px;color:var(--ink-3)}
+
+/* ---------- entrance: bars grow, caps and the plan lane follow (first sight, held until in view); a tab switch also lifts
+   the cards in, 40 ms apart. A quiet refresh never replays it. ---------- */
+.fx-col{transform-box:fill-box;transform-origin:50% 100%}
+.fx-pre .fx-hbar,.fx-pre .fx-col{transform:scaleY(0)}
+.fx-pre .fx-cap,.fx-pre .fx-chart .fx-band,.fx-pre .fx-lanem,.fx-pre .fx-topr__t i{opacity:0}
+.fx-play .fx-chart .fx-band{animation:fx-fade var(--dur-medium) var(--ease-out) both}
+.fx-play .fx-hbar{animation:fx-grow var(--dur-reveal) var(--ease-out) both;animation-delay:calc(var(--i, 0) * 14ms + 80ms)}
+.fx-play .fx-col{animation:fx-grow var(--dur-reveal) var(--ease-out) both;animation-delay:calc(var(--i, 0) * 40ms + 80ms)}
+.fx-play .fx-cap{animation:fx-fade var(--dur-medium) var(--ease-out) both;animation-delay:620ms}
+.fx-play .fx-lanem{animation:fx-fade var(--dur-medium) var(--ease-out) both;animation-delay:calc(var(--i, 0) * 40ms + 320ms)}
+.fx-play .fx-topr__t i{animation:fx-fill var(--dur-reveal) var(--ease-out) both;animation-delay:calc(var(--i, 0) * 40ms + 200ms)}
+.fx-swap .fx-card,.fx-swap .fx-struggle{animation:fx-rise var(--dur-medium) var(--ease-out) both;animation-delay:calc(var(--c, 0) * 40ms)}
+.fx-swap .fx-rec{animation:fx-rise var(--dur-medium) var(--ease-out) both;animation-delay:calc(var(--i, 0) * 40ms + 120ms)}
+@keyframes fx-grow{from{transform:scaleY(0)}}
+@keyframes fx-fill{from{transform:scaleX(0)}}
+@keyframes fx-rise{from{opacity:0;transform:translateY(6px)}}
+@keyframes fx-fade{from{opacity:0}}
+
+@media (max-width:720px){
+  .fx-two{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .fx-card{padding:var(--space-4)}
+  .fx-struggle{padding:var(--space-4)}
+  .fx-num{font-size:44px}
+  .fx-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4)}
+  .fx-stat__v{font-size:20px}
+  .fx-row{grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
+  .fx-nums{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:var(--space-1) var(--space-3);text-align:left}
+}
+@media (prefers-reduced-motion:reduce){
+  .fx-pre .fx-hbar,.fx-pre .fx-col{transform:none}
+  .fx-pre .fx-cap,.fx-pre .fx-chart .fx-band,.fx-pre .fx-lanem,.fx-pre .fx-topr__t i{opacity:1}
+  .fx-play .fx-chart .fx-band,.fx-play .fx-hbar,.fx-play .fx-col,.fx-play .fx-cap,.fx-play .fx-lanem,.fx-play .fx-topr__t i,
+  .fx-swap .fx-card,.fx-swap .fx-struggle,.fx-swap .fx-rec{animation:fx-fade 150ms ease both!important;animation-delay:0s!important}
+  .fx-seg button:active{transform:none}
+  .fx-tip{transform:none}
+}

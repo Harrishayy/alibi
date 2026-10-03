@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="/web/css/moments.css?v=p17">
 <link rel="stylesheet" href="/web/css/habits.css?v=w1">
 <link rel="stylesheet" href="/web/css/card.css?v=w3">
+<link rel="stylesheet" href="/web/css/focus.css?v=f1">
 </head>
 <body class="idle">
 <a class="skip" href="#main">Skip to Now</a>
@@ -136,6 +137,16 @@
     <div class="hlines" id="hlines"></div>
   </section>
 
+  <section class="block" id="focusBlock" aria-labelledby="focusH" hidden>
+    <div class="sechead"><h2 id="focusH">Focus</h2>
+      <div class="fx-seg" id="focusTabs" role="tablist" aria-label="Focus period">
+        <button type="button" role="tab" id="focusTabToday" aria-selected="true" aria-controls="focusPanel" data-fx="today">Today</button>
+        <button type="button" role="tab" id="focusTabYesterday" aria-selected="false" aria-controls="focusPanel" data-fx="yesterday" tabindex="-1">Yesterday</button>
+        <button type="button" role="tab" id="focusTabWeek" aria-selected="false" aria-controls="focusPanel" data-fx="week" tabindex="-1">Week</button>
+      </div></div>
+    <div class="fx-panel" id="focusPanel" role="tabpanel" aria-labelledby="focusTabToday" tabindex="0"></div>
+  </section>
+
   <section class="block" id="weekBlock" aria-labelledby="weekH">
     <div class="sechead"><h2 id="weekH">This week</h2><span class="secmeta" id="weekRange"></span></div>
     <div id="weekHero" class="hero" aria-label="This week in numbers"></div>
@@ -181,6 +192,7 @@
 <script src="/web/js/setup.js?v=w1"></script>
 <script src="/web/js/onboarding.js?v=p22"></script>
 <script src="/web/js/habits.js?v=w1"></script>
+<script src="/web/js/focus.js?v=f1"></script>
 <script src="/web/js/boot.js?v=p17"></script>
 </body>
 </html>

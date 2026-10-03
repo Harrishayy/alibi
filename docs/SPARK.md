@@ -60,6 +60,28 @@ To bring the agent back by itself after a reboot or a crash, install the keep-al
 
 Mac: turn on iPhone sync (the :8766 listener). Nothing else changes; :8765 stays loopback-only.
 
+## Updating the skill
+
+The skill (`spark/skills/alibi/SKILL.md`), the heartbeat checklist and the brief jobs' messages and times
+(`spark/briefs.json`) live in this repo. After changing them, push them from the Mac:
+
+```bash
+bash spark/deploy_skill.sh --dry-run    # says what would change; reads only
+bash spark/deploy_skill.sh              # SPARK_HOST=spark (your ssh host), sandbox alibi
+```
+
+It copies the files over ssh into a temp dir on the Spark (the Spark's checkout stays as it is), fills in the relay
+URL the way `spark_setup.sh` does, and stops unless the relay answers from inside the sandbox. It installs the skill
+and uploads the heartbeat only when they differ from the sandbox's copies, and patches the cron jobs in place with
+`openclaw cron edit` (a missing one is added with `spark_setup.sh`'s flags), so a rerun changes nothing. Each cron
+run starts a fresh session and reads the new text. `openclaw cron run <night-job-id>` tries it at once, but it posts
+tonight's slot, and the 22:05 run then gets that stored copy back (same idempotency key).
+
+The night and morning briefs quote `focus` from `/context`: pickups, the peak hour, pickups per hour inside each
+habit's planned blocks, Mac distraction minutes as one aggregate, notification counts and Alibi's rule-based
+recommendations, all counted on the Mac by code. `focus` holds numbers, habit names and hours only: no site or app
+names, window titles or URLs. Until the Mac sends it, the briefs leave the phone out.
+
 ## Checks
 
 ```bash
@@ -67,7 +89,7 @@ Mac: turn on iPhone sync (the :8766 listener). Nothing else changes; :8765 stays
                                           # no session writes) + relay mirror, stale fallback, outage record
 systemctl --user status alibi-relay
 nemoclaw alibi exec -- openclaw cron list
-nemoclaw alibi exec -- openclaw cron run <night-job-id>     # posts a brief now
+nemoclaw alibi exec -- openclaw cron run <night-job-id>     # posts tonight's brief now (22:05 then replays it)
 nemoclaw alibi dashboard-url --quiet                        # OpenClaw web UI (Spark loopback)
 ```
 

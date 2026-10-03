@@ -12,7 +12,7 @@ import importlib, traceback
 
 PLUGINS = ("calendar_sync", "integrations", "onboarding", "mac_signals", "signals")
 ROUTES = ("routes_calendar", "routes_integrations", "routes_onboarding", "routes_signals", "routes_plan",
-          "routes_digest")
+          "routes_digest", "routes_focus")
 
 
 def _mods(names):

@@ -3,10 +3,12 @@
 Mounted inside integrations.phone_app() (the :8766 listener), never on the loopback dashboard app.
 
 GET  /api/agent/ping              -> {ok, ts, tz, agent_last_seen}
-GET  /api/agent/context           -> one snapshot for a brief (week, today, free gaps, last night, milestones, signals)
+GET  /api/agent/context           -> one snapshot for a brief (week, today, free gaps, last night, milestones, signals,
+                                     focus: yesterday's and today's pickups and rules from alibi/focus.py, counts only)
 GET  /api/agent/digests?limit=5   -> Alibi's own recent rules digests
 POST /api/agent/brief             -> the agent's version of a slot's brief; stored, never evidence. A timely one also
-                                     drops down on the island once per slot (kind "brief"), unless a session is live
+                                     drops down on the island once per slot (kind "brief"), unless a session is live.
+                                     A night or morning brief's row keeps the focus numbers of the day it's about
 
 Security: X-Alibi-Agent-Token (or Authorization: Bearer) — its own secret (`nemoclaw_token` in data/secrets.json),
 never the phone key; a token in the query string is refused. Loopback or tailnet source only. Body <= 16 KB, 30
@@ -16,7 +18,7 @@ its only write is a brief, and a brief is derived output kept in DATA_DIR/agent_
 import collections, datetime as dt, hmac, json, os, re, secrets as _rand, threading, time
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from . import config, db, digest, integrations, report, secrets as store
+from . import config, db, digest, focus, integrations, report, secrets as store
 from .routes_phone import BODY_MAX, WRITES_PER_MIN, _client_ok
 
 router = APIRouter()
@@ -119,7 +121,9 @@ def context(now: float | None = None) -> dict:
             "sessions_today": _or_empty(_sessions_today, con, today, now),
             "claims_today": _or_empty(_claims_today, con, today, now),
             "away": _or_empty(_away, today),
-            "last_night": last, "milestones": miles, "signals": sig, "never_included": NEVER_INCLUDED}
+            "last_night": last, "milestones": miles, "signals": sig,
+            "focus": _or_none(focus.agent_summary, con, now),
+            "never_included": NEVER_INCLUDED}
 
 
 def _hm(ts) -> str | None:
@@ -133,6 +137,15 @@ def _or_empty(fn, *args) -> list:
     except Exception as e:
         print(f"[alibi] agent context {fn.__name__} skipped: {type(e).__name__}", flush=True)
         return []
+
+
+def _or_none(fn, *args):
+    """_or_empty for a key that is an object: a bug in it costs that key (null), never /context."""
+    try:
+        return fn(*args)
+    except Exception as e:
+        print(f"[alibi] agent context {getattr(fn, '__name__', 'part')} skipped: {type(e).__name__}", flush=True)
+        return None
 
 
 def _day_bounds(day: dt.date) -> tuple[float, float]:
@@ -312,6 +325,9 @@ async def post_brief(request: Request):
                "kind": b["kind"], "text": b["text"].strip(), "items": b.get("items") or [], "links": b.get("links") or [],
                "model": str(b.get("model") or "")[:80], "tools_used": [str(t)[:40] for t in (b.get("tools_used") or [])][:10],
                "response": resp}
+        f = _brief_focus(b["slot"], b["kind"], now)
+        if f:
+            row["focus"] = f
         config.DATA_DIR.mkdir(parents=True, exist_ok=True)
         fd = os.open(_path(), os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
         try:
@@ -323,6 +339,21 @@ async def post_brief(request: Request):
         except Exception as e:         # the brief is stored; a failed alert never fails the POST
             print(f"[alibi] agent brief alert failed: {e!r}", flush=True)
     return resp
+
+
+def _brief_focus(slot: str, kind: str, now: float) -> dict | None:
+    """The focus numbers of the day a night or morning brief is about (the night's own day, the morning's yesterday),
+    counted by code when the brief lands, so its card's Focus chips show what the agent was reading. None for other
+    kinds, without phone data, or on any error: the brief is stored either way."""
+    if kind not in ("night", "morning"):
+        return None
+    try:
+        day = dt.date.fromisoformat(SLOT_RE.fullmatch(slot).group(1)) - dt.timedelta(days=1 if kind == "morning" else 0)
+        f = focus.snapshot(focus.day(db.connect(), day, now), recs=False)
+    except Exception as e:
+        print(f"[alibi] brief focus skipped: {type(e).__name__}", flush=True)
+        return None
+    return f if f["phone"] else None
 
 
 def _brief_alert(row: dict) -> bool:

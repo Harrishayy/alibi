@@ -1,24 +1,26 @@
 """Digests: a 07:30 brief that remembers last night's promise, checkpoints at 12/16/20 that only
 speak when something changed, and a night review that proposes one recovery block.
 
-build(kind, now) -> dict    pure over report.build_json(prose=False), calendar_sync.plan and the day's signals
-text(d) -> str              rules, always first, in Alibi's voice
+build(kind, now) -> dict    pure over report.build_json(prose=False), calendar_sync.plan and the day's signals; the
+                            night one also keeps the day's focus numbers (alibi/focus.py snapshot) for its card
+text(d) -> str              rules, always first, in Alibi's voice (the night adds "Phone: 92 pickups, 11 at 17:00. …")
 run(kind, now)              build + store in DATA_DIR/digests.jsonl (+ notify unless suppressed)
 replan(con, now)            the night proposal: a bounded tool loop against LLM_BASE_URL, validated in code (a rejected
                             proposal goes back to the model with the reason); no valid proposal in MAX_TURNS/BUDGET_S
                             falls back to the rules picker (via "rules"). Never applied until someone accepts it.
                             Night rows carry turns (model calls made), total_ms and model; each trace step a `result`.
+                            The model's focus_day tool gets pickup counts by hour, never a site or app name.
 accept(slot) / undo(slot)   put the proposal on the plan (calendar_sync.add_once) / take it off again
 
 Digests are derived output, not evidence, so they live in a JSONL file and never in `events` (AGENTS.md rule 1).
 Reading `sessions` here is a reporting read, like report.py.
 """
 import datetime as dt, json, os, re, threading, time
-from . import calendar_sync, cards, config, db, report
+from . import calendar_sync, cards, config, db, focus, report
 
 KINDS = ("morning", "checkpoint", "night")
 TITLES = {"morning": "Morning brief", "checkpoint": "Check-in", "night": "Night review"}   # the island's alert header
-MAX_TURNS = 6                       # a clean Build run takes 4: week, plan, gaps, propose. 2 spare to fix a rejection
+MAX_TURNS = 7                       # a clean Build run takes 5: week, focus, plan, gaps, propose; 2 to fix a rejection
 BUDGET_S = 60                       # the whole night loop, every turn included; it runs off the tick thread
 SOON_S = 4 * 3600                   # a checkpoint speaks anyway if a block starts within this
 _lock = threading.RLock()
@@ -358,6 +360,12 @@ TOOLS = [
     {"type": "function", "function": {"name": "history", "description": "Verified minutes per day for one habit.",
         "parameters": {"type": "object", "properties": {"habit": {"type": "string"}, "days": {"type": "integer"}},
                        "required": ["habit"]}}},
+    {"type": "function", "function": {"name": "focus_day", "description":
+        "The day's phone pickups, counted by Alibi: total, peak hour, pickups_by_hour (index = hour of day), pickups "
+        "inside planned blocks, per habit, minutes lost to distracting apps on the Mac, and Alibi's recommendations. "
+        "Counts only.",
+        "parameters": {"type": "object", "properties": {"date": {"type": "string", "description":
+            "YYYY-MM-DD, today or yesterday. Default today."}}}}},
     {"type": "function", "function": {"name": "propose", "description":
         "Propose ONE recovery block. The user confirms it; nothing is applied automatically.",
         "parameters": {"type": "object", "properties": {
@@ -372,8 +380,10 @@ TOOLS = [
 ]
 
 SYSTEM = ("You are Alibi's night planner. Recover the habit that is furthest behind this week with ONE block tomorrow "
-          "(or the day after). Look before you propose: call week_status, then plan and free_gaps for the day, then "
-          "call propose. Only use free time between 07:00 and 22:00. "
+          "(or the day after). Look before you propose: call week_status and focus_day, then plan and free_gaps for "
+          "the day, then call propose. Only use free time between 07:00 and 22:00. "
+          "focus_day counts today's phone pickups by hour: prefer a start hour outside the phone's peak hour and its "
+          "busiest hours. "
           "Proposed minutes must stay within that habit's max_minutes from week_status. "
           "`why` is read by the user: one short sentence in plain words, never buffer days or numbers. "
           "If propose answers ok:false, fix what its reason says and call propose again.")
@@ -411,6 +421,8 @@ def tool_call(con, name: str, args: dict, now: float, week: list):
                 for g in free_gaps(con, day, int(args.get("min_minutes") or 25), now)]
     if name == "history":
         return _history(con, str(args.get("habit")), args.get("days") or 14, now)
+    if name == "focus_day":         # the agent's wording: counts, habit names and hours, never a site or app name
+        return focus.agent_day(focus.day(con, args.get("date") or "today", now), hours=True)
     if name == "propose":
         ok, why, p = validate(con, args, now)
         return {"ok": ok, "reason": why, "proposal": p}
@@ -452,6 +464,11 @@ def step_result(name: str, args: dict, res, now: float) -> str:
         if name == "history":
             tot = sum(x["min"] for x in res)
             return f"{tot} min over {len(res)} d"
+        if name == "focus_day":
+            if not res.get("phone"):
+                return "no phone data"
+            pk = res.get("peak")
+            return _short(f"{res['pickups']} pickups" + (f", peak {pk['hour']:02d}:00" if pk else ""))
         if name == "propose":
             return "valid" if res.get("ok") else _short(f"invalid: {res.get('reason')}")
     except Exception:
@@ -611,6 +628,11 @@ def build(kind: str, now: float | None = None, con=None, prev: dict | None = Non
                     key=lambda x: x.get("buffer_days") or 0, default=None)
         d["fix_tomorrow"] = ({"habit": worst["habit"], "label": worst["label"], "reason": worst["reason"]}
                              if worst else None)
+        try:                        # counted at 22:00, so the card shows what the review saw; never fails the night
+            d["focus"] = focus.snapshot(focus.day(con, today, now))
+        except Exception as e:
+            print(f"[alibi] night focus skipped: {e!r}", flush=True)
+            d["focus"] = None
     d["pinch"] = PINCH["checkpoint_quiet" if kind == "checkpoint" and not d.get("send") else kind]
     return d
 
@@ -649,7 +671,8 @@ def _provenance(d: dict, now: float | None = None) -> str:
     for t in d.get("trace") or []:
         if str(t.get("result") or "").startswith("error"):
             continue
-        w = {"week_status": "your week", "free_gaps": "free gaps", "history": "your history"}.get(t.get("tool"))
+        w = {"week_status": "your week", "free_gaps": "free gaps", "history": "your history",
+             "focus_day": "your pickups"}.get(t.get("tool"))
         if t.get("tool") == "plan":
             try:
                 day = _day_arg((t.get("args") or {}).get("day"), gen)
@@ -716,6 +739,9 @@ def text(d: dict) -> str:
                  (("Done", "done", None), ("Partial", "partial", None), ("Slacked", "slacked", None),
                   ("Missed", "missed", lambda b: f"{b['label']} {b['at']}")) if d[k]]
         out.append("Day closed. " + (" ".join(parts) if parts else "Nothing seen today."))
+        phone = focus.phone_line(d.get("focus"))        # counts only: this text reaches the Spark (/api/agent/digests)
+        if phone:
+            out.append(phone)
         bufs = [x for x in d["buffers"] if x.get("buffer_days") is not None and x["status3"] not in ("done", "stale")]
         if bufs:
             out.append("Buffer: " + ", ".join(f"{x['label']} {x['buffer_days']:+g} d" if x["buffer_days"]

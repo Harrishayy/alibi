@@ -27,14 +27,20 @@ so the rules version always exists first (OpenClaw cron, Europe/London; jobs in 
 
 | Job | When | What |
 |---|---|---|
-| Morning | 07:32 | Reads `/status`, `/context` and its memory. If last night's review proposed a block, says whether it was kept. Posts the morning brief. |
+| Morning | 07:32 | Reads `/status`, `/context` and its memory. Says yesterday's phone pickups against your week, reminds the change it noted last night, and whether last night's proposed block was kept. Posts the morning brief. |
 | Checkpoint | 12:02, 16:02, 20:02 | Reads `/context` and `/digests`. Posts only if a habit's status changed or a planned block starts within 4 hours. |
-| Night | 22:05 | Appends what slipped today to `memory/alibi.md`, then posts the night brief. |
+| Night | 22:05 | Quotes today's pickups and peak hour, names the habit that suffered most and gives one change for tomorrow from Alibi's focus rules. Appends that to `memory/alibi.md`, then posts the night brief. |
 | Heartbeat | every 30 min | Checks the Mac is reachable. Posts one `risk` brief the first time a habit goes off track that day (`spark/HEARTBEAT.md`). |
 
 **Memory.** One line per night in `memory/alibi.md` in the OpenClaw workspace:
-`YYYY-MM-DD · what slipped · why, if the context says · what it proposed`. The morning job reads it back, so the
-brief can say whether the plan held. `last_night.kept` in `/context` is the fact; the memory note is the story.
+`YYYY-MM-DD · slipped: Drawing · phone: 90 pickups, 12 at 17:00, +32% vs week · change: Phone away for Drawing.`
+The morning job reads it back, so the brief can remind the change and say whether the plan held. `last_night.kept`
+in `/context` is the fact; the memory note is the story.
+
+**Focus numbers.** `/context` carries `focus.yesterday` and `focus.today_so_far`, counted on the Mac by
+`alibi/focus.py`: phone pickups, the peak hour, pickups inside planned blocks and per habit, Mac distraction minutes
+as one aggregate, notification counts and up to three rule-based changes ("Phone away for C++: 6 pickups an hour
+during it."). The agent copies these numbers and never computes its own; it never names a site or an app.
 
 **Briefs.** Each brief is a `POST /brief` with an idempotency key. `kind` is `morning`, `checkpoint`, `night` or
 `risk`; text is at most 600 characters, with at most 5 `https://` links. A brief that arrives within 20 minutes of
@@ -67,7 +73,7 @@ dashboard:
 | Route | What |
 |---|---|
 | `GET /api/agent/ping` | liveness and `agent_last_seen` |
-| `GET /api/agent/context` | one snapshot for a brief: the week per habit, today, free gaps tomorrow, last night's proposal, milestones, signals |
+| `GET /api/agent/context` | one snapshot for a brief: the week per habit, today, free gaps tomorrow, last night's proposal, milestones, signals, focus numbers |
 | `GET /api/agent/digests?limit=5` | recent rules digests |
 | `POST /api/agent/brief` | store the agent's brief for a slot |
 
@@ -86,7 +92,9 @@ destination, the relay on the Docker bridge, for four rules (`GET /status`, `GET
 Build, so the NVIDIA key stays with the host and never enters the sandbox.
 
 What leaves the Mac for the agent: habit names, minutes, planned times, verdicts and statuses, run distances,
-milestone titles, days-off labels and aggregate counts.
+milestone titles, days-off labels and aggregate counts, including phone pickup counts (a day's total, per habit and
+by hour), Mac distraction minutes as one aggregate and notification counts. Never camera frames, window titles, app
+or site names, URLs, coordinates or notification text.
 
 ## Staying up
 

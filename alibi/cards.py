@@ -7,6 +7,8 @@ display(text)        raw enums -> words ("off_track" -> "off track"), for every 
 for_alert(a)         the card for one alerts.jsonl record, or None (api._alert_json calls it; a stored valid card wins)
 for_digest(row)      the card for a digests.jsonl row (GET /api/digests, /latest, POST /run responses)
 for_brief(row)       the card for an agent_briefs.jsonl row (GET /api/briefs, the brief alert)
+focus_group(f)       the "Focus" chips (pickups, peak hour, pickups in plans, against the week) from the focus numbers a
+                     night digest or a night/morning brief row kept when it was written (alibi/focus.py snapshot)
 clean(card)          caps, limits and tones enforced; every builder's output goes through it. Its output is always
                      JSON-safe (strings, finite floats, small dicts), so a card can never fail /api/state.
 
@@ -206,6 +208,35 @@ def _signed_days(x) -> str:
     return "0 d" if not x else f"{x:+g} d".replace("-", "−")
 
 
+def focus_group(f) -> dict | None:
+    """'Focus': [90 pickups] [Peak 17:00 · 11] [14 in plans] [+50% vs week], from a focus snapshot. The pickups and
+    week chips turn warn at 30% above the week. None without phone data: no data is not a miss, so no zeros."""
+    if not isinstance(f, dict) or f.get("phone") is not True or _number(f.get("pickups")) is None:
+        return None
+    n = int(f["pickups"])
+    vs = _number(f.get("vs_avg_pct"))
+    hot = vs is not None and vs >= 30
+    items = [{"text": f"{n} pickup{'s' * (n != 1)}", "tone": "warn" if hot else "neutral", "icon": "phone"}]
+    pk = f.get("peak")
+    if isinstance(pk, dict) and _number(pk.get("hour")) is not None and _number(pk.get("pickups")) is not None:
+        items.append({"text": f"Peak {int(pk['hour']):02d}:00 · {int(pk['pickups'])}", "tone": "neutral",
+                      "icon": "clock"})
+    ib = f.get("in_blocks")
+    if isinstance(ib, dict) and ib.get("blocks") and _number(ib.get("pickups")) is not None:
+        items.append({"text": f"{int(ib['pickups'])} in plans", "tone": "neutral", "icon": "calendar"})
+    if vs is not None:
+        items.append({"text": f"{_signed(round(vs))}% vs week",
+                      "tone": "warn" if hot else "accent" if vs <= -30 else "neutral"})
+    return {"label": "Focus", "items": items}
+
+
+def _top_rec(f) -> str:
+    """The focus snapshot's first rule, as the card's subtitle when the night has nothing to ask."""
+    recs = f.get("recommendations") if isinstance(f, dict) else None
+    r = recs[0] if isinstance(recs, list) and recs and isinstance(recs[0], dict) else {}
+    return _text(r.get("text")).strip()
+
+
 def buffer_group(buffers: list) -> dict | None:
     """Buffer per habit, worst first: [{label, value: buffer_days, min -7, max 7, tone by status3, caption '−5 d'}].
     The same rows and numbers as the text's 'Buffer:' line."""
@@ -249,9 +280,11 @@ def _until(row, now: float) -> float:
 
 def night(d: dict, row: dict | None = None, now: float | None = None) -> dict | None:
     """The night review. A proposal leads as the question (Accept / Not now are the alert's own actions); then the
-    day's blocks and sessions as chips, the buffer as bars, and where the proposal came from. Worded against `now`
-    (default: the clock), not when it was written: read after midnight, the question is "today 08:00" and the blocks
-    are "Missed Friday"; once the slot has started there's nothing left to accept, so it reads "Proposed: …"."""
+    day's phone numbers as the Focus chips (first: the island shows two groups), the day's blocks and sessions as
+    chips, the buffer as bars, and where the proposal came from. With nothing to ask, the day's top focus rule is
+    the subtitle. Worded against `now` (default: the clock), not when it was written: read after midnight, the
+    question is "today 08:00" and the blocks are "Missed Friday"; once the slot has started there's nothing left to
+    accept, so it reads "Proposed: …"."""
     from . import config, digest
     row = row or {}
     now = time.time() if now is None else now
@@ -278,7 +311,10 @@ def night(d: dict, row: dict | None = None, now: float | None = None) -> dict | 
         card["title"] = "Day closed."
         f = d.get("fix_tomorrow")
         fix = _when(day + dt.timedelta(days=1), now) if day else "tomorrow"
-        card["subtitle"] = f"Fix {fix}: {f['label']}. {f['reason']}" if f else ""
+        card["subtitle"] = _top_rec(d.get("focus")) or (f"Fix {fix}: {f['label']}. {f['reason']}" if f else "")
+    fg = focus_group(d.get("focus"))
+    if fg:
+        card["groups"].append(fg)
     items = ([{"text": f"{x['label']} {x['seen_min']} min", "tone": "accent", "icon": "check"}
               for x in _list(d.get("done"))]
              + [{"text": f"{x['label']} {x['seen_min']} min", "tone": "partial", "icon": "half"}
@@ -409,7 +445,9 @@ def checkpoint(d: dict) -> dict:
 
 def brief(b: dict) -> dict | None:
     """An agent_briefs.jsonl row, or a brief alert when the row is gone: first sentence as the title, the next as the
-    subtitle, the row's items as chips, 'Your agent · DGX Spark' as provenance (the model's name as its detail)."""
+    subtitle, the row's items as chips, 'Your agent · DGX Spark' as provenance (the model's name as its detail). A
+    night or morning brief also gets the Focus chips of the day it's about (the night's own day, the morning's
+    yesterday), counted by code when the brief landed (routes_agent keeps them on the row as `focus`)."""
     from . import pinch, today
     t = display(_text(b.get("text")))                      # a row whose text isn't a string has no card
     first = pinch.clean_brief(t, 1, 10_000)
@@ -424,8 +462,10 @@ def brief(b: dict) -> dict | None:
             chips.append({"text": f"{_name(i['habit'], cfg)} · {note}",
                           "tone": "warn" if re.search(r"behind|missed|slack|off track", note, re.I) else "neutral"})
     k = b.get("digest_kind") if b.get("kind") == "brief" else b.get("kind")        # an alert, or a briefs row
+    fg = focus_group(b.get("focus")) if k in ("night", "morning") else None
     return {"kind": "brief", "tone": "partial" if k == "risk" else "neutral",
             "title": first, "subtitle": pinch.clean_brief(rest, 1, 10_000) if rest else "", "chips": chips,
+            "groups": [fg] if fg else [],
             "provenance": {"text": f"Your agent · {today.agent_host()}", "source": "agent",
                            "detail": today.model_name(_text(b.get("model")))}}
 
